@@ -68,7 +68,7 @@ export async function POST(req: Request) {
             await logAction({
                 action: 'COURSE_CREATED',
                 entityType: 'Course',
-                entityId: course._id.toString(),
+                entityId: (course as any)._id.toString(),
                 performedBy: userInfo.userId as string,
                 role: userInfo.role as string,
                 metadata: { title: course.title, level: course.level }
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
                 message: `A new course "${course.title}" has been created.`,
                 type: 'COURSE_CREATED',
                 entityType: 'Course',
-                entityId: course._id.toString()
+                entityId: (course as any)._id.toString()
             });
         }
 
