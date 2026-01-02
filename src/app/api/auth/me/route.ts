@@ -17,13 +17,22 @@ export async function GET() {
         return NextResponse.json({ user: null });
     }
 
-    await dbConnect();
-    const user = await User.findById(decoded.userId).select('-password');
+    try {
+        await dbConnect();
+        const user = await User.findById(decoded.userId).select('-password');
 
-    return NextResponse.json({
-        user: {
-            ...user.toObject(),
-            photo: user.photo || '' // Ensure photo is returned
+        if (!user) {
+            return NextResponse.json({ user: null });
         }
-    });
+
+        return NextResponse.json({
+            user: {
+                ...user.toObject(),
+                photo: user.photo || ''
+            }
+        });
+    } catch (e) {
+        return NextResponse.json({ user: null });
+    }
 }
+

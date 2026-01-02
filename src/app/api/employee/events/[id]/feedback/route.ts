@@ -6,7 +6,7 @@ import { jwtVerify } from 'jose';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;

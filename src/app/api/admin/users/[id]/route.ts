@@ -4,7 +4,7 @@ import User from '@/models/User';
 import { hashPassword } from '@/lib/auth';
 
 // UPDATE User Details
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     const { id } = await params;
     try {
@@ -30,7 +30,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // DELETE User
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     const { id } = await params;
     try {
