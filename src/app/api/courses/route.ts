@@ -71,7 +71,7 @@ export async function POST(req: Request) {
                 entityId: (course as any)._id.toString(),
                 performedBy: userInfo.userId as string,
                 role: userInfo.role as string,
-                metadata: { title: course.title, level: course.level }
+                metadata: { title: (course as any).title, level: (course as any).level }
             });
 
             // Notify Admins (if Employee created it)
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
             // Let's protect against self-notification inside notifyAdmins if needed, or just broadcast.
             await notifyAdmins({
                 title: 'New Course Created',
-                message: `A new course "${course.title}" has been created.`,
+                message: `A new course "${(course as any).title}" has been created.`,
                 type: 'COURSE_CREATED',
                 entityType: 'Course',
                 entityId: (course as any)._id.toString()
