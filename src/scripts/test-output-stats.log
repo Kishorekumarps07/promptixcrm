@@ -1,0 +1,10 @@
+Starting Student Stats Test...
+Reading .env.local...
+Created Student: 695386f2f3fa6f356a0b7945
+Selected Course: Artificial Intelligence (AI)
+Enrolled in course
+Generated Token
+Fetching Stats...
+Stats Response: {"program":"Artificial Intelligence (AI) (AI & Data)","courseCategory":"AI & Data","mentor":"Unassigned","mentorEmail":"","status":"Not Started","project":"Not Assigned","upcomingEvents":0,"announcements":[]}
+✅ Program Verified: Artificial Intelligence (AI) (AI & Data)
+✅ TEST PASSED
