@@ -75,7 +75,7 @@ export default function EmployeeLeaves() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-navy-900">Leave Requests</h1>

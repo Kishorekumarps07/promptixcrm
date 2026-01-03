@@ -111,7 +111,7 @@ export default function StudentCourses() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">My Learning</h1>
                 </header>

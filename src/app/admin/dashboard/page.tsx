@@ -40,7 +40,7 @@ export default function AdminDashboard() {
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
                 <header className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-navy-900">Dashboard Overview</h1>

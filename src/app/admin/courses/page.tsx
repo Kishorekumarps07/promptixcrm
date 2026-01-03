@@ -195,14 +195,87 @@ export default function AdminCourses() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <div className="page-header">
                     <h1>Courses Management</h1>
                     <button onClick={() => openModal()} className="btn btn-primary">+ Create Course</button>
                 </div>
 
                 <div className="table-container">
-                    {loading ? <p>Loading...</p> : <Table data={courses} columns={columns} />}
+                    {loading ? <p>Loading...</p> : (
+                        <Table
+                            data={courses}
+                            columns={columns}
+                            mobileCard={(course) => (
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                    {/* Header: Title & Badge */}
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-navy-900 text-lg leading-tight mb-1 truncate">{course.title}</h4>
+                                            <span className="badge badge-info text-xs uppercase tracking-wider">{course.category}</span>
+                                        </div>
+                                        <span className={`badge ${course.status === 'Active' ? 'badge-success' : 'badge-error'} shrink-0`}>
+                                            {course.status}
+                                        </span>
+                                    </div>
+
+                                    {/* Details Grid */}
+                                    <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
+                                        <div>
+                                            <span className="text-xs text-uppercase text-gray-400 font-semibold block mb-1">Duration</span>
+                                            <span className="font-medium text-navy-800">{course.duration}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs text-uppercase text-gray-400 font-semibold block mb-1">Created By</span>
+                                            <span className="font-medium text-navy-800 truncate block">{course.createdBy?.name || 'Unknown'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex gap-3 mt-1">
+                                        <button
+                                            onClick={() => openModal(course)}
+                                            className="flex-1 btn bg-white text-navy-700 border border-gray-300 hover:bg-gray-50 text-sm font-medium shadow-sm"
+                                            style={{ minHeight: '44px' }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => openContentModal(course)}
+                                            className="flex-1 btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 text-sm font-medium shadow-sm"
+                                            style={{ minHeight: '44px' }}
+                                        >
+                                            Content
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleStatus(course._id, course.status)}
+                                            className={`flex-1 btn text-white text-sm font-medium shadow-sm ${course.status === 'Active' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'}`}
+                                            style={{ minHeight: '44px' }}
+                                        >
+                                            {course.status === 'Active' ? 'Deactivate' : 'Activate'}
+                                        </button>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => openEnrollModal(course._id)}
+                                            className="flex-1 btn bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium shadow-sm"
+                                            style={{ minHeight: '44px' }}
+                                        >
+                                            Assign Student
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(course._id)}
+                                            className="w-12 btn bg-white text-red-600 border border-gray-300 hover:bg-red-50 hover:border-red-200 text-sm font-medium shadow-sm flex items-center justify-center p-0"
+                                            style={{ minHeight: '44px' }}
+                                            aria-label="Delete"
+                                        >
+                                            🗑
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Create/Edit Modal */}

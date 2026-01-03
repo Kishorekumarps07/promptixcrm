@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import Table from '@/components/ui/Table';
 
 export default function SalaryGeneration() {
     const [month, setMonth] = useState(new Date().getMonth() === 0 ? 11 : new Date().getMonth() - 1); // Default previous month
@@ -61,7 +62,7 @@ export default function SalaryGeneration() {
     return (
         <div className="flex min-h-screen bg-gray-50">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8 flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl font-bold text-navy-900">Generate Salaries</h1>
@@ -105,39 +106,70 @@ export default function SalaryGeneration() {
                         <h3 className="font-semibold text-navy-800">Draft Salaries ({salaries.length})</h3>
                         <span className="text-xs text-gray-500">Status: {salaries.length > 0 ? 'Generated' : 'Pending'}</span>
                     </div>
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 text-gray-500 text-sm uppercase">
-                            <tr>
-                                <th className="p-4">Employee</th>
-                                <th className="p-4">Per Day Rate</th>
-                                <th className="p-4">Attended (Days)</th>
-                                <th className="p-4">Calculated Salary</th>
-                                <th className="p-4">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
-                                <tr><td colSpan={5} className="p-6 text-center">Loading...</td></tr>
-                            ) : salaries.length === 0 ? (
-                                <tr><td colSpan={5} className="p-6 text-center text-gray-400">No records found for this period.</td></tr>
-                            ) : salaries.map(rec => (
-                                <tr key={rec._id}>
-                                    <td className="p-4 font-medium text-navy-900">
-                                        {rec.employeeId?.name || 'Unknown'}
+
+                    <Table
+                        data={salaries}
+                        columns={[
+                            {
+                                header: "Employee",
+                                accessor: (rec) => (
+                                    <div>
+                                        <div className="font-medium text-navy-900">{rec.employeeId?.name || 'Unknown'}</div>
                                         <div className="text-xs text-gray-400">{rec.employeeId?.email}</div>
-                                    </td>
-                                    <td className="p-4 text-gray-600">${rec.perDayRate}</td>
-                                    <td className="p-4 font-bold">{rec.presentDays} / {rec.workingDays}</td>
-                                    <td className="p-4 font-bold text-green-600">${rec.calculatedSalary.toLocaleString()}</td>
-                                    <td className="p-4">
-                                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold uppercase">
-                                            {rec.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </div>
+                                )
+                            },
+                            {
+                                header: "Per Day Rate",
+                                accessor: (rec) => `$${rec.perDayRate}`
+                            },
+                            {
+                                header: "Attended (Days)",
+                                accessor: (rec) => <span className="font-bold">{rec.presentDays} / {rec.workingDays}</span>
+                            },
+                            {
+                                header: "Calculated Salary",
+                                accessor: (rec) => <span className="font-bold text-green-600">${rec.calculatedSalary.toLocaleString()}</span>
+                            },
+                            {
+                                header: "Status",
+                                accessor: (rec) => (
+                                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold uppercase">
+                                        {rec.status}
+                                    </span>
+                                )
+                            }
+                        ]}
+                        mobileCard={(rec) => (
+                            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="font-bold text-navy-900 text-lg">{rec.employeeId?.name || 'Unknown'}</div>
+                                        <div className="text-sm text-gray-500">{rec.employeeId?.email}</div>
+                                    </div>
+                                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold uppercase tracking-wider">
+                                        {rec.status}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
+                                    <div>
+                                        <span className="text-gray-400 text-xs font-semibold block mb-1 uppercase">Final Salary</span>
+                                        <span className="font-bold text-green-600 text-xl">${rec.calculatedSalary.toLocaleString()}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-400 text-xs font-semibold block mb-1 uppercase">Attendance</span>
+                                        <span className="font-medium text-navy-800 text-lg">{rec.presentDays} <span className="text-gray-400 text-sm font-normal">/ {rec.workingDays}</span></span>
+                                    </div>
+                                    <div className="col-span-2 pt-2 border-t border-gray-200 text-xs text-gray-500 flex justify-between">
+                                        <span>Daily Rate:</span>
+                                        <span className="font-mono text-navy-700">${rec.perDayRate}/day</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        loading={loading}
+                    />
                 </div>
             </main>
         </div>

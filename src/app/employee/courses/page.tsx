@@ -124,7 +124,7 @@ export default function EmployeeCourses() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <div className="page-header">
                     <h1>Course Management</h1>
                     <button onClick={() => openModal()} className="btn btn-primary">+ Create Course</button>
@@ -166,7 +166,7 @@ export default function EmployeeCourses() {
                     <div className="modal-overlay" onClick={() => setIsStudentsModalOpen(false)}>
                         <div className="modal max-w-2xl" onClick={e => e.stopPropagation()}>
                             <h2>Enrolled Students - {viewingCourseTitle}</h2>
-                            <div className="mt-4 max-h-[60vh] overflow-y-auto">
+                            <div className="mt-4 max-h-[60vh] overflow-auto">
                                 {enrolledStudents.length === 0 ? (
                                     <p className="text-gray-500">No students enrolled yet.</p>
                                 ) : (

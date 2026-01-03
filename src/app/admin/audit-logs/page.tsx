@@ -161,7 +161,46 @@ export default function AuditLogsPage() {
                             )
                         }
                     ]}
+                    mobileCard={(log) => {
+                        const actionColor = `
+                            ${(log.actionType.includes('APPROVED') || log.actionType.includes('ACTIVATED') || log.actionType.includes('CREATED') || log.actionType.includes('ASSIGNED') || log.actionType.includes('REGISTERED') || log.actionType.includes('SUBMITTED') || log.actionType.includes('UPLOADED')) ? 'bg-green-100 text-green-700' : ''}
+                            ${(log.actionType.includes('REJECTED') || log.actionType.includes('DEACTIVATED') || log.actionType.includes('DELETED')) ? 'bg-red-100 text-red-700' : ''}
+                            ${(log.actionType.includes('UPDATED') || log.actionType.includes('EDITED') || log.actionType.includes('REORDERED')) ? 'bg-blue-100 text-blue-700' : ''}
+                            ${!log.actionType.match(/(APPROVED|REJECTED|CREATED|UPDATED|DELETED|ACTIVATED|DEACTIVATED|ASSIGNED|EDITED|REORDERED|REGISTERED|SUBMITTED|UPLOADED)/) ? 'bg-gray-100 text-gray-700' : ''}
+                        `;
+
+                        return (
+                            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="font-bold text-navy-900 text-lg">{log.performedBy?.name || 'Unknown'}</div>
+                                        <div className="text-sm text-gray-500">{log.performedBy?.role}</div>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${actionColor}`}>
+                                        {log.actionType.replace(/_/g, ' ')}
+                                    </span>
+                                </div>
+
+                                <div className="bg-gray-50 p-3 rounded-md border border-gray-100 flex flex-col gap-2 text-sm">
+                                    <div className="flex justify-between border-b border-gray-200 pb-2">
+                                        <span className="text-gray-400 text-xs font-semibold uppercase">Entity</span>
+                                        <div className="text-right">
+                                            <span className="font-medium text-navy-700 block">{log.entityType}</span>
+                                            <span className="text-xs text-gray-400 font-mono">#{log.entityId.substring(0, 8)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="font-mono text-xs text-gray-600 break-all">
+                                        {JSON.stringify(log.metadata)}
+                                    </div>
+                                </div>
+                                <div className="text-xs text-gray-400 text-right">
+                                    {new Date(log.createdAt).toLocaleString()}
+                                </div>
+                            </div>
+                        );
+                    }}
                     data={logs}
+                    loading={loading}
                 />
             </div>
 

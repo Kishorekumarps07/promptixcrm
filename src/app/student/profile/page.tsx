@@ -24,7 +24,7 @@ export default function StudentProfile() {
     if (loading) return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <p className="text-gray-500">Loading profile...</p>
             </main>
         </div>
@@ -33,7 +33,7 @@ export default function StudentProfile() {
     if (!profile) return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <p className="text-red-500">Failed to load profile.</p>
             </main>
         </div>
@@ -42,7 +42,7 @@ export default function StudentProfile() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">My Profile</h1>
                     <p className="text-gray-500">View your program details.</p>

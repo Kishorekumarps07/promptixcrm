@@ -95,7 +95,7 @@ export default function EmployeeEvents() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">Company Events</h1>
                     <p className="text-gray-500">Discover and register for company events.</p>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import Table from '@/components/ui/Table';
 
 export default function PasswordRequests() {
     const [requests, setRequests] = useState<any[]>([]);
@@ -80,59 +81,101 @@ export default function PasswordRequests() {
     return (
         <div className="flex min-h-screen bg-gray-50">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">Password Requests</h1>
                     <p className="text-gray-500 mt-1">Review and manage user password reset requests security.</p>
                 </header>
 
                 <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 text-gray-500 text-sm uppercase">
-                            <tr>
-                                <th className="p-4">User</th>
-                                <th className="p-4">Role</th>
-                                <th className="p-4">Reason</th>
-                                <th className="p-4">Requested At</th>
-                                <th className="p-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
-                                <tr><td colSpan={5} className="p-6 text-center">Loading...</td></tr>
-                            ) : requests.length === 0 ? (
-                                <tr><td colSpan={5} className="p-6 text-center text-gray-400">No pending requests.</td></tr>
-                            ) : requests.map(req => (
-                                <tr key={req._id}>
-                                    <td className="p-4 font-medium text-navy-900">
-                                        {req.userId?.name || 'Unknown'}
+                    <Table
+                        data={requests}
+                        columns={[
+                            {
+                                header: "User",
+                                accessor: (req) => (
+                                    <div>
+                                        <div className="font-medium text-navy-900">{req.userId?.name || 'Unknown'}</div>
                                         <div className="text-xs text-gray-400">{req.userId?.email}</div>
-                                    </td>
-                                    <td className="p-4">
-                                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase">{req.role}</span>
-                                    </td>
-                                    <td className="p-4 text-gray-600 italic">"{req.reason}"</td>
-                                    <td className="p-4 text-sm text-gray-500">
-                                        {new Date(req.requestedAt).toLocaleDateString()} <span className="text-xs">{new Date(req.requestedAt).toLocaleTimeString()}</span>
-                                    </td>
-                                    <td className="p-4 text-right space-x-2">
+                                    </div>
+                                )
+                            },
+                            {
+                                header: "Role",
+                                accessor: (req) => <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase">{req.role}</span>
+                            },
+                            {
+                                header: "Reason",
+                                accessor: (req) => <span className="text-gray-600 italic">"{req.reason}"</span>
+                            },
+                            {
+                                header: "Requested At",
+                                accessor: (req) => (
+                                    <div className="text-sm text-gray-500">
+                                        {new Date(req.requestedAt).toLocaleDateString()} <span className="text-xs block">{new Date(req.requestedAt).toLocaleTimeString()}</span>
+                                    </div>
+                                )
+                            },
+                            {
+                                header: "Actions",
+                                accessor: (req) => (
+                                    <div className="flex justify-end gap-2">
                                         <button
                                             onClick={() => openModal(req, 'RESET')}
-                                            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                                            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 font-medium"
                                         >
                                             Reset
                                         </button>
                                         <button
                                             onClick={() => openModal(req, 'REJECT')}
-                                            className="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200"
+                                            className="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200 font-medium"
                                         >
                                             Reject
                                         </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </div>
+                                ),
+                                className: "text-right"
+                            }
+                        ]}
+                        mobileCard={(req) => (
+                            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="font-bold text-navy-900 text-lg">{req.userId?.name || 'Unknown'}</div>
+                                        <div className="text-sm text-gray-500">{req.userId?.email}</div>
+                                    </div>
+                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase tracking-wider">{req.role}</span>
+                                </div>
+
+                                <div className="bg-orange-50 p-3 rounded-md text-sm italic text-navy-800 border border-orange-100 relative">
+                                    <span className="absolute -top-2 left-3 bg-orange-100 text-orange-700 text-xs px-2 py-[2px] rounded border border-orange-200 uppercase font-bold">Reason</span>
+                                    "{req.reason}"
+                                </div>
+
+                                <div className="text-xs text-gray-400">
+                                    Requested: {new Date(req.requestedAt).toLocaleString()}
+                                </div>
+
+                                <div className="flex gap-3 mt-1 pt-2 border-t border-gray-100">
+                                    <button
+                                        onClick={() => openModal(req, 'RESET')}
+                                        className="flex-1 btn bg-green-600 text-white hover:bg-green-700 text-sm font-bold shadow-sm"
+                                        style={{ minHeight: '44px' }}
+                                    >
+                                        Reset Password
+                                    </button>
+                                    <button
+                                        onClick={() => openModal(req, 'REJECT')}
+                                        className="flex-1 btn bg-white text-red-600 border border-red-200 hover:bg-red-50 text-sm font-medium"
+                                        style={{ minHeight: '44px' }}
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        loading={loading}
+                    />
                 </div>
 
                 {/* Modal */}

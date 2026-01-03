@@ -300,7 +300,7 @@ export default function AdminUsers() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <div className="page-header flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-navy-900">User Management</h1>
@@ -478,8 +478,105 @@ export default function AdminUsers() {
                                 )
                             }
                         ]}
+                        mobileCard={(user) => (
+                            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                {/* 1. Top Section - Identity */}
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full bg-navy-100 overflow-hidden relative flex-shrink-0 border border-gray-100">
+                                        {user.photo ? (
+                                            <Image src={user.photo} alt={user.name} fill className="object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-navy-700 font-bold text-lg">
+                                                {user.name.charAt(0)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-navy-900 text-lg leading-tight truncate">{user.name}</h4>
+                                        <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                                    </div>
+                                </div>
+
+                                {/* 2. Middle Section - Statuses */}
+                                <div className="flex items-center gap-3">
+                                    <span className="badge badge-info text-xs uppercase tracking-wider">{user.role}</span>
+                                    <span className={`badge ${user.status === 'Active' ? 'badge-success' : 'badge-error'} text-xs uppercase tracking-wider`}>
+                                        {user.status}
+                                    </span>
+                                </div>
+
+                                {/* 3. Details Section - Stacked */}
+                                <div className="space-y-2 bg-gray-50 p-3 rounded-md border border-gray-100">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs text-uppercase text-gray-400 font-semibold">Phone</span>
+                                        <span className="text-sm font-medium text-navy-800">{user.phone || '-'}</span>
+                                    </div>
+                                    {user.role === 'STUDENT' && (
+                                        <div className="flex flex-col pt-2 border-t border-gray-200">
+                                            <span className="text-xs text-uppercase text-gray-400 font-semibold">Course</span>
+                                            <span className="text-sm font-medium text-navy-800 truncate">{user.activeCourse || 'Not Assigned'}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 4. Actions Section - Clean & Safe */}
+                                <div className="flex flex-col gap-3 mt-1">
+                                    {/* Row 1: Primary Actions (Student Only) */}
+                                    {user.role === 'STUDENT' && (
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => openOnboardingModal(user)}
+                                                className="flex-1 btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 text-sm font-medium"
+                                                style={{ minHeight: '44px' }}
+                                            >
+                                                Details
+                                            </button>
+                                            <button
+                                                onClick={() => openCourseModal(user)}
+                                                className="flex-1 btn bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-sm font-medium"
+                                                style={{ minHeight: '44px' }}
+                                            >
+                                                Course
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Row 2: Secondary Actions (Edit & Delete) */}
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => openEditModal(user)}
+                                            className="flex-1 btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 text-sm font-medium shadow-sm"
+                                            style={{ minHeight: '44px' }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(user._id)}
+                                            className="px-4 btn bg-white text-gray-400 border border-gray-300 hover:text-red-500 hover:border-red-200 hover:bg-red-50"
+                                            style={{ minHeight: '44px' }}
+                                            aria-label="Delete"
+                                        >
+                                            🗑
+                                        </button>
+                                    </div>
+
+                                    {/* Row 3: Destructive Action (Full Width) */}
+                                    <button
+                                        onClick={() => toggleStatus(user._id, user.status)}
+                                        disabled={actionLoading === user._id}
+                                        className={`w-full btn text-white text-sm font-bold shadow-sm ${user.status === 'Active'
+                                            ? 'bg-red-500 hover:bg-red-600'
+                                            : 'bg-green-600 hover:bg-green-700'
+                                            }`}
+                                        style={{ minHeight: '48px' }}
+                                    >
+                                        {user.status === 'Active' ? 'Deactivate User' : 'Activate User'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        loading={loading}
                     />
-                    {loading && <p className="text-center text-gray-500 mt-4">Loading users...</p>}
                 </div>
 
                 {/* Create/Edit User Modal */}

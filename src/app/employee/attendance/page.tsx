@@ -95,7 +95,7 @@ export default function EmployeeAttendance() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <h1 className="text-3xl font-bold text-navy-900 mb-8">Attendance</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">

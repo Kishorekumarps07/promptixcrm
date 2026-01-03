@@ -30,7 +30,7 @@ export default function MySalary() {
     return (
         <div className="flex min-h-screen bg-gray-50">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">My Salary History</h1>
                     <p className="text-gray-500 mt-1">View your monthly payout details</p>

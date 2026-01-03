@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import Table from '@/components/ui/Table';
 import { useRouter } from 'next/navigation';
 
 export default function SalaryProfiles() {
@@ -67,7 +68,7 @@ export default function SalaryProfiles() {
     return (
         <div className="flex min-h-screen bg-gray-50">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8 flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl font-bold text-navy-900">Salary Management</h1>
@@ -76,46 +77,86 @@ export default function SalaryProfiles() {
                 </header>
 
                 <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 text-sm uppercase">
-                            <tr>
-                                <th className="p-4 font-semibold">Employee</th>
-                                <th className="p-4 font-semibold">Role</th>
-                                <th className="p-4 font-semibold">Monthly Salary</th>
-                                <th className="p-4 font-semibold">Per Day Rate (Est.)</th>
-                                <th className="p-4 font-semibold">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
-                                <tr><td colSpan={5} className="p-6 text-center text-gray-400">Loading...</td></tr>
-                            ) : employees.map(emp => (
-                                <tr key={emp._id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="p-4 font-medium text-navy-900">{emp.name}</td>
-                                    <td className="p-4 text-sm text-gray-500">{emp.role}</td>
-                                    <td className="p-4 font-bold text-navy-700">
+                    <Table
+                        data={employees}
+                        columns={[
+                            { header: "Employee", accessor: "name", className: "font-medium text-navy-900" },
+                            { header: "Role", accessor: "role", className: "text-gray-500" },
+                            {
+                                header: "Monthly Salary",
+                                accessor: (emp) => (
+                                    <span className="font-bold text-navy-700">
                                         {emp.salaryProfile ? `$${emp.salaryProfile.monthlySalary.toLocaleString()}` : <span className="text-gray-300 italic">Not Set</span>}
-                                    </td>
-                                    <td className="p-4 text-sm text-gray-600">
+                                    </span>
+                                )
+                            },
+                            {
+                                header: "Per Day Rate (Est.)",
+                                accessor: (emp) => (
+                                    <div className="text-sm text-gray-600">
                                         {emp.salaryProfile ? (
                                             <div>
                                                 <span className="font-bold text-orange-600">${emp.calculatedPerDayRate}</span>
                                                 <span className="text-xs text-gray-400 block">based on {emp.currentMonthWorkingDays} days</span>
                                             </div>
                                         ) : '-'}
-                                    </td>
-                                    <td className="p-4">
-                                        <button
-                                            onClick={() => handleEdit(emp)}
-                                            className="px-4 py-2 bg-navy-900 text-white rounded hover:bg-orange-500 transition-colors text-sm font-medium"
-                                        >
-                                            {emp.salaryProfile ? 'Edit' : 'Assign'}
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </div>
+                                )
+                            },
+                            {
+                                header: "Action",
+                                accessor: (emp) => (
+                                    <button
+                                        onClick={() => handleEdit(emp)}
+                                        className="px-4 py-2 bg-navy-900 text-white rounded hover:bg-orange-500 transition-colors text-sm font-medium"
+                                    >
+                                        {emp.salaryProfile ? 'Edit' : 'Assign'}
+                                    </button>
+                                )
+                            }
+                        ]}
+                        mobileCard={(emp) => (
+                            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h4 className="font-bold text-navy-900 text-lg leading-tight">{emp.name}</h4>
+                                        <span className="text-xs badge badge-info mt-1">{emp.role}</span>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 p-3 rounded-md border border-gray-100 grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-gray-400 text-xs font-semibold block mb-1 uppercase">Monthly Salary</span>
+                                        <div className="font-bold text-navy-700 text-lg">
+                                            {emp.salaryProfile ? `$${emp.salaryProfile.monthlySalary.toLocaleString()}` : <span className="text-gray-400 italic text-sm">Not Set</span>}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-400 text-xs font-semibold block mb-1 uppercase">Daily Rate</span>
+                                        {emp.salaryProfile ? (
+                                            <div className="font-bold text-orange-600 text-lg">
+                                                ${emp.calculatedPerDayRate}
+                                            </div>
+                                        ) : '-'}
+                                    </div>
+                                    {emp.salaryProfile && (
+                                        <div className="col-span-2 text-xs text-gray-500 border-t border-gray-200 pt-2 flex justify-between">
+                                            <span>Effective From:</span>
+                                            <span>{new Date(emp.salaryProfile.effectiveFrom).toLocaleDateString()}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => handleEdit(emp)}
+                                    className="w-full btn bg-navy-900 text-white rounded hover:bg-orange-500 transition-colors text-sm font-bold shadow-sm"
+                                    style={{ minHeight: '44px' }}
+                                >
+                                    {emp.salaryProfile ? 'Edit Salary Profile' : 'Assign Salary Profile'}
+                                </button>
+                            </div>
+                        )}
+                        loading={loading}
+                    />
                 </div>
 
                 {/* Modal */}

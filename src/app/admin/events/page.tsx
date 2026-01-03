@@ -77,7 +77,7 @@ export default function AdminEvents() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-8 flex-1">
                 <div className="page-header">
                     <h1>Event Management</h1>
                     <button className="btn btn-primary" onClick={openCreateModal}>+ New Event</button>
