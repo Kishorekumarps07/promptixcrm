@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import dbConnect from '@/lib/db';
 import EventRegistration from '@/models/EventRegistration';
 import Event from '@/models/Event';
@@ -7,8 +7,21 @@ import { jwtVerify } from 'jose';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     await dbConnect();
+
+    // CORS Header Logic
+    const origin = request.headers.get('origin');
+    const allowedOrigins = ['https://promptix.pro', 'https://www.promptix.pro', 'http://localhost:5173'];
+    const corsHeaders: HeadersInit = {};
+
+    if (origin && allowedOrigins.includes(origin)) {
+        corsHeaders['Access-Control-Allow-Origin'] = origin;
+        corsHeaders['Access-Control-Allow-Credentials'] = 'true';
+        corsHeaders['Access-Control-Allow-Methods'] = 'GET, OPTIONS';
+        corsHeaders['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+    }
+
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -40,8 +53,8 @@ export async function GET() {
             };
         });
 
-        return NextResponse.json({ events: eventsWithStatus });
+        return NextResponse.json({ events: eventsWithStatus }, { headers: corsHeaders });
     } catch (err: any) {
-        return NextResponse.json({ message: err.message }, { status: 500 });
+        return NextResponse.json({ message: err.message }, { status: 500, headers: corsHeaders });
     }
 }
