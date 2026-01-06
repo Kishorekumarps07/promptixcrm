@@ -7,22 +7,43 @@ import { jwtVerify } from 'jose';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
-// Permissive CORS for Public API
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
-};
+// Helper to get CORS headers based on request origin
+function getCorsHeaders(origin: string | null) {
+    const allowedOrigins = [
+        "http://localhost:5173",
+        "https://promptix.pro",
+        "https://www.promptix.pro"
+    ];
 
-export async function OPTIONS() {
-    return NextResponse.json({}, { headers: corsHeaders });
+    const headers: Record<string, string> = {
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+    };
+
+    if (origin && allowedOrigins.includes(origin)) {
+        headers['Access-Control-Allow-Origin'] = origin;
+        headers['Access-Control-Allow-Credentials'] = 'true';
+    } else {
+        // Fallback for non-browser or unknown origins (optional, mostly for direct API calls)
+        headers['Access-Control-Allow-Origin'] = '*';
+    }
+
+    return headers;
+}
+
+export async function OPTIONS(request: NextRequest) {
+    const origin = request.headers.get('origin');
+    return NextResponse.json({}, { headers: getCorsHeaders(origin) });
 }
 
 export async function GET(request: NextRequest) {
     await dbConnect();
+
+    const origin = request.headers.get('origin');
+    const corsHeaders = getCorsHeaders(origin);
 
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
