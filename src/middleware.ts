@@ -1,21 +1,59 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken } from './lib/auth'; // Careful: implementing verifying in edge middleware with jsonwebtoken might fail. 
-// Standard jsonwebtoken often has issues in Edge runtime. 
-// For simplicity in Phase 0, if this fails, we will move logic or switch to 'jose'.
-// Let's use 'jose' for middleware as it's edge compatible, or just try basic decoding if not verifying deeply.
-// Actually, I installed 'jose' in the plan but didn't use it in auth.ts. 
-// Re-checking dependencies... I installed 'jose'. I should use it here for Edge compatibility.
-
 import { jwtVerify } from 'jose';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://promptix.pro',
+    'https://www.promptix.pro'
+];
+
 export async function middleware(req: NextRequest) {
-    const token = req.cookies.get('token')?.value;
     const { pathname } = req.nextUrl;
 
-    // protect routes
+    // CORS Handling
+    const origin = req.headers.get('origin');
+    const isAllowedOrigin = origin && allowedOrigins.includes(origin);
+    const isPreflight = req.method === 'OPTIONS';
+
+    // Handle CORS Preflight
+    if (isPreflight) {
+        const headers = {
+            'Access-Control-Allow-Method': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+            'Access-Control-Max-Age': '86400', // 24 hours
+        };
+
+        if (isAllowedOrigin) {
+            return new NextResponse(null, {
+                status: 200,
+                headers: {
+                    ...headers,
+                    'Access-Control-Allow-Origin': origin,
+                    'Access-Control-Allow-Credentials': 'true',
+                },
+            });
+        }
+
+        // If not allowed origin in perflight, just continue or 200 without CORS headers (strict)
+        return new NextResponse(null, { status: 200, headers });
+    }
+
+    // Normal Request Processing
+    const res = NextResponse.next();
+
+    // Add CORS headers to normal responses
+    if (isAllowedOrigin) {
+        res.headers.set('Access-Control-Allow-Origin', origin);
+        res.headers.set('Access-Control-Allow-Credentials', 'true');
+        res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+        res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    }
+
+    const token = req.cookies.get('token')?.value;
+
     // Protect routes (UI and API)
     const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin');
     const isEmployeeRoute = pathname.startsWith('/employee') || pathname.startsWith('/api/employee');
@@ -23,9 +61,6 @@ export async function middleware(req: NextRequest) {
 
     if (isAdminRoute || isEmployeeRoute || isStudentRoute) {
         if (!token) {
-            // API routes should ensure 401 instead of redirect?
-            // For now, redirecting to login is fine for UI, but for API might be weird. 
-            // Better to just strict check.
             if (pathname.startsWith('/api')) {
                 return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
             }
@@ -58,9 +93,7 @@ export async function middleware(req: NextRequest) {
                 // If NOT completed -> Force to Onboarding (Allow /api/student/onboarding for submission)
                 if (!isOnboardingCompleted) {
                     if (!isOnboardingPage && !isOnboardingApi) {
-                        // Allow basic static assets or necessary APIs if needed, but here we block main routes
                         if (pathname.startsWith('/api')) {
-                            // Allow onboarding API, block others
                             if (!isOnboardingApi) return NextResponse.json({ message: 'Complete onboarding first' }, { status: 403 });
                         } else {
                             return NextResponse.redirect(new URL('/student/onboarding', req.url));
@@ -79,14 +112,12 @@ export async function middleware(req: NextRequest) {
         }
     }
 
-
-
-    return NextResponse.next();
+    return res;
 }
 
 export const config = {
     matcher: [
         '/admin/:path*', '/employee/:path*', '/student/:path*',
-        '/api/admin/:path*', '/api/employee/:path*', '/api/student/:path*'
+        '/api/:path*'
     ],
 };
