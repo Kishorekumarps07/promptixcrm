@@ -40,18 +40,18 @@ export default function StudentProfile() {
     );
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <header className="mb-8">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">My Profile</h1>
                     <p className="text-gray-500">View your program details.</p>
                 </header>
 
                 <div className="max-w-4xl bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="p-8 border-b border-gray-100">
-                        <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 rounded-full bg-navy-900 flex items-center justify-center text-primary-orange text-3xl font-bold border-2 border-orange-500 overflow-hidden relative">
+                    <div className="p-6 md:p-8 border-b border-gray-100">
+                        <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-6">
+                            <div className="w-20 h-20 rounded-full bg-navy-900 flex items-center justify-center text-primary-orange text-3xl font-bold border-2 border-orange-500 overflow-hidden relative shrink-0">
                                 {profile.photo ? (
                                     <Image
                                         src={profile.photo}

@@ -122,16 +122,42 @@ export default function EmployeeCourses() {
     ];
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <div className="page-header">
-                    <h1>Course Management</h1>
-                    <button onClick={() => openModal()} className="btn btn-primary">+ Create Course</button>
-                </div>
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header">
+                    <h1 className="text-2xl font-bold text-navy-900">Course Management</h1>
+                    <button onClick={() => openModal()} className="btn btn-primary shadow-lg shadow-blue-500/30" style={{ minHeight: '44px' }}>+ Create Course</button>
+                </header>
 
-                <div className="table-container">
-                    {loading ? <p>Loading...</p> : <Table data={courses} columns={columns} />}
+                <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+                    {loading ? <div className="p-8 text-center text-gray-500">Loading courses...</div> : (
+                        <Table
+                            data={courses}
+                            columns={columns}
+                            mobileCard={(c) => (
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="font-bold text-navy-900 text-lg leading-tight">{c.title}</div>
+                                        <span className={`badge ${c.status === 'Active' ? 'badge-success' : 'badge-warning'}`}>{c.status}</span>
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        <span className="font-semibold text-gray-400 uppercase text-xs">Category:</span> {c.category}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        <span className="font-semibold text-gray-400 uppercase text-xs">Duration:</span> {c.duration}
+                                    </div>
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <div className="flex gap-2">
+                                            <button onClick={() => openModal(c)} className="flex-1 btn bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-medium" style={{ minHeight: '44px' }}>Edit</button>
+                                            <button onClick={() => openContentModal(c)} className="flex-1 btn bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-sm font-medium" style={{ minHeight: '44px' }}>Content</button>
+                                        </div>
+                                        <button onClick={() => fetchEnrolledStudents(c._id, c.title)} className="btn btn-primary w-full text-sm font-bold shadow-sm" style={{ minHeight: '44px' }}>View Students</button>
+                                    </div>
+                                </div>
+                            )}
+                        />
+                    )}
                 </div>
 
                 {/* Create/Edit Modal */}

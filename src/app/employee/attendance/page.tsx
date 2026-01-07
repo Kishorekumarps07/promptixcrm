@@ -93,10 +93,13 @@ export default function EmployeeAttendance() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <h1 className="text-3xl font-bold text-navy-900 mb-8">Attendance</h1>
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header mb-8">
+                    <h1 className="text-3xl font-bold text-navy-900">Attendance</h1>
+                    <p className="text-gray-500">Track and manage your work hours</p>
+                </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                     {/* Today's Action Card */}
@@ -202,6 +205,27 @@ export default function EmployeeAttendance() {
                                 accessor: (item) => <StatusBadge status={item.status} />
                             }
                         ]}
+                        mobileCard={(item) => (
+                            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold text-navy-900">{new Date(item.date).toLocaleDateString()}</span>
+                                    <StatusBadge status={item.status} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                                    <div>
+                                        <span className="text-xs uppercase text-gray-400 font-bold block">Check In</span>
+                                        {new Date(item.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                    <div>
+                                        <span className="text-xs uppercase text-gray-400 font-bold block">Check Out</span>
+                                        {item.checkOut ? new Date(item.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                    </div>
+                                    <div className="col-span-2 pt-1 border-t border-gray-200 mt-1">
+                                        <span className="text-xs uppercase text-gray-400 font-bold">Type: </span> {item.type}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     />
                 </div>
             </main>

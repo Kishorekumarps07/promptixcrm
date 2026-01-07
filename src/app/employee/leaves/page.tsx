@@ -73,21 +73,22 @@ export default function EmployeeLeaves() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <div className="flex justify-between items-center mb-8">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-navy-900">Leave Requests</h1>
                         <p className="text-gray-500 mt-1">Manage and track your leave applications</p>
                     </div>
                     <button
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow transition-colors font-medium"
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow transition-colors font-medium w-full md:w-auto mt-4 md:mt-0"
+                        style={{ minHeight: '44px' }}
                         onClick={() => setIsModalOpen(true)}
                     >
                         + Apply Leave
                     </button>
-                </div>
+                </header>
 
                 {loading ? <p className="text-center py-8 text-gray-500">Loading records...</p> : (
                     <Table
@@ -119,6 +120,26 @@ export default function EmployeeLeaves() {
                                 accessor: (item) => <StatusBadge status={item.status} />
                             }
                         ]}
+                        mobileCard={(item) => (
+                            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-3">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <span className="text-xs text-gray-500 uppercase font-bold tracking-wider">Period</span>
+                                        <div className="font-bold text-navy-900 mt-1">
+                                            {new Date(item.fromDate).toLocaleDateString()} - {new Date(item.toDate).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    <StatusBadge status={item.status} />
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded text-sm italic border border-gray-100 relative mt-1">
+                                    <span className="absolute -top-2 left-2 bg-white px-1 text-[10px] text-gray-400 font-bold uppercase border border-gray-200 rounded">Reason</span>
+                                    "{item.reason}"
+                                </div>
+                                <div className="text-xs text-gray-400 text-right mt-1">
+                                    Applied: {new Date(item.createdAt).toLocaleDateString()}
+                                </div>
+                            </div>
+                        )}
                     />
                 )}
 

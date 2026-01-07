@@ -32,10 +32,10 @@ export default function StudentProject() {
     const hasProject = project && project.title;
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <header className="mb-8">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">Project Tracking</h1>
                     <p className="text-gray-500">Track your internship project progress.</p>
                 </header>
@@ -53,8 +53,8 @@ export default function StudentProject() {
                                         <h2 className="text-3xl font-bold text-navy-900">{project.title}</h2>
                                     </div>
                                     <span className={`px-4 py-2 rounded-full text-sm font-medium ${project.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                                            project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                                                'bg-gray-100 text-gray-800'
+                                        project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                                            'bg-gray-100 text-gray-800'
                                         }`}>
                                         {project.status || 'Not Started'}
                                     </span>

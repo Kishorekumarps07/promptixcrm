@@ -21,10 +21,10 @@ export default function EmployeeAnnouncements() {
     }, []);
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <header className="mb-8">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">Announcements</h1>
                     <p className="text-gray-500">Latest updates from the admin.</p>
                 </header>

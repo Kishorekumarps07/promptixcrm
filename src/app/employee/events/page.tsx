@@ -93,10 +93,10 @@ export default function EmployeeEvents() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <header className="mb-8">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">Company Events</h1>
                     <p className="text-gray-500">Discover and register for company events.</p>
                 </header>
@@ -162,7 +162,7 @@ export default function EmployeeEvents() {
                 ) : (
                     <div className="space-y-4">
                         {myEvents.length > 0 ? myEvents.map(event => (
-                            <div key={event._id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center">
+                            <div key={event._id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-navy-900">{event.title}</h3>
                                     <p className="text-sm text-gray-500">📅 {new Date(event.date).toLocaleDateString()}</p>
