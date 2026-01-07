@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
+import Table from '@/components/ui/Table';
 
 export default function AdminEvents() {
     const [events, setEvents] = useState<any[]>([]);
@@ -75,59 +76,95 @@ export default function AdminEvents() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <div className="page-header">
-                    <h1>Event Management</h1>
-                    <button className="btn btn-primary" onClick={openCreateModal}>+ New Event</button>
-                </div>
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header">
+                    <div>
+                        <h1 className="text-2xl font-bold text-navy-900">Event Management</h1>
+                    </div>
+                    <button
+                        className="btn btn-primary bg-navy-900 hover:bg-navy-800 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                        onClick={openCreateModal}
+                        style={{ minHeight: '44px' }}
+                    >
+                        + New Event
+                    </button>
+                </header>
 
-                <div className="table-container">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {events.map(event => (
-                                <tr key={event._id}>
-                                    <td>{new Date(event.date).toLocaleDateString()}</td>
-                                    <td>
-                                        <strong>{event.title}</strong>
-                                        <div style={{ fontSize: '0.8rem', color: '#8892b0' }}>{event.description}</div>
-                                    </td>
-                                    <td><span className="badge badge-info">{event.type}</span></td>
-                                    <td>
-                                        <select
-                                            value={event.status || 'Upcoming'}
-                                            onChange={(e) => updateStatus(event._id, e.target.value)}
-                                            className={`badge border-none cursor-pointer ${event.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                                                event.status === 'Archived' ? 'bg-gray-200 text-gray-600' :
-                                                    event.status === 'Ongoing' ? 'bg-blue-100 text-blue-800' :
-                                                        'bg-yellow-100 text-yellow-800'
-                                                }`}
-                                        >
-                                            <option value="Upcoming">Upcoming</option>
-                                            <option value="Ongoing">Ongoing</option>
-                                            <option value="Completed">Completed</option>
-                                            <option value="Archived">Archived</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <button className="action-btn" style={{ marginRight: '0.5rem' }} onClick={() => window.location.href = `/admin/events/${event._id}`}>Attendance</button>
-                                        <button className="action-btn" style={{ marginRight: '0.5rem' }} onClick={() => openEditModal(event)}>Edit</button>
-                                        <button className="action-btn btn-delete" onClick={() => deleteEvent(event._id)}>Delete</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+                    <Table
+                        data={events}
+                        loading={false}
+                        columns={[
+                            { header: 'Date', accessor: (e) => new Date(e.date).toLocaleDateString() },
+                            {
+                                header: 'Title', accessor: (e) => (
+                                    <div>
+                                        <div className="font-bold text-navy-900">{e.title}</div>
+                                        <div className="text-xs text-gray-500">{e.description}</div>
+                                    </div>
+                                )
+                            },
+                            { header: 'Type', accessor: (e) => <span className="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-800">{e.type}</span> },
+                            {
+                                header: 'Status', accessor: (e) => (
+                                    <select
+                                        value={e.status || 'Upcoming'}
+                                        onChange={(ev) => updateStatus(e._id, ev.target.value)}
+                                        className={`px-2 py-1 rounded text-xs border-none cursor-pointer font-semibold ${e.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                            e.status === 'Archived' ? 'bg-gray-200 text-gray-600' :
+                                                e.status === 'Ongoing' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}
+                                    >
+                                        <option value="Upcoming">Upcoming</option>
+                                        <option value="Ongoing">Ongoing</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Archived">Archived</option>
+                                    </select>
+                                )
+                            },
+                            {
+                                header: 'Actions', accessor: (e) => (
+                                    <div className="flex gap-2">
+                                        <button onClick={() => window.location.href = `/admin/events/${e._id}`} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100">Attendance</button>
+                                        <button onClick={() => openEditModal(e)} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-gray-200">Edit</button>
+                                        <button onClick={() => deleteEvent(e._id)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded hover:bg-red-100">Delete</button>
+                                    </div>
+                                )
+                            }
+                        ]}
+                        mobileCard={(e) => (
+                            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-3">
+                                <div className="flex justify-between items-start">
+                                    <div className="font-bold text-navy-900">{e.title}</div>
+                                    <span className="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-800">{e.type}</span>
+                                </div>
+                                <div className="text-sm text-gray-600">{e.description}</div>
+                                <div className="flex justify-between items-center text-xs text-gray-500">
+                                    <span>{new Date(e.date).toLocaleDateString()}</span>
+                                    <select
+                                        value={e.status || 'Upcoming'}
+                                        onChange={(ev) => updateStatus(e._id, ev.target.value)}
+                                        className={`px-2 py-1 rounded text-xs border-none cursor-pointer font-semibold ${e.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                            e.status === 'Archived' ? 'bg-gray-200 text-gray-600' :
+                                                e.status === 'Ongoing' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}
+                                    >
+                                        <option value="Upcoming">Upcoming</option>
+                                        <option value="Ongoing">Ongoing</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 mt-2">
+                                    <button onClick={() => window.location.href = `/admin/events/${e._id}`} className="text-center py-2 bg-indigo-50 text-indigo-600 text-xs font-medium rounded shadow-sm">Attendance</button>
+                                    <button onClick={() => openEditModal(e)} className="text-center py-2 bg-gray-100 text-gray-600 text-xs font-medium rounded shadow-sm">Edit</button>
+                                    <button onClick={() => deleteEvent(e._id)} className="text-center py-2 bg-red-50 text-red-600 text-xs font-medium rounded shadow-sm">Delete</button>
+                                </div>
+                            </div>
+                        )}
+                    />
                 </div>
 
                 {isModalOpen && (

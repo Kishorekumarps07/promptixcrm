@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Sidebar from '@/components/Sidebar';
 import Table from '@/components/ui/Table';
 
 interface AuditLog {
@@ -59,12 +60,19 @@ export default function AuditLogsPage() {
     };
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">System Audit Logs</h1>
-                <div className="flex gap-2">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
+            <Sidebar />
+            <main className="md:ml-64 p-4 md:p-8 flex-1 w-full">
+                <header className="page-header">
+                    <div>
+                        <h1 className="text-2xl font-bold text-navy-900">System Audit Logs</h1>
+                        <p className="text-gray-500 text-sm mt-1">Track and monitor all system activities</p>
+                    </div>
+                </header>
+
+                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <select
-                        className="px-4 py-2 border rounded-lg"
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
                         value={filterAction}
                         onChange={(e) => { setFilterAction(e.target.value); setPage(1); }}
                     >
@@ -89,138 +97,140 @@ export default function AuditLogsPage() {
                         <option value="STUDENT_ONBOARDING_EDITED">Onboarding Edited</option>
                         <option value="EVENT_FEEDBACK_SUBMITTED">Feedback Submitted</option>
                     </select>
-                    <button
-                        onClick={() => fetchLogs()}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                        Refresh
-                    </button>
                     <input
                         type="date"
-                        className="px-4 py-2 border rounded-lg text-sm"
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
                         onChange={(e) => setStartDate(e.target.value)}
+                        placeholder="Start Date"
                     />
                     <input
                         type="date"
-                        className="px-4 py-2 border rounded-lg text-sm"
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
                         onChange={(e) => setEndDate(e.target.value)}
+                        placeholder="End Date"
                     />
                     <input
                         type="text"
                         placeholder="User ID / Name"
-                        className="px-4 py-2 border rounded-lg text-sm w-36"
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
                         onChange={(e) => setPerformedBy(e.target.value)}
                     />
+                    <button
+                        onClick={() => fetchLogs()}
+                        className="w-full bg-navy-900 hover:bg-navy-800 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm text-sm"
+                    >
+                        Refresh Logs
+                    </button>
                 </div>
-            </div>
 
-            <div className="mb-4">
-                <Table
-                    columns={[
-                        {
-                            header: 'Time',
-                            accessor: (log: AuditLog) => <div className="text-sm text-gray-600">{new Date(log.createdAt).toLocaleString()}</div>
-                        },
-                        {
-                            header: 'Action',
-                            accessor: (log: AuditLog) => (
-                                <span className={`px-2 py-1 rounded text-xs font-semibold
+                <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+                    <Table
+                        columns={[
+                            {
+                                header: 'Time',
+                                accessor: (log: AuditLog) => <div className="text-sm text-gray-600">{new Date(log.createdAt).toLocaleString()}</div>
+                            },
+                            {
+                                header: 'Action',
+                                accessor: (log: AuditLog) => (
+                                    <span className={`px-2 py-1 rounded text-xs font-semibold
                                     ${(log.actionType.includes('APPROVED') || log.actionType.includes('ACTIVATED') || log.actionType.includes('CREATED') || log.actionType.includes('ASSIGNED') || log.actionType.includes('REGISTERED') || log.actionType.includes('SUBMITTED') || log.actionType.includes('UPLOADED')) ? 'bg-green-100 text-green-700' : ''}
                                     ${(log.actionType.includes('REJECTED') || log.actionType.includes('DEACTIVATED') || log.actionType.includes('DELETED')) ? 'bg-red-100 text-red-700' : ''}
                                     ${(log.actionType.includes('UPDATED') || log.actionType.includes('EDITED') || log.actionType.includes('REORDERED')) ? 'bg-blue-100 text-blue-700' : ''}
                                     ${!log.actionType.match(/(APPROVED|REJECTED|CREATED|UPDATED|DELETED|ACTIVATED|DEACTIVATED|ASSIGNED|EDITED|REORDERED|REGISTERED|SUBMITTED|UPLOADED)/) ? 'bg-gray-100 text-gray-700' : ''}
                                 `}>
-                                    {log.actionType.replace(/_/g, ' ')}
-                                </span>
-                            )
-                        },
-                        {
-                            header: 'Performed By',
-                            accessor: (log: AuditLog) => (
-                                <div>
-                                    <div className="text-sm font-medium text-gray-900">{log.performedBy?.name || 'Unknown'}</div>
-                                    <div className="text-xs text-gray-500">{log.performedBy?.email} ({log.performerRole})</div>
-                                </div>
-                            )
-                        },
-                        {
-                            header: 'Entity',
-                            accessor: (log: AuditLog) => (
-                                <div className="text-sm text-gray-600">
-                                    {log.entityType} <br />
-                                    <span className="text-xs text-gray-400 font-mono">{log.entityId.substring(0, 8)}...</span>
-                                </div>
-                            )
-                        },
-                        {
-                            header: 'Metadata',
-                            accessor: (log: AuditLog) => (
-                                <div className="text-sm text-gray-500 font-mono text-xs max-w-xs truncate" title={JSON.stringify(log.metadata, null, 2)}>
-                                    {JSON.stringify(log.metadata)}
-                                </div>
-                            )
-                        }
-                    ]}
-                    mobileCard={(log) => {
-                        const actionColor = `
+                                        {log.actionType.replace(/_/g, ' ')}
+                                    </span>
+                                )
+                            },
+                            {
+                                header: 'Performed By',
+                                accessor: (log: AuditLog) => (
+                                    <div>
+                                        <div className="text-sm font-medium text-gray-900">{log.performedBy?.name || 'Unknown'}</div>
+                                        <div className="text-xs text-gray-500">{log.performedBy?.email} ({log.performerRole})</div>
+                                    </div>
+                                )
+                            },
+                            {
+                                header: 'Entity',
+                                accessor: (log: AuditLog) => (
+                                    <div className="text-sm text-gray-600">
+                                        {log.entityType} <br />
+                                        <span className="text-xs text-gray-400 font-mono">{log.entityId.substring(0, 8)}...</span>
+                                    </div>
+                                )
+                            },
+                            {
+                                header: 'Metadata',
+                                accessor: (log: AuditLog) => (
+                                    <div className="text-sm text-gray-500 font-mono text-xs max-w-xs truncate" title={JSON.stringify(log.metadata, null, 2)}>
+                                        {JSON.stringify(log.metadata)}
+                                    </div>
+                                )
+                            }
+                        ]}
+                        mobileCard={(log) => {
+                            const actionColor = `
                             ${(log.actionType.includes('APPROVED') || log.actionType.includes('ACTIVATED') || log.actionType.includes('CREATED') || log.actionType.includes('ASSIGNED') || log.actionType.includes('REGISTERED') || log.actionType.includes('SUBMITTED') || log.actionType.includes('UPLOADED')) ? 'bg-green-100 text-green-700' : ''}
                             ${(log.actionType.includes('REJECTED') || log.actionType.includes('DEACTIVATED') || log.actionType.includes('DELETED')) ? 'bg-red-100 text-red-700' : ''}
                             ${(log.actionType.includes('UPDATED') || log.actionType.includes('EDITED') || log.actionType.includes('REORDERED')) ? 'bg-blue-100 text-blue-700' : ''}
                             ${!log.actionType.match(/(APPROVED|REJECTED|CREATED|UPDATED|DELETED|ACTIVATED|DEACTIVATED|ASSIGNED|EDITED|REORDERED|REGISTERED|SUBMITTED|UPLOADED)/) ? 'bg-gray-100 text-gray-700' : ''}
                         `;
 
-                        return (
-                            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <div className="font-bold text-navy-900 text-lg">{log.performedBy?.name || 'Unknown'}</div>
-                                        <div className="text-sm text-gray-500">{log.performedBy?.role}</div>
+                            return (
+                                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <div className="font-bold text-navy-900 text-sm">{log.performedBy?.name || 'Unknown'}</div>
+                                            <div className="text-xs text-gray-500">{log.performedBy?.role}</div>
+                                        </div>
+                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${actionColor} text-[10px]`}>
+                                            {log.actionType.replace(/_/g, ' ')}
+                                        </span>
                                     </div>
-                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${actionColor}`}>
-                                        {log.actionType.replace(/_/g, ' ')}
-                                    </span>
-                                </div>
 
-                                <div className="bg-gray-50 p-3 rounded-md border border-gray-100 flex flex-col gap-2 text-sm">
-                                    <div className="flex justify-between border-b border-gray-200 pb-2">
-                                        <span className="text-gray-400 text-xs font-semibold uppercase">Entity</span>
-                                        <div className="text-right">
-                                            <span className="font-medium text-navy-700 block">{log.entityType}</span>
-                                            <span className="text-xs text-gray-400 font-mono">#{log.entityId.substring(0, 8)}</span>
+                                    <div className="bg-gray-50 p-2 rounded-md border border-gray-100 flex flex-col gap-2 text-sm">
+                                        <div className="flex justify-between border-b border-gray-200 pb-2">
+                                            <span className="text-gray-400 text-xs font-semibold uppercase">Entity</span>
+                                            <div className="text-right">
+                                                <span className="font-medium text-navy-700 block text-xs">{log.entityType}</span>
+                                                <span className="text-[10px] text-gray-400 font-mono">#{log.entityId.substring(0, 8)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="font-mono text-[10px] text-gray-600 break-all line-clamp-2">
+                                            {JSON.stringify(log.metadata)}
                                         </div>
                                     </div>
-                                    <div className="font-mono text-xs text-gray-600 break-all">
-                                        {JSON.stringify(log.metadata)}
+                                    <div className="text-[10px] text-gray-400 text-right">
+                                        {new Date(log.createdAt).toLocaleString()}
                                     </div>
                                 </div>
-                                <div className="text-xs text-gray-400 text-right">
-                                    {new Date(log.createdAt).toLocaleString()}
-                                </div>
-                            </div>
-                        );
-                    }}
-                    data={logs}
-                    loading={loading}
-                />
-            </div>
+                            );
+                        }}
+                        data={logs}
+                        loading={loading}
+                    />
+                </div>
 
-            <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
-                <button
-                    disabled={page === 1}
-                    onClick={() => setPage(p => p - 1)}
-                    className="disabled:opacity-50 px-3 py-1 border rounded hover:bg-gray-50"
-                >
-                    Previous
-                </button>
-                <span>Page {page} of {totalPages}</span>
-                <button
-                    disabled={page >= totalPages}
-                    onClick={() => setPage(p => p + 1)}
-                    className="disabled:opacity-50 px-3 py-1 border rounded hover:bg-gray-50"
-                >
-                    Next
-                </button>
-            </div>
+                <div className="mt-4 flex justify-between items-center text-sm text-gray-600 px-1">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className="disabled:opacity-50 px-3 py-1 border rounded hover:bg-white bg-white shadow-sm"
+                    >
+                        Previous
+                    </button>
+                    <span>Page {page} of {totalPages}</span>
+                    <button
+                        disabled={page >= totalPages}
+                        onClick={() => setPage(p => p + 1)}
+                        className="disabled:opacity-50 px-3 py-1 border rounded hover:bg-white bg-white shadow-sm"
+                    >
+                        Next
+                    </button>
+                </div>
+            </main>
         </div>
     );
 }

@@ -193,7 +193,7 @@ export default function AdminCourses() {
     ];
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
             <main className="md:ml-64 p-8 flex-1">
                 <div className="page-header">
@@ -232,44 +232,43 @@ export default function AdminCourses() {
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex gap-3 mt-1">
+                                    <div className="grid grid-cols-2 gap-3 mt-1">
                                         <button
                                             onClick={() => openModal(course)}
-                                            className="flex-1 btn bg-white text-navy-700 border border-gray-300 hover:bg-gray-50 text-sm font-medium shadow-sm"
+                                            className="btn bg-white text-navy-700 border border-gray-300 hover:bg-gray-50 text-sm font-medium shadow-sm"
                                             style={{ minHeight: '44px' }}
                                         >
                                             Edit
                                         </button>
                                         <button
                                             onClick={() => openContentModal(course)}
-                                            className="flex-1 btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 text-sm font-medium shadow-sm"
+                                            className="btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 text-sm font-medium shadow-sm"
                                             style={{ minHeight: '44px' }}
                                         >
                                             Content
                                         </button>
+                                    </div>
+                                    <button
+                                        onClick={() => openEnrollModal(course._id)}
+                                        className="w-full btn bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium shadow-sm"
+                                        style={{ minHeight: '44px' }}
+                                    >
+                                        Assign Student
+                                    </button>
+                                    <div className="grid grid-cols-2 gap-3">
                                         <button
                                             onClick={() => handleToggleStatus(course._id, course.status)}
-                                            className={`flex-1 btn text-white text-sm font-medium shadow-sm ${course.status === 'Active' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'}`}
+                                            className={`btn text-white text-sm font-medium shadow-sm ${course.status === 'Active' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'}`}
                                             style={{ minHeight: '44px' }}
                                         >
                                             {course.status === 'Active' ? 'Deactivate' : 'Activate'}
                                         </button>
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={() => openEnrollModal(course._id)}
-                                            className="flex-1 btn bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium shadow-sm"
-                                            style={{ minHeight: '44px' }}
-                                        >
-                                            Assign Student
-                                        </button>
                                         <button
                                             onClick={() => handleDelete(course._id)}
-                                            className="w-12 btn bg-white text-red-600 border border-gray-300 hover:bg-red-50 hover:border-red-200 text-sm font-medium shadow-sm flex items-center justify-center p-0"
+                                            className="btn bg-white text-red-600 border border-gray-300 hover:bg-red-50 hover:border-red-200 text-sm font-medium shadow-sm"
                                             style={{ minHeight: '44px' }}
-                                            aria-label="Delete"
                                         >
-                                            🗑
+                                            Delete
                                         </button>
                                     </div>
                                 </div>

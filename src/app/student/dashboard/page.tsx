@@ -24,7 +24,7 @@ export default function StudentDashboard() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold text-navy-900">Student Dashboard</h1>
                     <p className="text-gray-500">Welcome back, Scholar!</p>

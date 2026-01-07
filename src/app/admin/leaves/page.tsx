@@ -59,10 +59,12 @@ export default function AdminLeaves() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
             <main className="md:ml-64 p-8 flex-1">
-                <h1 className="text-3xl font-bold text-navy-900 mb-8">Employee Leaves</h1>
+                <header className="page-header">
+                    <h1 className="text-3xl font-bold text-navy-900">Employee Leaves</h1>
+                </header>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <Table
@@ -125,7 +127,7 @@ export default function AdminLeaves() {
                             }
                         ]}
                         mobileCard={(item) => (
-                            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
+                            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-4">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <div className="font-bold text-navy-900 text-lg">{item.userId?.name || 'Unknown'}</div>

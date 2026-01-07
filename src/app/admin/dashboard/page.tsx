@@ -38,10 +38,10 @@ export default function AdminDashboard() {
     const COLORS = ['#FF6B00', '#001529'];
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex flex-col md:flex-row bg-gray-100 min-h-screen">
             <Sidebar />
             <main className="md:ml-64 p-4 md:p-8 flex-1">
-                <header className="flex justify-between items-center mb-8">
+                <header className="page-header">
                     <div>
                         <h1 className="text-3xl font-bold text-navy-900">Dashboard Overview</h1>
                         <p className="text-gray-500">Welcome back, Admin</p>
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                         <h3 className="text-lg font-bold text-navy-900 mb-4">Weekly Attendance</h3>
-                        <div className="h-64">
+                        <div className="h-56 md:h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={attendanceData}>
                                     <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
 
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                         <h3 className="text-lg font-bold text-navy-900 mb-4">User Distribution</h3>
-                        <div className="h-64 flex items-center justify-center">
+                        <div className="h-56 md:h-64 flex items-center justify-center">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie

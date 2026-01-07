@@ -57,10 +57,10 @@ export default function AdminAnnouncements() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
             <Sidebar />
             <main className="md:ml-64 p-4 md:p-8 flex-1">
-                <header className="flex justify-between items-center mb-6">
+                <header className="page-header">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-navy-900">Announcement Center</h1>
                         <p className="text-gray-500 mt-1">Manage system-wide broadcasts</p>
@@ -68,6 +68,7 @@ export default function AdminAnnouncements() {
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="btn btn-primary bg-navy-900 hover:bg-navy-800 text-white px-4 py-2 rounded-lg text-sm md:text-base transition-colors shadow-md"
+                        style={{ minHeight: '44px' }}
                     >
                         + New
                     </button>

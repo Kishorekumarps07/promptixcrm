@@ -25,7 +25,7 @@ export default function Sidebar() {
     const LinkItem = ({ href, children }: { href: string, children: React.ReactNode }) => (
         <Link
             href={href}
-            className={`block px-4 py-3 rounded mb-1 text-sm font-medium transition-colors ${isActive(href)
+            className={`flex items-center px-4 py-3 rounded mb-1 text-sm font-medium transition-colors min-h-[44px] ${isActive(href)
                 ? 'bg-orange-500 text-white shadow-md'
                 : 'text-gray-300 hover:bg-navy-800 hover:text-white'
                 }`}
@@ -72,7 +72,7 @@ export default function Sidebar() {
     return (
         <>
             {/* Mobile Sticky Header */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-navy-900 z-50 px-4 flex items-center justify-between shadow-md">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-navy-900 z-[50] px-4 flex items-center justify-between shadow-md">
                 <Image
                     src="/logo-new.png"
                     alt="PromptiX"
@@ -95,14 +95,14 @@ export default function Sidebar() {
             {/* Overlay for Mobile */}
             {isOpen && (
                 <div
-                    className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm transition-opacity"
+                    className="md:hidden fixed inset-0 bg-black/50 z-[55] backdrop-blur-sm transition-opacity"
                     onClick={() => setIsOpen(false)}
                 />
             )}
 
             {/* Sidebar Container */}
             <aside className={`
-                fixed left-0 top-0 h-screen w-64 bg-navy-900 text-white flex flex-col shadow-xl z-50
+                fixed left-0 top-0 h-screen w-64 bg-navy-900 text-white flex flex-col shadow-xl z-[60]
                 transform transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>

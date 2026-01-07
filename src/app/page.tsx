@@ -68,18 +68,18 @@ export default function LandingPage() {
           <div>
             <span className="text-xl font-bold text-white tracking-tight mb-4 block">PromptiX</span>
             <p className="text-sm mb-6">Empowering the next generation of professionals.</p>
-            <div className="flex gap-4">
-              <a href="https://www.instagram.com/promptix_tech?igsh=MWYxOGV0OWh2ZGF2OQ==" target="_blank" rel="noopener noreferrer" className="p-2 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
-                <Instagram size={18} />
+            <div className="flex gap-4 justify-center sm:justify-start">
+              <a href="https://www.instagram.com/promptix_tech?igsh=MWYxOGV0OWh2ZGF2OQ==" target="_blank" rel="noopener noreferrer" className="p-3 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
+                <Instagram size={24} />
               </a>
-              <a href="https://www.facebook.com/profile.php?id=61585508464984" target="_blank" rel="noopener noreferrer" className="p-2 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
-                <Facebook size={18} />
+              <a href="https://www.facebook.com/profile.php?id=61585508464984" target="_blank" rel="noopener noreferrer" className="p-3 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
+                <Facebook size={24} />
               </a>
-              <a href="https://github.com/infopromptix-edtech" target="_blank" rel="noopener noreferrer" className="p-2 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
-                <Github size={18} />
+              <a href="https://github.com/infopromptix-edtech" target="_blank" rel="noopener noreferrer" className="p-3 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
+                <Github size={24} />
               </a>
-              <a href="https://www.linkedin.com/in/promptix-tech-solutions-9618a63a2/" target="_blank" rel="noopener noreferrer" className="p-2 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
-                <Linkedin size={18} />
+              <a href="https://www.linkedin.com/in/promptix-tech-solutions-9618a63a2/" target="_blank" rel="noopener noreferrer" className="p-3 bg-navy-800 rounded-full hover:bg-orange-500 text-white transition-all">
+                <Linkedin size={24} />
               </a>
             </div>
           </div>

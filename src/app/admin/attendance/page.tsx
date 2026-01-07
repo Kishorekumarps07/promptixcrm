@@ -57,7 +57,7 @@ export default function AdminAttendance() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
             <main className="md:ml-64 p-8 flex-1">
                 <h1 className="text-3xl font-bold text-navy-900 mb-8">Employee Attendance</h1>

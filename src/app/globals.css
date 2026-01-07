@@ -19,9 +19,17 @@
 /* Custom Utilities if not using @layer utilities which is v4 specific too but plain css works */
 .page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 .page-header h1 {
@@ -159,6 +167,12 @@
   width: 95%;
   /* Better on mobile */
   max-width: 28rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.min-h-touch {
+  min-height: 44px;
 }
 
 /* Mobile Safe Areas */

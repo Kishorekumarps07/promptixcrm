@@ -60,23 +60,23 @@ export default function SalaryGeneration() {
     ];
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <header className="mb-8 flex justify-between items-center">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header">
                     <div>
-                        <h1 className="text-3xl font-bold text-navy-900">Generate Salaries</h1>
-                        <p className="text-gray-500 mt-1">Calculate and create draft salary records</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-navy-900">Generate Salaries</h1>
+                        <p className="text-gray-500 mt-1 text-sm md:text-base">Calculate and create draft salary records</p>
                     </div>
                 </header>
 
                 {/* Controls */}
-                <div className="bg-white p-6 rounded-lg shadow border border-gray-100 mb-8 flex items-end gap-6">
+                <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-100 mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:items-end">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
                         <select
                             value={year} onChange={e => setYear(Number(e.target.value))}
-                            className="p-2 border border-gray-300 rounded w-32"
+                            className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
                         >
                             {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
                         </select>
@@ -85,7 +85,7 @@ export default function SalaryGeneration() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
                         <select
                             value={month} onChange={e => setMonth(Number(e.target.value))}
-                            className="p-2 border border-gray-300 rounded w-48"
+                            className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
                         >
                             {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
                         </select>
@@ -93,8 +93,9 @@ export default function SalaryGeneration() {
                     <button
                         onClick={handleGenerate}
                         disabled={generating}
-                        className={`px-6 py-2.5 rounded font-bold text-white transition-all ${generating ? 'bg-gray-400' : 'bg-orange-500 hover:bg-orange-600 shadow-md'
+                        className={`w-full px-6 py-2.5 rounded font-bold text-white transition-all shadow-sm ${generating ? 'bg-gray-400' : 'bg-orange-500 hover:bg-orange-600 shadow-md'
                             }`}
+                        style={{ minHeight: '44px' }}
                     >
                         {generating ? 'Generating...' : 'Generate Batch'}
                     </button>

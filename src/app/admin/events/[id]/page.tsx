@@ -58,27 +58,27 @@ export default function EventAttendance({ params }: { params: Promise<{ id: stri
     };
 
     if (loading) return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
                 <p>Loading attendance...</p>
             </main>
         </div>
     );
 
     if (!event) return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
                 <p>Event not found.</p>
             </main>
         </div>
     );
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="ml-64 p-8 flex-1">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-navy-900">{event.title}</h1>

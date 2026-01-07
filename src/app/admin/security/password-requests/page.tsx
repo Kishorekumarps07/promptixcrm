@@ -79,7 +79,7 @@ export default function PasswordRequests() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
             <Sidebar />
             <main className="md:ml-64 p-8 flex-1">
                 <header className="mb-8">

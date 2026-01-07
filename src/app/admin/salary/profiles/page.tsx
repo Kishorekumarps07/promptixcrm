@@ -66,13 +66,13 @@ export default function SalaryProfiles() {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
             <Sidebar />
-            <main className="md:ml-64 p-8 flex-1">
-                <header className="mb-8 flex justify-between items-center">
+            <main className="md:ml-64 p-4 md:p-8 flex-1">
+                <header className="page-header">
                     <div>
-                        <h1 className="text-3xl font-bold text-navy-900">Salary Management</h1>
-                        <p className="text-gray-500 mt-1">Manage employee salary profiles</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-navy-900">Salary Management</h1>
+                        <p className="text-gray-500 mt-1 text-sm md:text-base">Manage employee salary profiles</p>
                     </div>
                 </header>
 
