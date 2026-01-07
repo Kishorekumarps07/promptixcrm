@@ -28,6 +28,10 @@ const MonthlySalarySchema = new mongoose.Schema({
         required: true,
         default: 0
     },
+    paidLeaveDays: {
+        type: Number,
+        default: 0
+    },
     perDayRate: {
         type: Number,
         required: true

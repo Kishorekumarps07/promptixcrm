@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import MonthlySalary from '@/models/MonthlySalary';
 import EmployeeSalaryProfile from '@/models/EmployeeSalaryProfile';
 import Attendance from '@/models/Attendance';
+import LeaveRequest from '@/models/LeaveRequest';
 import User from '@/models/User'; // Ensure User model is loaded
 import { getWorkingDaysInMonth } from '@/lib/salary-utils'; // You'll need to create/update this
 import { cookies } from 'next/headers';
@@ -91,8 +92,7 @@ export async function POST(req: Request) {
                 const workingDays = getWorkingDaysInMonth(month, year);
                 const perDayRate = Number((profile.monthlySalary / workingDays).toFixed(2));
 
-                // Fetch Approved Attendance
-                // Start/End of that specific month
+                // Fetch Approved Attendance (Present + WFH)
                 const startOfMonth = new Date(year, month, 1);
                 const endOfMonth = new Date(year, month + 1, 0);
                 endOfMonth.setHours(23, 59, 59, 999);
@@ -100,21 +100,47 @@ export async function POST(req: Request) {
                 const attendanceCount = await Attendance.countDocuments({
                     userId: profile.employeeId,
                     status: 'Approved',
+                    type: { $in: ['Present', 'WFH'] },
                     date: {
                         $gte: startOfMonth,
                         $lte: endOfMonth
                     }
                 });
 
-                // Unpaid Leaves (Future task technically, but field exists)
-                // For now assuming hard deduction if prompt requested, 
-                // but strictly speaking, if you aren't Present, you aren't paid.
-                // Formula: Final Salary = Per Day Rate × Approved Present Days.
-                // So we don't need to explicitly subtract leaves unless leaves count as "Present" in some systems (Paid Leave).
-                // The prompt says "Unpaid leaves reduce salary" -> "Unpaid leave = absent".
-                // So simply NOT counting them as present is sufficient deduction.
+                // Fetch Paid Leaves (Sick Leave)
+                // We consider "sick" related leaves as Paid Leave (business days only)
+                const sickLeaves = await LeaveRequest.find({
+                    userId: profile.employeeId,
+                    status: 'Approved',
+                    reason: { $regex: /sick/i },
+                    $or: [
+                        { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth } }
+                    ]
+                });
 
-                const calculatedSalary = Number((perDayRate * attendanceCount).toFixed(2));
+                let paidLeaveDays = 0;
+                sickLeaves.forEach(leave => {
+                    const start = leave.fromDate < startOfMonth ? startOfMonth : leave.fromDate;
+                    const end = leave.toDate > endOfMonth ? endOfMonth : leave.toDate;
+
+                    let d = new Date(start);
+                    d.setHours(0, 0, 0, 0);
+                    const e = new Date(end);
+                    e.setHours(0, 0, 0, 0);
+
+                    while (d <= e) {
+                        const day = d.getDay();
+                        // 0 = Sun, 6 = Sat. Count only Weekdays (since WorkingDays excludes weekends)
+                        if (day !== 0 && day !== 6) {
+                            paidLeaveDays++;
+                        }
+                        d.setDate(d.getDate() + 1);
+                    }
+                });
+
+                const totalPaidDays = attendanceCount + paidLeaveDays;
+
+                const calculatedSalary = Number((perDayRate * totalPaidDays).toFixed(2));
 
                 // Create Record
                 const record = await MonthlySalary.create({
@@ -123,7 +149,8 @@ export async function POST(req: Request) {
                     year,
                     workingDays,
                     presentDays: attendanceCount,
-                    unpaidLeaveDays: 0, // Placeholder as we aren't querying this yet
+                    paidLeaveDays,
+                    unpaidLeaveDays: 0,
                     perDayRate,
                     calculatedSalary,
                     status: 'Draft'
