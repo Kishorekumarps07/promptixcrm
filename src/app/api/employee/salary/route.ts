@@ -28,6 +28,7 @@ export async function GET(req: Request) {
 
     try {
         const salaryRecords = await MonthlySalary.find({ employeeId: userInfo.userId })
+            .populate('employeeId', 'name email')
             .sort({ year: -1, month: -1 });
 
         return NextResponse.json({ data: salaryRecords });

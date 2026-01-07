@@ -48,6 +48,15 @@ const MonthlySalarySchema = new mongoose.Schema({
     generatedAt: {
         type: Date,
         default: Date.now
+    },
+    paidAt: {
+        type: Date
+    },
+    paymentMethod: {
+        type: String
+    },
+    transactionReference: {
+        type: String
     }
 }, { timestamps: true });
 

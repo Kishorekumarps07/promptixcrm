@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Table from '@/components/ui/Table';
+import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
 
 export default function SalaryGeneration() {
     const [month, setMonth] = useState(new Date().getMonth() === 0 ? 11 : new Date().getMonth() - 1); // Default previous month
@@ -11,6 +12,11 @@ export default function SalaryGeneration() {
     const [salaries, setSalaries] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
+    const [showPayModal, setShowPayModal] = useState(false);
+    const [selectedSalary, setSelectedSalary] = useState<any>(null);
+    const [paymentDate, setPaymentDate] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
+    const [transactionRef, setTransactionRef] = useState('');
 
     useEffect(() => {
         fetchSalaries();
@@ -53,6 +59,80 @@ export default function SalaryGeneration() {
         } finally {
             setGenerating(false);
         }
+    };
+
+    const handleApprove = async (salaryId: string) => {
+        if (!confirm('Approve this salary record?')) return;
+
+        try {
+            const res = await fetch('/api/admin/salary/approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ salaryId })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert('Salary approved successfully!');
+                fetchSalaries();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (e) {
+            alert('Failed to approve salary.');
+        }
+    };
+
+    const handleMarkAsPaid = async () => {
+        if (!selectedSalary) return;
+
+        try {
+            const res = await fetch('/api/admin/salary/pay', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    salaryId: selectedSalary._id,
+                    paymentDate: paymentDate || new Date().toISOString(),
+                    paymentMethod,
+                    transactionReference: transactionRef
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert('Salary marked as paid successfully!');
+                setShowPayModal(false);
+                setSelectedSalary(null);
+                setPaymentDate('');
+                setTransactionRef('');
+                fetchSalaries();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (e) {
+            alert('Failed to mark salary as paid.');
+        }
+    };
+
+    const handleDownloadPDF = (salary: any) => {
+        generateSalarySlipPDF({
+            employeeName: salary.employeeId?.name || 'Unknown',
+            employeeEmail: salary.employeeId?.email || '',
+            employeeId: salary.employeeId?._id || '',
+            month: salary.month,
+            year: salary.year,
+            workingDays: salary.workingDays,
+            presentDays: salary.presentDays,
+            paidLeaveDays: salary.paidLeaveDays || 0,
+            unpaidLeaveDays: salary.unpaidLeaveDays || 0,
+            perDayRate: salary.perDayRate,
+            calculatedSalary: salary.calculatedSalary,
+            status: salary.status,
+            generatedAt: salary.generatedAt,
+            paidAt: salary.paidAt,
+            paymentMethod: salary.paymentMethod,
+            transactionReference: salary.transactionReference
+        });
     };
 
     const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -134,10 +214,50 @@ export default function SalaryGeneration() {
                             },
                             {
                                 header: "Status",
+                                accessor: (rec) => {
+                                    const statusColors: any = {
+                                        Draft: 'bg-yellow-100 text-yellow-700',
+                                        Approved: 'bg-blue-100 text-blue-700',
+                                        Paid: 'bg-green-100 text-green-700'
+                                    };
+                                    return (
+                                        <span className={`px-2 py-1 ${statusColors[rec.status] || 'bg-gray-100 text-gray-700'} rounded text-xs font-bold uppercase`}>
+                                            {rec.status}
+                                        </span>
+                                    );
+                                }
+                            },
+                            {
+                                header: "Actions",
                                 accessor: (rec) => (
-                                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold uppercase">
-                                        {rec.status}
-                                    </span>
+                                    <div className="flex gap-2">
+                                        {rec.status === 'Draft' && (
+                                            <button
+                                                onClick={() => handleApprove(rec._id)}
+                                                className="px-3 py-1 bg-blue-500 text-white rounded text-xs font-medium hover:bg-blue-600"
+                                            >
+                                                Approve
+                                            </button>
+                                        )}
+                                        {rec.status === 'Approved' && (
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedSalary(rec);
+                                                    setShowPayModal(true);
+                                                }}
+                                                className="px-3 py-1 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600"
+                                            >
+                                                Mark Paid
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleDownloadPDF(rec)}
+                                            className="px-3 py-1 bg-orange-500 text-white rounded text-xs font-medium hover:bg-orange-600"
+                                            title="Download Salary Slip"
+                                        >
+                                            📄 PDF
+                                        </button>
+                                    </div>
                                 )
                             }
                         ]}
@@ -167,11 +287,119 @@ export default function SalaryGeneration() {
                                         <span className="font-mono text-navy-700">${rec.perDayRate}/day</span>
                                     </div>
                                 </div>
+
+                                {/* Mobile Actions */}
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex gap-2">
+                                        {rec.status === 'Draft' && (
+                                            <button
+                                                onClick={() => handleApprove(rec._id)}
+                                                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded font-medium hover:bg-blue-600"
+                                                style={{ minHeight: '44px' }}
+                                            >
+                                                Approve
+                                            </button>
+                                        )}
+                                        {rec.status === 'Approved' && (
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedSalary(rec);
+                                                    setShowPayModal(true);
+                                                }}
+                                                className="flex-1 px-4 py-2 bg-green-500 text-white rounded font-medium hover:bg-green-600"
+                                                style={{ minHeight: '44px' }}
+                                            >
+                                                Mark as Paid
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => handleDownloadPDF(rec)}
+                                        className="w-full px-4 py-2 bg-orange-500 text-white rounded font-medium hover:bg-orange-600"
+                                        style={{ minHeight: '44px' }}
+                                    >
+                                        📄 Download Salary Slip
+                                    </button>
+                                </div>
                             </div>
                         )}
                         loading={loading}
                     />
                 </div>
+
+                {/* Mark as Paid Modal */}
+                {showPayModal && selectedSalary && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                            <div className="p-6 border-b border-gray-200">
+                                <h2 className="text-xl font-bold text-navy-900">Mark Salary as Paid</h2>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    {selectedSalary.employeeId?.name} - ${selectedSalary.calculatedSalary.toLocaleString()}
+                                </p>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                                    <input
+                                        type="date"
+                                        value={paymentDate}
+                                        onChange={(e) => setPaymentDate(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                                    <select
+                                        value={paymentMethod}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
+                                    >
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="Check">Check</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Reference (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={transactionRef}
+                                        onChange={(e) => setTransactionRef(e.target.value)}
+                                        placeholder="e.g., TXN123456"
+                                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="p-6 border-t border-gray-200 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowPayModal(false);
+                                        setSelectedSalary(null);
+                                        setPaymentDate('');
+                                        setTransactionRef('');
+                                    }}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded font-medium hover:bg-gray-50"
+                                    style={{ minHeight: '44px' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleMarkAsPaid}
+                                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded font-medium hover:bg-green-600"
+                                    style={{ minHeight: '44px' }}
+                                >
+                                    Confirm Payment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

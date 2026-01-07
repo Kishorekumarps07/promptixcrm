@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
 
 export default function MySalary() {
     const [salaries, setSalaries] = useState<any[]>([]);
@@ -21,6 +22,27 @@ export default function MySalary() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDownload = (rec: any) => {
+        generateSalarySlipPDF({
+            employeeName: rec.employeeId?.name || 'Employee',
+            employeeEmail: rec.employeeId?.email || '',
+            employeeId: rec.employeeId?._id || '',
+            month: rec.month,
+            year: rec.year,
+            workingDays: rec.workingDays,
+            presentDays: rec.presentDays,
+            paidLeaveDays: rec.paidLeaveDays || 0,
+            unpaidLeaveDays: rec.unpaidLeaveDays || 0,
+            perDayRate: rec.perDayRate,
+            calculatedSalary: rec.calculatedSalary,
+            status: rec.status,
+            generatedAt: rec.generatedAt,
+            paidAt: rec.paidAt,
+            paymentMethod: rec.paymentMethod,
+            transactionReference: rec.transactionReference
+        });
     };
 
     const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -61,6 +83,12 @@ export default function MySalary() {
                                 <div className="text-right">
                                     <div className="text-sm text-gray-500 mb-1">Net Payable</div>
                                     <div className="text-2xl font-bold text-green-600">${rec.calculatedSalary.toLocaleString()}</div>
+                                    <button
+                                        onClick={() => handleDownload(rec)}
+                                        className="mt-2 text-xs bg-navy-900 text-white px-3 py-1.5 rounded hover:bg-navy-800 transition-colors flex items-center gap-1 ml-auto"
+                                    >
+                                        <span>📄</span> Download Slip
+                                    </button>
                                 </div>
                             </div>
 
