@@ -38,9 +38,21 @@ export async function POST(req: Request) {
             sameSite: 'strict',
         });
 
+        // Check for Employee Profile Completion
+        let redirectUrl = null;
+        if (user.role === 'EMPLOYEE') {
+            const EmployeeProfile = (await import('@/models/EmployeeProfile')).default;
+            const profile = await EmployeeProfile.findOne({ userId: user._id });
+
+            if (!profile || !profile.profileCompleted) {
+                redirectUrl = '/employee/profile-setup';
+            }
+        }
+
         const response = NextResponse.json({
             message: 'Login successful',
-            user: { name: user.name, email: user.email, role: user.role }
+            user: { name: user.name, email: user.email, role: user.role },
+            forceRedirect: redirectUrl
         });
 
         response.headers.set('Set-Cookie', cookie);

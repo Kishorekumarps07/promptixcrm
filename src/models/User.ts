@@ -39,6 +39,12 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     },
+    // Employee specific field - for future manager role support
+    managerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false, // Optional - not all employees have managers
+    },
     // Student specific fields
     course: String,
     internshipStatus: {

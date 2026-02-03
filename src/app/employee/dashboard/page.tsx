@@ -2,101 +2,128 @@
 
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import DashboardCard from '@/components/ui/DashboardCard';
+import TodayAtGlance from '@/components/employee/dashboard/TodayAtGlance';
+import QuickActionsCard from '@/components/employee/dashboard/QuickActionsCard';
+import AttendanceSnapshotCard from '@/components/employee/dashboard/AttendanceSnapshotCard';
+import LeaveBalanceCard from '@/components/employee/dashboard/LeaveBalanceCard';
+import SalaryPreviewCard from '@/components/employee/dashboard/SalaryPreviewCard';
+import AnnouncementsCard from '@/components/employee/dashboard/AnnouncementsCard';
+import UpcomingEventsCard from '@/components/employee/dashboard/UpcomingEventsCard';
 
 export default function EmployeeDashboard() {
     const [stats, setStats] = useState<any>(null);
+    const [announcements, setAnnouncements] = useState<any[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
+    const [salaries, setSalaries] = useState<any[]>([]);
+    const [userName, setUserName] = useState<string>('Employee');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/employee/stats')
-            .then(res => res.json())
-            .then(data => {
-                setStats(data);
+        // Fetch all data
+        Promise.all([
+            fetch('/api/employee/stats').then(res => res.json()),
+            fetch('/api/announcements').then(res => res.json()),
+            fetch('/api/employee/events').then(res => res.json()),
+            fetch('/api/employee/salary').then(res => res.json())
+        ])
+            .then(([statsData, announcementsData, eventsData, salaryData]) => {
+                setStats(statsData);
+                setAnnouncements(announcementsData.announcements || []);
+                setEvents(eventsData.events || []);
+                setSalaries(salaryData.data || []);
+
+                // Get user name from token/session
+                const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+                if (token) {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        setUserName(payload.userName || 'Employee');
+                    } catch (e) {
+                        console.error('Error parsing token:', e);
+                    }
+                }
+
                 setLoading(false);
             })
             .catch(err => {
-                console.error(err);
+                console.error('Error fetching dashboard data:', err);
                 setLoading(false);
             });
     }, []);
 
-    const getAttendanceColor = (status: string) => {
-        if (status === 'Approved' || status === 'Present') return 'bg-green-500';
-        if (status === 'Pending') return 'bg-yellow-500';
-        if (status === 'Rejected') return 'bg-red-500';
-        return 'bg-gray-400';
-    };
+    // Get latest paid salary
+    const latestSalary = salaries.length > 0
+        ? salaries.sort((a, b) => {
+            if (a.year !== b.year) return b.year - a.year;
+            return b.month - a.month;
+        })[0]
+        : null;
 
-    const AnnouncementsList = () => {
-        const [list, setList] = useState<any[]>([]);
-        useEffect(() => {
-            fetch('/api/announcements')
-                .then(res => res.json())
-                .then(data => { if (data.announcements) setList(data.announcements.slice(0, 3)); })
-                .catch(console.error);
-        }, []);
-
-        if (list.length === 0) return <p className="text-gray-500 italic">No recent announcements.</p>;
-
+    if (loading) {
         return (
-            <div className="grid gap-4">
-                {list.map(item => (
-                    <div key={item._id} className="bg-white p-4 rounded shadow-sm border border-gray-200">
-                        <h4 className="font-bold text-navy-900">{item.title}</h4>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.content}</p>
-                        <span className="text-xs text-gray-400 mt-2 block">{new Date(item.date).toLocaleDateString()}</span>
+            <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
+                <Sidebar />
+                <main className="md:ml-64 p-4 md:p-8 flex-1">
+                    <div className="flex items-center justify-center h-96">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                            <p className="text-gray-500">Loading your dashboard...</p>
+                        </div>
                     </div>
-                ))}
+                </main>
             </div>
         );
-    };
+    }
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
             <Sidebar />
             <main className="md:ml-64 p-4 md:p-8 flex-1">
-                <header className="page-header mb-8">
+                {/* Page Header */}
+                <header className="mb-6">
                     <h1 className="text-3xl font-bold text-navy-900">My Dashboard</h1>
-                    <p className="text-gray-500">Overview of your activity</p>
+                    <p className="text-gray-500 mt-1">Your personalized workspace</p>
                 </header>
 
-                {loading ? (
-                    <p className="text-gray-500">Loading dashboard...</p>
-                ) : stats ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <DashboardCard
-                            title="Today's Status"
-                            value={stats.attendance}
-                            icon="📅"
-                            color={getAttendanceColor(stats.attendance)}
+                {/* Dashboard Grid */}
+                <div className="space-y-6">
+                    {/* Today at a Glance - Full Width */}
+                    <TodayAtGlance
+                        userName={userName}
+                        attendanceStatus={stats?.attendance || 'Not Checked In'}
+                        date={new Date()}
+                    />
+
+                    {/* Quick Actions - Full Width */}
+                    <QuickActionsCard />
+
+                    {/* Two Column Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Attendance Snapshot */}
+                        <AttendanceSnapshotCard />
+
+                        {/* Leave Balance */}
+                        <LeaveBalanceCard
+                            total={stats?.stats?.leaves?.total || 0}
+                            pending={stats?.stats?.leaves?.pending || 0}
+                            approved={stats?.stats?.leaves?.approved || 0}
                         />
-                        <DashboardCard
-                            title="Total Leaves"
-                            value={stats.totalLeaves}
-                            icon="🌴"
-                            color="bg-blue-500"
+
+                        {/* Salary Preview */}
+                        <SalaryPreviewCard
+                            latestSalary={latestSalary}
                         />
-                        <DashboardCard
-                            title="Pending Requests"
-                            value={stats.pendingLeaves}
-                            icon="⏳"
-                            color="bg-orange-500"
-                        />
-                        <DashboardCard
-                            title="Events (7 Days)"
-                            value={stats.upcomingEvents}
-                            icon="🎉"
-                            color="bg-purple-500"
+
+                        {/* Announcements */}
+                        <AnnouncementsCard
+                            announcements={announcements}
                         />
                     </div>
-                ) : (
-                    <p className="text-red-500">Failed to load stats.</p>
-                )}
 
-                <div className="mt-10">
-                    <h2 className="text-2xl font-bold text-navy-900 mb-4">Recent Announcements</h2>
-                    <AnnouncementsList />
+                    {/* Upcoming Events - Full Width */}
+                    <UpcomingEventsCard
+                        events={events}
+                    />
                 </div>
             </main>
         </div>

@@ -2,108 +2,134 @@
 
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-
-import DashboardCard from '@/components/ui/DashboardCard';
+import EnhancedKPICard from '@/components/dashboard/EnhancedKPICard';
+import AlertsSection from '@/components/dashboard/AlertsSection';
+import QuickActionsPanel from '@/components/dashboard/QuickActionsPanel';
+import RecentActivityFeed from '@/components/dashboard/RecentActivityFeed';
+import WeeklyAttendanceChart from '@/components/dashboard/WeeklyAttendanceChart';
+import EnrollmentChart from '@/components/dashboard/EnrollmentChart';
+import { Users, GraduationCap, Calendar, Clock, DollarSign, Lock } from 'lucide-react';
 
 export default function AdminDashboard() {
-    const [mounted, setMounted] = useState(false);
     const [stats, setStats] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setMounted(true);
         fetch('/api/admin/stats')
             .then(res => res.json())
-            .then(data => setStats(data));
+            .then(data => {
+                setStats(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Dashboard stats fetch failed", err);
+                setLoading(false);
+            });
     }, []);
 
-    const formattedDate = mounted
-        ? new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-        : '';
-
-    // Mock data for visualization since stats API is just counters
-    const attendanceData = [
-        { name: 'Mon', Present: 40, Absent: 10 },
-        { name: 'Tue', Present: 42, Absent: 8 },
-        { name: 'Wed', Present: 45, Absent: 5 },
-        { name: 'Thu', Present: 38, Absent: 12 },
-        { name: 'Fri', Present: 41, Absent: 9 },
-    ];
-
-    const roleData = stats ? [
-        { name: 'Employees', value: stats.employees },
-        { name: 'Students', value: stats.students },
-    ] : [];
-
-    const COLORS = ['#FF6B00', '#001529'];
+    const dateTime = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
 
     return (
-        <div className="flex flex-col md:flex-row bg-gray-100 min-h-screen">
+        <div className="flex flex-col md:flex-row bg-gray-50 min-h-screen">
             <Sidebar />
-            <main className="md:ml-64 p-4 md:p-8 flex-1">
-                <header className="page-header">
+            <main className="md:ml-64 p-4 md:p-8 flex-1 overflow-x-hidden">
+                {/* Header */}
+                <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-navy-900">Dashboard Overview</h1>
-                        <p className="text-gray-500">Welcome back, Admin</p>
+                        <h1 className="text-3xl font-bold text-navy-900">Dashboard</h1>
+                        <p className="text-gray-500">Overview of system performance and activities</p>
                     </div>
-                    <div className="text-sm bg-white px-4 py-2 rounded shadow text-gray-600">
-                        {formattedDate}
+                    <div className="text-sm bg-white px-4 py-2 rounded-lg shadow-sm text-gray-600 border border-gray-100 font-medium">
+                        {dateTime}
                     </div>
                 </header>
 
-                {/* KPI Cards */}
-                {stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <DashboardCard title="Total Employees" value={stats.employees} icon="👥" color="bg-blue-500" />
-                        <DashboardCard title="Total Students" value={stats.students} icon="🎓" color="bg-green-500" />
-                        <DashboardCard title="Active Events" value={stats.events} icon="📅" color="bg-orange-500" />
-                        <DashboardCard title="Pending Leaves" value={stats.pendingLeaves} icon="🕒" color="bg-red-500" />
-                    </div>
-                )}
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
-                {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-navy-900 mb-4">Weekly Attendance</h3>
-                        <div className="h-56 md:h-64">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={attendanceData}>
-                                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                                    <Tooltip cursor={{ fill: '#f4f4f4' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                    <Bar dataKey="Present" fill="#001529" radius={[4, 4, 0, 0]} barSize={30} />
-                                    <Bar dataKey="Absent" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={30} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                    {/* Left Column (Alerts + Charts) - Spans 2 cols */}
+                    <div className="lg:col-span-2 space-y-6">
+
+                        {/* Alerts Section (Full Width of column) */}
+                        <AlertsSection />
+
+                        {/* KPI Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <EnhancedKPICard
+                                title="Total Employees"
+                                value={stats?.employees || 0}
+                                icon={<Users />}
+                                color="bg-blue-100 text-blue-600"
+                                trend={stats?.trends?.employees}
+                                link="/admin/users"
+                                loading={loading}
+                            />
+                            <EnhancedKPICard
+                                title="Total Students"
+                                value={stats?.students || 0}
+                                icon={<GraduationCap />}
+                                color="bg-green-100 text-green-600"
+                                trend={stats?.trends?.students}
+                                link="/admin/users"
+                                loading={loading}
+                            />
+                            <EnhancedKPICard
+                                title="Pending Leaves"
+                                value={stats?.leaves?.pending || 0}
+                                icon={<Clock />}
+                                color="bg-orange-100 text-orange-600"
+                                link="/admin/leaves"
+                                badge={stats?.leaves?.pending}
+                                loading={loading}
+                            />
+                            <EnhancedKPICard
+                                title="Pending Attendance"
+                                value={stats?.attendance?.pending || 0}
+                                icon={<Calendar />}
+                                color="bg-yellow-100 text-yellow-600"
+                                link="/admin/attendance"
+                                badge={stats?.attendance?.pending}
+                                loading={loading}
+                            />
+                            <EnhancedKPICard
+                                title="Salary Drafts"
+                                value={stats?.salary?.draft || 0}
+                                icon={<DollarSign />}
+                                color="bg-purple-100 text-purple-600"
+                                link="/admin/salary/generate"
+                                badge={stats?.salary?.draft}
+                                loading={loading}
+                            />
+                            <EnhancedKPICard
+                                title="Password Requests"
+                                value={stats?.passwordRequests?.pending || 0}
+                                icon={<Lock />}
+                                color="bg-red-100 text-red-600"
+                                link="/admin/security/password-requests"
+                                badge={stats?.passwordRequests?.pending}
+                                loading={loading}
+                            />
+                        </div>
+
+                        {/* Charts Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-96">
+                            <WeeklyAttendanceChart data={stats?.weeklyAttendance || []} />
+                            <EnrollmentChart data={stats?.enrollmentStats || []} />
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-navy-900 mb-4">User Distribution</h3>
-                        <div className="h-56 md:h-64 flex items-center justify-center">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={roleData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {roleData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="flex justify-center gap-6 text-sm text-gray-500">
-                            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-orange-500"></span> Employees</div>
-                            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-navy-900"></span> Students</div>
-                        </div>
+                    {/* Right Column (Quick Actions + Activity) - Spans 1 col */}
+                    <div className="space-y-6">
+                        <QuickActionsPanel
+                            pendingLeaves={stats?.leaves?.pending}
+                            pendingAttendance={stats?.attendance?.pending}
+                        />
+                        <RecentActivityFeed />
                     </div>
                 </div>
             </main>

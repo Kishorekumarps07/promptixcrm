@@ -40,6 +40,7 @@ export default function Sidebar() {
             { href: '/admin/courses', label: 'Courses' },
             { href: '/admin/announcements', label: 'Announcements' },
             { href: '/admin/users', label: 'User Management' },
+            { href: '/admin/employee-profiles', label: 'Employee Database' },
             { href: '/admin/attendance', label: 'Attendance' },
             { href: '/admin/leaves', label: 'Leaves' },
             { href: '/admin/events', label: 'Events' },
