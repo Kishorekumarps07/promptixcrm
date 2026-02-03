@@ -59,7 +59,7 @@ const EmployeeProfileSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-EmployeeProfileSchema.pre('save', function (next) {
+EmployeeProfileSchema.pre('save', function (next: any) {
     this.updatedAt = new Date();
     next();
 });
