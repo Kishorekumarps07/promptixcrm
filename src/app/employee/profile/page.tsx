@@ -224,7 +224,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.name}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div>
@@ -235,7 +235,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.email}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                         </div>
@@ -255,7 +255,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.designation}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div>
@@ -266,7 +266,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.dateOfJoining}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div>
@@ -276,7 +276,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.employmentType}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full form-select px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full form-select px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 >
                                     <option value="Full-time">Full-time</option>
                                     <option value="Part-time">Part-time</option>
@@ -292,7 +292,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.department}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                         </div>
@@ -312,7 +312,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.dateOfBirth}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div>
@@ -322,7 +322,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.gender}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full form-select px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full form-select px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 >
                                     <option value="">Select Gender</option>
                                     <option value="Male">Male</option>
@@ -337,7 +337,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.maritalStatus}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full form-select px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full form-select px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 >
                                     <option value="">Select Status</option>
                                     <option value="Single">Single</option>
@@ -352,7 +352,7 @@ export default function EmployeeProfilePage() {
                                     onChange={handleChange}
                                     disabled={!isEditing}
                                     rows={2}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div className="col-span-2">
@@ -363,7 +363,7 @@ export default function EmployeeProfilePage() {
                                     onChange={handleChange}
                                     disabled={!isEditing}
                                     rows={2}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                         </div>
@@ -383,7 +383,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.eduLevel}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div>
@@ -394,7 +394,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.eduInstitution}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div>
@@ -405,7 +405,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.eduYear}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div>
@@ -416,7 +416,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.eduScore}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                         </div>
@@ -436,7 +436,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.phoneNumber}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div className="col-span-1 border-l pl-6">
@@ -447,7 +447,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.emergencyContactName}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                             <div className="col-span-1 pl-6">
@@ -458,7 +458,7 @@ export default function EmployeeProfilePage() {
                                     value={profile.emergencyContactPhone}
                                     onChange={handleChange}
                                     disabled={!isEditing}
-                                    className={`w-full px-3 py-2 rounded border ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
+                                    className={`w-full px-3 py-2 rounded border text-base min-h-[44px] ${isEditing ? 'bg-white border-gray-300' : 'bg-gray-100 border-transparent cursor-not-allowed'}`}
                                 />
                             </div>
                         </div>

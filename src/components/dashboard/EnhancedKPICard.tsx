@@ -6,7 +6,7 @@ import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
 interface EnhancedKPICardProps {
     title: string;
     value: number | string;
-    icon: string;
+    icon: React.ReactNode;
     color: string;
     trend?: number; // Percentage change (positive for increase, negative for decrease)
     link?: string; // Make card clickable

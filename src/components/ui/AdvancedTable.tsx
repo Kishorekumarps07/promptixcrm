@@ -155,8 +155,47 @@ export default function AdvancedTable<T extends Record<string, any>>({
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
+            {/* Mobile Card View (Visible < md) */}
+            <div className="md:hidden flex flex-col gap-4 p-4 bg-gray-50">
+                {paginatedData.length > 0 ? paginatedData.map((item, rowIdx) => (
+                    <div
+                        key={rowIdx}
+                        className={`bg-white rounded-xl p-4 shadow-sm border transition-colors relative
+                        ${selectedItems.has(String(item[keyField])) ? 'border-orange-200 bg-orange-50/20' : 'border-gray-200'}`}
+                    >
+                        {/* Selection Checkbox (Absolute Top-Right) */}
+                        {onSelectionChange && (
+                            <div className="absolute top-4 right-4 z-10">
+                                <input
+                                    type="checkbox"
+                                    className="w-5 h-5 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                    checked={selectedItems.has(String(item[keyField]))}
+                                    onChange={() => handleSelectRow(String(item[keyField]))}
+                                />
+                            </div>
+                        )}
+
+                        <div className="space-y-3 pr-8">
+                            {columns.map((col, colIdx) => (
+                                <div key={colIdx} className="flex flex-col gap-1">
+                                    {/* Don't show header for Actions column if empty */}
+                                    {col.header && <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{col.header}</span>}
+                                    <div className={`text-sm ${col.header === 'Status' ? 'inline-block' : ''}`}>
+                                        {renderCell(item, col)}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )) : (
+                    <div className="text-center py-12 text-gray-500">
+                        No records found matching your search.
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop Table View (Visible >= md) */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-100">
                         <tr>

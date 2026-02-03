@@ -117,9 +117,13 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Charts Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-96">
-                            <WeeklyAttendanceChart data={stats?.weeklyAttendance || []} />
-                            <EnrollmentChart data={stats?.enrollmentStats || []} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="h-80">
+                                <WeeklyAttendanceChart data={stats?.weeklyAttendance || []} />
+                            </div>
+                            <div className="h-80">
+                                <EnrollmentChart data={stats?.enrollmentStats || []} />
+                            </div>
                         </div>
                     </div>
 
