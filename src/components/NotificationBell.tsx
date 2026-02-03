@@ -103,7 +103,7 @@ export default function NotificationBell() {
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute right-auto left-0 mt-2 w-80 sm:w-96 bg-white rounded-md shadow-lg overflow-hidden z-50 ring-1 ring-black ring-opacity-5">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-md shadow-lg overflow-hidden z-50 ring-1 ring-black ring-opacity-5">
                     <div className="py-2 px-4 bg-gray-50 border-b flex justify-between items-center">
                         <span className="font-semibold text-gray-700">Notifications</span>
                         {unreadCount > 0 && (
