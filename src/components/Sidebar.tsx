@@ -85,8 +85,8 @@ export default function Sidebar() {
 
     return (
         <>
-            {/* Mobile Header (Sticky & Glassmorphism) */}
-            <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-navy-900/95 backdrop-blur-md z-[50] px-4 flex items-center justify-between border-b border-white/5 shadow-sm">
+            {/* Mobile Header (Sticky & Solid) */}
+            <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-navy-900 z-[50] px-4 flex items-center justify-between border-b border-navy-800 shadow-sm">
                 <Image
                     src="/logo-new.png"
                     alt="PromptiX"
@@ -111,7 +111,7 @@ export default function Sidebar() {
 
             {/* Mobile Overlay (Backdrop) */}
             <div
-                className={`md:hidden fixed inset-0 bg-navy-950/80 backdrop-blur-sm z-[55] transition-opacity duration-300 ease-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                className={`md:hidden fixed inset-0 bg-black/50 z-[55] transition-opacity duration-300 ease-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                     }`}
                 onClick={() => setIsOpen(false)}
             />
