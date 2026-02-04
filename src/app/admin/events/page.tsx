@@ -9,7 +9,7 @@ import { Calendar, MapPin, Users, Edit, Trash2, Plus, Clock, CheckCircle, Archiv
 export default function AdminEvents() {
     const [events, setEvents] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ title: '', description: '', date: '', type: 'Workshop', isActive: true });
+    const [formData, setFormData] = useState({ title: '', description: '', date: '', type: 'Workshop', isActive: true, venue: '' });
     const [editingEvent, setEditingEvent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -32,7 +32,7 @@ export default function AdminEvents() {
 
     const openCreateModal = () => {
         setEditingEvent(null);
-        setFormData({ title: '', description: '', date: '', type: 'Workshop', isActive: true });
+        setFormData({ title: '', description: '', date: '', type: 'Workshop', isActive: true, venue: '' });
         setIsModalOpen(true);
     };
 
@@ -43,7 +43,8 @@ export default function AdminEvents() {
             description: event.description,
             date: event.date.split('T')[0],
             type: event.type,
-            isActive: event.isActive
+            isActive: event.isActive,
+            venue: event.venue || ''
         });
         setIsModalOpen(true);
     };
@@ -138,6 +139,11 @@ export default function AdminEvents() {
                                         <h3 className="text-3xl font-black leading-none">{new Date(event.date).getDate()}</h3>
                                         <span className="text-sm font-bold opacity-80 mb-1">{new Date(event.date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</span>
                                     </div>
+                                    {event.venue && (
+                                        <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-white font-medium flex items-center gap-1">
+                                            <MapPin size={10} /> {event.venue}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="p-6 flex-1 flex flex-col">
@@ -210,6 +216,19 @@ export default function AdminEvents() {
                                         required
                                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold text-navy-900"
                                     />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Venue / Location</label>
+                                    <div className="relative">
+                                        <input
+                                            placeholder="e.g. Virtual, Room 302, Main Auditorium"
+                                            value={formData.venue}
+                                            onChange={e => setFormData({ ...formData, venue: e.target.value })}
+                                            className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-medium text-navy-900"
+                                        />
+                                        <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

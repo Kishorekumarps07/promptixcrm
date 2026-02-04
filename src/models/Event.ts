@@ -14,8 +14,12 @@ const EventSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['Workshop', 'Bootcamp', 'Guest Lecture', 'Announcement'],
+        enum: ['Workshop', 'Bootcamp', 'Guest Lecture', 'Announcement', 'Hackathon', 'Meeting'],
         default: 'Workshop',
+    },
+    venue: {
+        type: String,
+        default: 'Virtual',
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -65,4 +69,9 @@ const EventSchema = new mongoose.Schema({
 // Index for sorting upcoming events
 EventSchema.index({ date: 1 });
 
-export default mongoose.models.Event || mongoose.model('Event', EventSchema);
+// Prevent model overwrite error in development
+if (mongoose.models.Event) {
+    delete mongoose.models.Event;
+}
+
+export default mongoose.model('Event', EventSchema);

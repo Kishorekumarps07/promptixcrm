@@ -35,13 +35,14 @@ export async function POST(req: Request) {
     try {
         const body = await req.json();
         const adminId = await getAdminId();
-        const { title, description, date, type, isActive } = body;
+        const { title, description, date, type, isActive, venue } = body;
 
         const event = await Event.create({
             title,
             description,
             date,
             type,
+            venue,
             isActive: isActive !== undefined ? isActive : true,
             createdBy: adminId,
         });
