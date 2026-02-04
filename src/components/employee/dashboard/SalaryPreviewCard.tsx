@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
-import DashboardWidgetCard from './DashboardWidgetCard';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
+import Link from 'next/link';
 
 interface SalaryPreviewCardProps {
     latestSalary: any;
@@ -12,7 +15,6 @@ export default function SalaryPreviewCard({ latestSalary }: SalaryPreviewCardPro
 
     const handleDownload = () => {
         if (!latestSalary) return;
-
         generateSalarySlipPDF({
             employeeName: latestSalary.employeeId?.name || 'Employee',
             employeeEmail: latestSalary.employeeId?.email || '',
@@ -40,133 +42,96 @@ export default function SalaryPreviewCard({ latestSalary }: SalaryPreviewCardPro
         return 'bg-gray-100 text-gray-700';
     };
 
-    // Calculate next payout date (5th of next month)
     const getNextPayoutDate = () => {
         const today = new Date();
         const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-        const currentDay = today.getDate();
-
-        // If today is before 5th, next payout is this month's 5th
-        // Otherwise, next payout is next month's 5th
-        let payoutMonth = currentDay < 5 ? currentMonth : currentMonth + 1;
-        let payoutYear = currentYear;
-
-        // Handle December -> January transition
-        if (payoutMonth > 11) {
-            payoutMonth = 0;
-            payoutYear += 1;
-        }
-
-        const nextPayout = new Date(payoutYear, payoutMonth, 5);
-        return nextPayout.toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
+        const payoutMonth = today.getDate() < 5 ? currentMonth : currentMonth + 1;
+        const payoutYear = today.getFullYear() + (payoutMonth > 11 ? 1 : 0);
+        const nextPayout = new Date(payoutYear, payoutMonth % 12, 5);
+        return nextPayout.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
     };
 
-    // Format payment date
     const formatPaymentDate = (date: string | Date | null) => {
         if (!date) return 'Not yet paid';
-        const payDate = new Date(date);
-        return payDate.toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
+        return new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
     };
 
+    const ViewHistoryButton = (
+        <Link href="/employee/salary" className="text-xs font-semibold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors">
+            View History
+        </Link>
+    );
+
     return (
-        <DashboardWidgetCard
-            title="Salary Preview"
-            icon="💰"
-            actionLabel="View History"
-            actionHref="/employee/salary"
-        >
+        <ModernGlassCard title="Salary Preview" headerAction={ViewHistoryButton} delay={0.3} hoverEffect>
             {latestSalary ? (
                 <>
                     {/* Salary amount header */}
-                    <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-4 border border-orange-100 mb-4">
-                        <p className="text-sm text-gray-600 mb-1">
+                    <div className="bg-gradient-to-r from-orange-100 to-amber-50 rounded-xl p-4 border border-orange-100 mb-5 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-orange-400/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+
+                        <p className="text-sm text-gray-600 font-medium mb-1">
                             {monthNames[latestSalary.month]} {latestSalary.year}
                         </p>
                         <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-3xl font-bold text-navy-900">
+                            <span className="text-4xl font-black text-navy-900 tracking-tight">
                                 ${latestSalary.calculatedSalary.toLocaleString()}
                             </span>
                         </div>
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(latestSalary.status)}`}>
-                            {latestSalary.status === 'Paid' ? '✅ Paid' :
-                                latestSalary.status === 'Approved' ? '🟡 Approved' :
-                                    '📝 Draft'}
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${getStatusBadge(latestSalary.status)}`}>
+                            {latestSalary.status === 'Paid' ? (
+                                <>
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                    Paid
+                                </>
+                            ) : (
+                                latestSalary.status
+                            )}
                         </span>
                     </div>
 
                     {/* Payment info */}
-                    <div className="space-y-2 text-sm mb-4">
-                        {/* Payment date (for paid salaries) */}
+                    <div className="space-y-3 mb-5">
                         {latestSalary.status === 'Paid' && latestSalary.paidAt && (
-                            <div className="flex items-center justify-between p-2 bg-green-50 rounded border border-green-100">
-                                <span className="text-gray-600 flex items-center gap-1">
-                                    <span>💳</span>
-                                    <span>Paid On</span>
+                            <div className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl border border-green-100">
+                                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                                    <span>💳</span> Paid On
                                 </span>
-                                <span className="font-semibold text-green-700">
+                                <span className="text-sm font-bold text-green-700">
                                     {formatPaymentDate(latestSalary.paidAt)}
                                 </span>
                             </div>
                         )}
-
-                        {/* Next payout date */}
-                        <div className="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-100">
-                            <span className="text-gray-600 flex items-center gap-1">
-                                <span>📅</span>
-                                <span>Next Payout</span>
+                        <div className="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                            <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                                <span>📅</span> Next Payout
                             </span>
-                            <span className="font-semibold text-blue-700">
+                            <span className="text-sm font-bold text-blue-700">
                                 {getNextPayoutDate()}
                             </span>
                         </div>
                     </div>
 
-                    {/* Salary breakdown */}
-                    <div className="space-y-2 text-sm mb-4">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Working Days</span>
-                            <span className="font-medium text-navy-900">{latestSalary.workingDays}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Present Days</span>
-                            <span className="font-medium text-navy-900">{latestSalary.presentDays}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Per Day Rate</span>
-                            <span className="font-medium text-navy-900">${latestSalary.perDayRate}</span>
-                        </div>
-                    </div>
-
-                    {/* Download button */}
                     <button
                         onClick={handleDownload}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-lg py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-navy-900 hover:bg-navy-800 text-white rounded-xl py-3 text-sm font-bold shadow-lg shadow-navy-900/20 hover:shadow-navy-900/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
                     >
                         📄 Download Payslip
                     </button>
                 </>
             ) : (
                 <div className="text-center py-8">
-                    <div className="text-4xl mb-2">💰</div>
-                    <p className="text-gray-500 text-sm">No salary records yet</p>
-                    <p className="text-xs text-gray-400 mt-1">Your salary will appear here once generated</p>
-                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <p className="text-xs text-gray-600">
-                            <span className="font-semibold">Next payout:</span> {getNextPayoutDate()}
+                    <div className="text-4xl mb-3 grayscale opacity-70">💰</div>
+                    <p className="text-gray-900 font-semibold mb-1">No salary records yet</p>
+                    <p className="text-xs text-gray-500 mb-4">Your salary will appear here once generated</p>
+                    <div className="p-3 bg-blue-50/80 rounded-lg border border-blue-100 inline-block text-left w-full">
+                        <p className="text-xs text-gray-700">
+                            <span className="font-bold text-blue-700">Next payout:</span> {getNextPayoutDate()}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">Salaries are processed on the 5th of every month</p>
+                        <p className="text-[10px] text-gray-500 mt-1">Salaries are usually processed on the 5th.</p>
                     </div>
                 </div>
             )}
-        </DashboardWidgetCard>
+        </ModernGlassCard>
     );
 }

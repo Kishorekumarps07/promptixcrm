@@ -50,7 +50,6 @@ export default function Sidebar() {
     const menuItems = {
         ADMIN: [
             { href: '/admin/dashboard', label: 'Dashboard' },
-            { href: '/admin/courses', label: 'Courses' },
             { href: '/admin/announcements', label: 'Announcements' },
             { href: '/admin/users', label: 'User Management' },
             { href: '/admin/employee-profiles', label: 'Employee Database' },
@@ -65,19 +64,10 @@ export default function Sidebar() {
         EMPLOYEE: [
             { href: '/employee/dashboard', label: 'Dashboard' },
             { href: '/employee/profile', label: 'My Profile' },
-            { href: '/employee/courses', label: 'Courses' },
             { href: '/employee/attendance', label: 'Attendance' },
             { href: '/employee/leaves', label: 'Leaves' },
-            { href: '/employee/students', label: 'My Students' },
             { href: '/employee/events', label: 'Events' },
             { href: '/employee/salary', label: 'My Salary' }
-        ],
-        STUDENT: [
-            { href: '/student/dashboard', label: 'Dashboard' },
-            { href: '/student/profile', label: 'My Profile' },
-            { href: '/student/courses', label: 'My Courses' },
-            { href: '/student/announcements', label: 'Announcements' },
-            { href: '/student/events', label: 'Events' }
         ]
     };
 

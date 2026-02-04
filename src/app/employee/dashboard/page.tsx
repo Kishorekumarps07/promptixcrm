@@ -24,22 +24,28 @@ export default function EmployeeDashboard() {
             fetch('/api/employee/stats').then(res => res.json()),
             fetch('/api/announcements').then(res => res.json()),
             fetch('/api/employee/events').then(res => res.json()),
-            fetch('/api/employee/salary').then(res => res.json())
+            fetch('/api/employee/salary').then(res => res.json()),
+            fetch('/api/employee/profile/status').then(res => res.json())
         ])
-            .then(([statsData, announcementsData, eventsData, salaryData]) => {
+            .then(([statsData, announcementsData, eventsData, salaryData, profileData]) => {
                 setStats(statsData);
                 setAnnouncements(announcementsData.announcements || []);
                 setEvents(eventsData.events || []);
                 setSalaries(salaryData.data || []);
 
-                // Get user name from token/session
-                const token = document.cookie.split('; ').find(row => row.startsWith('token='));
-                if (token) {
-                    try {
-                        const payload = JSON.parse(atob(token.split('.')[1]));
-                        setUserName(payload.userName || 'Employee');
-                    } catch (e) {
-                        console.error('Error parsing token:', e);
+                // Prioritize name from DB profile/user, fall back to "Employee"
+                if (profileData && profileData.user && profileData.user.name) {
+                    setUserName(profileData.user.name);
+                } else if (profileData && profileData.profile && profileData.profile.name) {
+                    setUserName(profileData.profile.name);
+                } else {
+                    // Fallback to cookie if API fails for some reason
+                    const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+                    if (token) {
+                        try {
+                            const payload = JSON.parse(atob(token.split('.')[1]));
+                            if (payload.userName) setUserName(payload.userName);
+                        } catch (e) { }
                     }
                 }
 
@@ -76,7 +82,7 @@ export default function EmployeeDashboard() {
     }
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
+        <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
             <Sidebar />
             <main className="md:ml-64 p-4 md:p-8 flex-1">
                 {/* Page Header */}

@@ -4,7 +4,6 @@ import User from '@/models/User';
 import Event from '@/models/Event';
 import LeaveRequest from '@/models/LeaveRequest';
 import Attendance from '@/models/Attendance';
-import CourseEnrollment from '@/models/CourseEnrollment';
 import MonthlySalary from '@/models/MonthlySalary';
 import PasswordChangeRequest from '@/models/PasswordChangeRequest';
 
@@ -39,7 +38,6 @@ export async function GET() {
         const [
             // Current counts
             employees,
-            students,
             events,
             pendingLeaves,
             approvedLeaves,
@@ -55,19 +53,17 @@ export async function GET() {
             // Password requests
             pendingPasswordRequests,
 
-            // Enrollment
-            enrollmentStats,
-
             // Trend data (last month)
             employeesLastMonth,
-            studentsLastMonth,
 
             // Weekly attendance data
-            weeklyAttendance
+            weeklyAttendance,
+
+            // Salary Trends
+            salaryTrends
         ] = await Promise.all([
             // Current counts
             User.countDocuments({ role: 'EMPLOYEE' }),
-            User.countDocuments({ role: 'STUDENT' }),
             Event.countDocuments({}),
             LeaveRequest.countDocuments({ status: 'Pending' }),
             LeaveRequest.countDocuments({ status: 'Approved' }),
@@ -83,24 +79,9 @@ export async function GET() {
             // Password requests
             PasswordChangeRequest.countDocuments({ status: 'Pending' }),
 
-            // Enrollment
-            CourseEnrollment.aggregate([
-                { $match: { status: 'Ongoing' } },
-                { $group: { _id: '$courseId', count: { $sum: 1 } } },
-                { $lookup: { from: 'courses', localField: '_id', foreignField: '_id', as: 'course' } },
-                { $unwind: '$course' },
-                { $project: { _id: 0, title: '$course.title', count: '$count' } },
-                { $sort: { count: -1 } },
-                { $limit: 5 }
-            ]),
-
             // Trend data (last month comparison)
             User.countDocuments({
                 role: 'EMPLOYEE',
-                createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }
-            }),
-            User.countDocuments({
-                role: 'STUDENT',
                 createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }
             }),
 
@@ -121,8 +102,37 @@ export async function GET() {
                     }
                 },
                 { $sort: { '_id.date': 1 } }
+            ]),
+            // Salary Trends (Last 6 months)
+            MonthlySalary.aggregate([
+                {
+                    $match: {
+                        status: { $in: ['Paid', 'Approved'] },
+                        $or: [
+                            { year: now.getFullYear(), month: { $lte: now.getMonth() } },
+                            { year: now.getFullYear() - 1, month: { $gt: now.getMonth() } }
+                        ]
+                    }
+                },
+                {
+                    $group: {
+                        _id: { month: '$month', year: '$year' },
+                        totalAmount: { $sum: '$calculatedSalary' },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { '_id.year': 1, '_id.month': 1 } },
+                { $limit: 6 }
             ])
         ]);
+
+        // Process Salary Trends
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const salaryTrendsData = salaryTrends.map((item: any) => ({
+            name: `${monthNames[item._id.month]} ${item._id.year}`,
+            amount: item.totalAmount,
+            count: item.count
+        }));
 
         // Process weekly attendance data into chart format
         const attendanceMap = new Map();
@@ -143,13 +153,9 @@ export async function GET() {
         const employeeTrend = employeesLastMonth > 0
             ? ((employees - employeesLastMonth) / employeesLastMonth * 100).toFixed(1)
             : 0;
-        const studentTrend = studentsLastMonth > 0
-            ? ((students - studentsLastMonth) / studentsLastMonth * 100).toFixed(1)
-            : 0;
 
         return NextResponse.json({
             employees,
-            students,
             events,
             pendingLeaves,
             leaves: {
@@ -172,12 +178,11 @@ export async function GET() {
             passwordRequests: {
                 pending: pendingPasswordRequests
             },
-            enrollmentStats,
             weeklyAttendance: weeklyAttendanceData,
             trends: {
-                employees: Number(employeeTrend),
-                students: Number(studentTrend)
-            }
+                employees: Number(employeeTrend)
+            },
+            salaryTrends: salaryTrendsData
         });
     } catch (err: any) {
         console.error('Admin Stats Error:', err);

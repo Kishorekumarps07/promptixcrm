@@ -5,7 +5,8 @@ import Sidebar from '@/components/Sidebar';
 import Image from 'next/image';
 import PageHeader from '@/components/ui/PageHeader';
 import AdvancedTable from '@/components/ui/AdvancedTable';
-import { UserPlus, Trash2, CheckCircle, XCircle, FileDown } from 'lucide-react';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import { UserPlus, Trash2, CheckCircle, XCircle, Users, Mail, Phone, Shield, Camera, X, Loader2, Edit, AlertCircle } from 'lucide-react';
 
 export default function AdminUsers() {
     const [users, setUsers] = useState<any[]>([]);
@@ -17,19 +18,9 @@ export default function AdminUsers() {
     const [uploading, setUploading] = useState(false);
     const [editingUser, setEditingUser] = useState<any>(null);
 
-    // Onboarding Modal
-    const [onboardingData, setOnboardingData] = useState<any>(null);
-    const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-    const [onboardingLoading, setOnboardingLoading] = useState(false);
-
-    // Course Modal
-    const [showCourseModal, setShowCourseModal] = useState(false);
-    const [coursesList, setCoursesList] = useState([]);
-    const [selectedCourse, setSelectedCourse] = useState('');
-
     // Bulk Actions State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [activeTab, setActiveTab] = useState<'ALL' | 'EMPLOYEE' | 'STUDENT'>('EMPLOYEE');
+    const [activeTab, setActiveTab] = useState<'ALL' | 'EMPLOYEE' | 'ADMIN'>('EMPLOYEE');
 
     useEffect(() => {
         fetchUsers();
@@ -52,14 +43,11 @@ export default function AdminUsers() {
         }
     };
 
-    // --- Bulk Actions ---
     const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
         if (!confirm(`Are you sure you want to ${action} ${selectedIds.length} users?`)) return;
 
         setLoading(true);
         try {
-            // We'll iterate for now as we don't have a bulk API yet, or we could create one. 
-            // For safety/speed in this refactor, I'll use Promise.all with existing endpoints.
             const promises = selectedIds.map(id => {
                 if (action === 'delete') {
                     return fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
@@ -74,18 +62,14 @@ export default function AdminUsers() {
             });
 
             await Promise.all(promises);
-            setSelectedIds([]); // Clear selection
+            setSelectedIds([]);
             fetchUsers();
-            alert(`Bulk ${action} successful!`);
         } catch (error) {
             console.error("Bulk action failed", error);
-            alert("Some actions failed.");
         } finally {
             setLoading(false);
         }
     };
-
-    // --- CRUD Handlers ---
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;
@@ -132,18 +116,6 @@ export default function AdminUsers() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Delete this user?')) return;
-        setLoading(true);
-        try {
-            await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
-            fetchUsers();
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // --- Modal Controls ---
     const openCreateModal = () => {
         setEditingUser(null);
         setFormData({ name: '', email: '', password: '', role: 'EMPLOYEE', phone: '', photo: '' });
@@ -168,286 +140,283 @@ export default function AdminUsers() {
         setEditingUser(null);
     };
 
-    // --- Other Feature Handlers (Onboarding, Course) ---
-    // Keeping these mostly as is but wrapping efficiently
-
-    const openOnboardingModal = async (user: any) => {
-        setEditingUser(user);
-        setShowOnboardingModal(true);
-        setOnboardingLoading(true);
-        try {
-            const res = await fetch(`/api/admin/users/${user._id}/onboarding`);
-            if (res.ok) {
-                const data = await res.json();
-                setOnboardingData(data.onboarding);
-            } else {
-                setOnboardingData(null);
-            }
-        } finally {
-            setOnboardingLoading(false);
-        }
-    };
-
-    const handleOnboardingUpdate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const res = await fetch(`/api/admin/users/${editingUser._id}/onboarding`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(onboardingData)
-            });
-            if (res.ok) { alert('Updated!'); setShowOnboardingModal(false); }
-        } catch (e) { alert('Error updating.'); }
-    };
-
-    const openCourseModal = async (user: any) => {
-        setEditingUser(user);
-        setSelectedCourse('');
-        setShowCourseModal(true);
-        if (coursesList.length === 0) {
-            const res = await fetch('/api/courses');
-            const data = await res.json();
-            if (data.courses) setCoursesList(data.courses);
-        }
-    };
-
-    const handleAssignCourse = async () => {
-        if (!selectedCourse) return;
-        setLoading(true);
-        try {
-            await fetch(`/api/admin/users/${editingUser._id}/course`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ courseId: selectedCourse })
-            });
-            alert("Course assigned!");
-            setShowCourseModal(false);
-            fetchUsers();
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // --- Table Columns Definition ---
     const columns = [
         {
-            header: "User",
+            header: "User Profile",
             accessor: (user: any) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-navy-100 overflow-hidden relative border border-gray-200">
+                <div className="flex items-center gap-4">
+                    <div className="relative w-12 h-12">
                         {user.photo ? (
-                            <Image src={user.photo} alt={user.name} fill className="object-cover" />
+                            <Image
+                                src={user.photo}
+                                alt={user.name}
+                                fill
+                                className="object-cover rounded-xl shadow-sm border border-white/50"
+                            />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-navy-700 font-bold">
+                            <div className="w-full h-full rounded-xl bg-gradient-to-br from-indigo-100 to-white border border-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-lg shadow-sm">
                                 {user.name.charAt(0)}
                             </div>
                         )}
+                        <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                     </div>
                     <div>
-                        <div className="font-semibold text-navy-900">{user.name}</div>
-                        <div className="text-xs text-gray-500">{user.email}</div>
+                        <div className="font-bold text-navy-900 leading-tight">{user.name}</div>
+                        <div className="text-xs text-gray-500 font-medium">{user.role}</div>
                     </div>
                 </div>
             ),
             sortable: true,
-            // We pass a dummy string accessor for sorting if needed, but complex objects need custom sort logic usually.
-            // AdvancedTable defaults to simple field sorting, for complex renders we might need adjustments.
-            // For now, let's assume filtering works on the text representation in 'accessor' if string, 
-            // but here we return a Node. Search implementation in AdvancedTable handles string conversion, 
-            // but typically we want to search on the underlying data. 
-            // AdvancedTable's simple client-side search checks all values. 
         },
-        { header: "Role", accessor: (user: any) => <span className="badge badge-info text-xs">{user.role}</span>, sortable: true },
+        {
+            header: "Contact Info",
+            accessor: (user: any) => (
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <Mail size={12} className="text-indigo-400" /> {user.email}
+                    </div>
+                    {user.phone && (
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <Phone size={12} className="text-indigo-400" /> {user.phone}
+                        </div>
+                    )}
+                </div>
+            )
+        },
         {
             header: "Status",
             accessor: (user: any) => (
-                <span className={`badge ${user.status === 'Active' ? 'badge-success' : 'badge-error'} text-xs`}>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${user.status === 'Active'
+                    ? 'bg-green-50 text-green-700 border-green-100'
+                    : 'bg-red-50 text-red-700 border-red-100'
+                    }`}>
+                    {user.status === 'Active' ? <CheckCircle size={12} /> : <XCircle size={12} />}
                     {user.status}
                 </span>
             ),
             sortable: true
         },
-        { header: "Phone", accessor: (user: any) => user.phone || '-', className: "text-gray-500" },
-        ...(activeTab === 'STUDENT' ? [{
-            header: "Course",
-            accessor: (user: any) => <span className="text-navy-700 font-medium">{user.activeCourse || '-'}</span>
-        }] : []),
         {
             header: "Actions",
             accessor: (user: any) => (
                 <div className="flex items-center gap-2">
-                    <button onClick={() => openEditModal(user)} className="text-blue-600 hover:text-blue-800 text-xs font-medium">Edit</button>
-                    {user.role === 'STUDENT' && (
-                        <button onClick={() => openCourseModal(user)} className="text-indigo-600 hover:text-indigo-800 text-xs font-medium">Course</button>
-                    )}
-                    {user.role === 'STUDENT' && (
-                        <button onClick={() => openOnboardingModal(user)} className="text-teal-600 hover:text-teal-800 text-xs font-medium">Details</button>
-                    )}
+                    <button
+                        onClick={() => openEditModal(user)}
+                        className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        title="Edit User"
+                    >
+                        <Edit size={16} />
+                    </button>
                 </div>
             )
         }
     ];
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
+        <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
             <Sidebar />
-            <main className="md:ml-64 p-4 md:p-8 flex-1">
+            <main className="md:ml-64 p-4 md:p-8 flex-1 overflow-x-hidden">
                 <PageHeader
                     title="User Management"
-                    subtitle="Manage system users, roles, and access permissions"
+                    subtitle="Control access and manage user accounts"
                     breadcrumbs={[{ label: 'Admin', href: '/admin/dashboard' }, { label: 'Users' }]}
                     actions={
-                        <button onClick={openCreateModal} className="btn btn-primary flex items-center gap-2">
-                            <UserPlus className="w-4 h-4" /> Add User
-                        </button>
-                    }
-                />
-
-                {/* Tab Filtering */}
-                <div className="mb-6 border-b border-gray-200 flex gap-6">
-                    {['EMPLOYEE', 'STUDENT', 'ALL'].map((tab) => (
                         <button
-                            key={tab}
-                            onClick={() => { setActiveTab(tab as any); setSelectedIds([]); }}
-                            className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                                }`}
+                            onClick={openCreateModal}
+                            className="bg-navy-900 hover:bg-navy-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-navy-900/20 transition-all flex items-center gap-2 hover:-translate-y-0.5"
                         >
-                            {tab === 'ALL' ? 'All Users' : `${tab.charAt(0) + tab.slice(1).toLowerCase()}s`}
+                            <UserPlus size={18} /> Add User
                         </button>
-                    ))}
-                </div>
-
-                <AdvancedTable
-                    data={users}
-                    columns={columns}
-                    keyField="_id"
-                    isLoading={loading}
-                    onSelectionChange={setSelectedIds}
-                    actions={
-                        <>
-                            <button onClick={() => handleBulkAction('activate')} className="p-1 hover:bg-green-100 text-green-600 rounded" title="Activate Selected">
-                                <CheckCircle className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleBulkAction('deactivate')} className="p-1 hover:bg-red-100 text-red-600 rounded" title="Deactivate Selected">
-                                <XCircle className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleBulkAction('delete')} className="p-1 hover:bg-gray-200 text-gray-600 rounded" title="Delete Selected">
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </>
                     }
                 />
 
-                {/* --- Modals (Create/Edit, Onboarding, Course) --- */}
-                {/* Simplified Modal Code for brevity, reusing existing logic structure */}
+                <ModernGlassCard className="mt-6 !p-0 overflow-hidden">
+                    {/* Tabs */}
+                    <div className="flex border-b border-gray-100 bg-white/50 backdrop-blur-sm px-6">
+                        {['EMPLOYEE', 'ADMIN', 'ALL'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => { setActiveTab(tab as any); setSelectedIds([]); }}
+                                className={`px-6 py-4 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === tab
+                                    ? 'border-orange-500 text-orange-600 bg-orange-50/50'
+                                    : 'border-transparent text-gray-500 hover:text-navy-900 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {tab === 'ALL' ? 'All Roles' : tab}
+                            </button>
+                        ))}
+                    </div>
 
-                {isModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                                <h3 className="font-bold text-lg text-navy-900">{editingUser ? 'Edit User' : 'Create User'}</h3>
-                                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">✕</button>
+                    <AdvancedTable
+                        data={users}
+                        columns={columns}
+                        keyField="_id"
+                        isLoading={loading}
+                        onSelectionChange={setSelectedIds}
+                        actions={
+                            <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                                <button onClick={() => handleBulkAction('activate')} className="p-1.5 hover:bg-white text-green-600 rounded-md shadow-sm transition-all" title="Activate Selected">
+                                    <CheckCircle size={16} />
+                                </button>
+                                <div className="w-px h-4 bg-gray-200"></div>
+                                <button onClick={() => handleBulkAction('deactivate')} className="p-1.5 hover:bg-white text-orange-600 rounded-md shadow-sm transition-all" title="Deactivate Selected">
+                                    <XCircle size={16} />
+                                </button>
+                                <div className="w-px h-4 bg-gray-200"></div>
+                                <button onClick={() => handleBulkAction('delete')} className="p-1.5 hover:bg-white text-red-600 rounded-md shadow-sm transition-all" title="Delete Selected">
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        }
+                    />
+                </ModernGlassCard>
+
+                {/* Create/Edit Modal */}
+                {isModalOpen && (
+                    <div className="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={closeModal}>
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                <div>
+                                    <h2 className="text-xl font-black text-navy-900 tracking-tight">{editingUser ? 'Edit User' : 'New User'}</h2>
+                                    <p className="text-xs text-gray-500 font-medium mt-1">
+                                        {editingUser ? 'Update account details' : 'Create a new system account'}
+                                    </p>
+                                </div>
+                                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-200 rounded-full transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="p-8 space-y-6">
                                 {/* Photo Upload */}
-                                <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden relative border border-gray-200">
-                                        {formData.photo ? (
-                                            <Image src={formData.photo} alt="Preview" fill className="object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold text-xl">?</div>
-                                        )}
+                                <div className="flex flex-col md:flex-row items-center gap-6">
+                                    <div className="relative group">
+                                        <div className="w-20 h-20 rounded-2xl bg-gray-100 overflow-hidden relative border-2 border-dashed border-gray-300 group-hover:border-orange-500 transition-colors">
+                                            {formData.photo ? (
+                                                <Image src={formData.photo} alt="Preview" fill className="object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                                                    <Camera size={24} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl">
+                                            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                                        </label>
                                     </div>
-                                    <label className="btn btn-sm bg-white border border-gray-300 text-gray-700 cursor-pointer">
-                                        {uploading ? 'Uploading...' : 'Change Photo'}
-                                        <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                                    </label>
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-bold text-navy-900">Profile Photo</h3>
+                                        <p className="text-xs text-gray-500 mt-1 mb-2">Upload a clear face photo.</p>
+                                        <label className="btn btn-xs bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold">
+                                            {uploading ? <Loader2 className="animate-spin w-3 h-3" /> : 'Choose File'}
+                                            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-500">Name</label>
-                                        <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full p-2 border ml-0 rounded text-sm" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Full Name</label>
+                                        <div className="relative">
+                                            <input
+                                                required
+                                                value={formData.name}
+                                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-semibold"
+                                                placeholder="John Doe"
+                                            />
+                                            <Users size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-gray-500">Role</label>
-                                        <select value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="w-full p-2 border ml-0 rounded text-sm">
-                                            <option value="EMPLOYEE">Employee</option>
-                                            <option value="STUDENT">Student</option>
-                                            <option value="ADMIN">Admin</option>
-                                        </select>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Role</label>
+                                        <div className="relative">
+                                            <select
+                                                value={formData.role}
+                                                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-semibold appearance-none"
+                                            >
+                                                <option value="EMPLOYEE">Employee</option>
+                                                <option value="ADMIN">Admin</option>
+                                            </select>
+                                            <Shield size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-500">Email</label>
-                                    <input type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full p-2 border ml-0 rounded text-sm" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-500">Phone</label>
-                                    <input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full p-2 border ml-0 rounded text-sm" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-500">Password {editingUser && '(Leave blank to keep)'}</label>
-                                    <input type="password" required={!editingUser} value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full p-2 border ml-0 rounded text-sm" />
                                 </div>
 
-                                <div className="pt-4 flex justify-end gap-2">
-                                    <button type="button" onClick={closeModal} className="btn bg-gray-100 text-gray-600">Cancel</button>
-                                    <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Saving...' : 'Save User'}</button>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email Address</label>
+                                    <div className="relative">
+                                        <input
+                                            type="email"
+                                            required
+                                            value={formData.email}
+                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-semibold"
+                                            placeholder="john@example.com"
+                                        />
+                                        <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Phone</label>
+                                        <div className="relative">
+                                            <input
+                                                value={formData.phone}
+                                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-semibold"
+                                                placeholder="+1 234..."
+                                            />
+                                            <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                            Password {editingUser && <span className="text-gray-400 font-normal lowercase">(optional)</span>}
+                                        </label>
+                                        <input
+                                            type="password"
+                                            required={!editingUser}
+                                            value={formData.password}
+                                            onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-semibold"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 flex justify-end gap-3 border-t border-gray-100 mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={closeModal}
+                                        className="px-6 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-bold transition-colors text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-6 py-2.5 bg-navy-900 text-white rounded-xl hover:bg-orange-500 font-bold shadow-lg shadow-navy-900/20 hover:shadow-orange-500/30 transition-all active:scale-95 disabled:opacity-70 flex items-center gap-2 text-sm"
+                                        disabled={loading}
+                                    >
+                                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <SaveIcon />}
+                                        {loading ? 'Saving...' : 'Save User'}
+                                    </button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 )}
-
-                {/* Reusing Onboarding & Course Modals logic - wrapping in cleaner UI similar to above would be ideal, but for brevity keeping existing functional structure but ensuring z-index fixes */}
-                {showOnboardingModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-                            <div className="flex justify-between mb-4">
-                                <h2 className="font-bold text-lg">Onboarding: {editingUser?.name}</h2>
-                                <button onClick={() => setShowOnboardingModal(false)}>✕</button>
-                            </div>
-                            {/* ... Onboarding Form Content ... */}
-                            {onboardingLoading ? <p>Loading...</p> : !onboardingData ? <p>No data found.</p> : (
-                                <form onSubmit={handleOnboardingUpdate} className="space-y-4">
-                                    {/* Simplified view of form */}
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div><strong>Details:</strong></div>
-                                        <div className="col-span-2 bg-gray-50 p-3 rounded">
-                                            Address: {onboardingData.personalDetails?.address}
-                                        </div>
-                                        <div className="col-span-2">
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">Total Fees</label>
-                                            <input type="number"
-                                                value={onboardingData.feesDetails?.totalFees || ''}
-                                                onChange={e => setOnboardingData({ ...onboardingData, feesDetails: { ...onboardingData.feesDetails, totalFees: e.target.value } })}
-                                                className="border p-2 rounded w-full"
-                                            />
-                                        </div>
-                                    </div>
-                                    <button type="submit" className="btn btn-primary w-full">Update Fees</button>
-                                </form>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {showCourseModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                            <h3 className="font-bold mb-4">Assign Course</h3>
-                            <select className="w-full border p-2 rounded mb-4" value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)}>
-                                <option value="">Select Course...</option>
-                                {coursesList.map((c: any) => <option key={c._id} value={c._id}>{c.title}</option>)}
-                            </select>
-                            <button onClick={handleAssignCourse} className="btn btn-primary w-full">Assign</button>
-                            <button onClick={() => setShowCourseModal(false)} className="btn w-full mt-2 text-gray-500">Cancel</button>
-                        </div>
-                    </div>
-                )}
-
             </main>
         </div>
     );
 }
+
+const SaveIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+        <polyline points="7 3 7 8 15 8"></polyline>
+    </svg>
+);

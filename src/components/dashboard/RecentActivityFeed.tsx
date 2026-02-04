@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Clock } from 'lucide-react';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import { Clock, Activity as ActivityIcon } from 'lucide-react';
 
 interface Activity {
     id: string;
@@ -20,8 +21,7 @@ export default function RecentActivityFeed() {
 
     useEffect(() => {
         fetchActivities();
-        // Poll every 30 seconds for new activities
-        const interval = setInterval(fetchActivities, 30 * 1000);
+        const interval = setInterval(fetchActivities, 30 * 1000); // 30s
         return () => clearInterval(interval);
     }, []);
 
@@ -41,99 +41,83 @@ export default function RecentActivityFeed() {
 
     const getColorClass = (color: string) => {
         const colors: Record<string, string> = {
-            green: 'bg-green-100 text-green-600',
-            blue: 'bg-blue-100 text-blue-600',
-            yellow: 'bg-yellow-100 text-yellow-600',
-            red: 'bg-red-100 text-red-600',
-            purple: 'bg-purple-100 text-purple-600',
-            orange: 'bg-orange-100 text-orange-600',
-            gray: 'bg-gray-100 text-gray-600'
+            green: 'bg-green-100 text-green-600 border-green-200',
+            blue: 'bg-blue-100 text-blue-600 border-blue-200',
+            yellow: 'bg-yellow-100 text-yellow-600 border-yellow-200',
+            red: 'bg-red-100 text-red-600 border-red-200',
+            purple: 'bg-purple-100 text-purple-600 border-purple-200',
+            orange: 'bg-orange-100 text-orange-600 border-orange-200',
+            gray: 'bg-gray-100 text-gray-600 border-gray-200'
         };
         return colors[color] || colors.gray;
     };
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <Clock className="w-5 h-5 text-orange-500" />
-                    <h3 className="text-lg font-bold text-navy-900">Recent Activity</h3>
-                </div>
-                <div className="space-y-3">
+            <ModernGlassCard>
+                <div className="h-6 w-1/3 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                <div className="space-y-4">
                     {[1, 2, 3, 4, 5].map(i => (
                         <div key={i} className="flex gap-3">
                             <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
                             <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                                <div className="h-3 bg-gray-100 rounded animate-pulse w-1/4"></div>
+                                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                                <div className="h-2 bg-gray-100 rounded w-1/2"></div>
                             </div>
                         </div>
                     ))}
                 </div>
-            </div>
+            </ModernGlassCard>
         );
     }
 
-    if (activities.length === 0) {
-        return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <Clock className="w-5 h-5 text-orange-500" />
-                    <h3 className="text-lg font-bold text-navy-900">Recent Activity</h3>
-                </div>
-                <p className="text-sm text-gray-500">No recent activity to display.</p>
-            </div>
-        );
-    }
+    if (activities.length === 0) return null;
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-orange-500" />
-                <h3 className="text-lg font-bold text-navy-900">Recent Activity</h3>
-                <span className="ml-auto text-xs text-gray-500">Updates every 30s</span>
+        <ModernGlassCard className="h-full flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                        <ActivityIcon size={18} />
+                    </div>
+                    <h3 className="text-lg font-bold text-navy-900">Recent Activity</h3>
+                </div>
+                <span className="flex items-center gap-1 text-[10px] uppercase font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Live
+                </span>
             </div>
 
-            <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6 max-h-[500px]">
                 {activities.map((activity, index) => (
-                    <div key={activity.id} className="flex gap-3 group">
-                        {/* Icon */}
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full ${getColorClass(activity.color)} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                    <div key={activity.id} className="relative flex gap-4 group">
+                        {/* Timeline Line */}
+                        {index !== activities.length - 1 && (
+                            <div className="absolute left-[15px] top-8 bottom-[-24px] w-0.5 bg-gray-100 group-hover:bg-gray-200 transition-colors"></div>
+                        )}
+
+                        <div className={`relative z-10 flex-shrink-0 w-8 h-8 rounded-xl ${getColorClass(activity.color)} border flex items-center justify-center shadow-sm transition-transform group-hover:scale-110`}>
                             <span className="text-sm">{activity.icon}</span>
                         </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-800 font-medium break-words">
+                        <div className="flex-1 min-w-0 pb-1">
+                            <p className="text-sm text-gray-900 font-medium leading-snug">
                                 {activity.message}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">{activity.timeAgo}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <Clock size={10} className="text-gray-400" />
+                                <span className="text-xs text-gray-500 font-medium">{activity.timeAgo}</span>
+                            </div>
                         </div>
-
-                        {/* Timeline line (except for last item) */}
-                        {index !== activities.length - 1 && (
-                            <div className="absolute left-[28px] top-10 w-0.5 h-full bg-gray-200 -z-10"></div>
-                        )}
                     </div>
                 ))}
             </div>
 
             <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #c1c1c1;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #a1a1a1;
-                }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
             `}</style>
-        </div>
+        </ModernGlassCard>
     );
 }

@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import LeaveRequest from '@/models/LeaveRequest';
 
-export async function GET() {
+export async function GET(req: Request) {
     await dbConnect();
     try {
-        const leaves = await LeaveRequest.find({})
+        const { searchParams } = new URL(req.url);
+        const userId = searchParams.get('userId');
+
+        const query: any = {};
+        if (userId) query.userId = userId;
+
+        const leaves = await LeaveRequest.find(query)
             .populate('userId', 'name email')
             .populate('reviewedBy', 'name')
             .sort({ createdAt: -1 });

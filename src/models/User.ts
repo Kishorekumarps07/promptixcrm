@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export type UserRole = 'ADMIN' | 'EMPLOYEE' | 'STUDENT';
+export type UserRole = 'ADMIN' | 'EMPLOYEE';
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -27,8 +27,8 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['ADMIN', 'EMPLOYEE', 'STUDENT'],
-        default: 'STUDENT',
+        enum: ['ADMIN', 'EMPLOYEE'],
+        default: 'EMPLOYEE',
     },
     status: {
         type: String,
@@ -44,24 +44,6 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: false, // Optional - not all employees have managers
-    },
-    // Student specific fields
-    course: String,
-    internshipStatus: {
-        type: String,
-        enum: ['Not Started', 'In Progress', 'Completed'],
-        default: 'Not Started',
-    },
-    projectTitle: String,
-    startDate: Date,
-    endDate: Date,
-    projectFeedback: String,
-    isOnboardingCompleted: {
-        type: Boolean,
-        default: false
-    },
-    onboardingCompletedAt: {
-        type: Date
     },
     forcePasswordChange: {
         type: Boolean,

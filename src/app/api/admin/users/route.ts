@@ -28,40 +28,8 @@ export async function GET(req: Request) {
             { $match: query },
             { $sort: { createdAt: -1 } },
             {
-                $lookup: {
-                    from: 'courseenrollments', // checks 'courseenrollments' collection
-                    let: { userId: '$_id' },
-                    pipeline: [
-                        {
-                            $match: {
-                                $expr: { $eq: ['$studentId', '$$userId'] },
-                                status: 'Ongoing'
-                            }
-                        },
-                        { $limit: 1 },
-                        {
-                            $lookup: {
-                                from: 'courses',
-                                localField: 'courseId',
-                                foreignField: '_id',
-                                as: 'course'
-                            }
-                        },
-                        { $unwind: '$course' },
-                        { $project: { title: '$course.title' } }
-                    ],
-                    as: 'activeCourseData'
-                }
-            },
-            {
-                $addFields: {
-                    activeCourse: { $arrayElemAt: ['$activeCourseData.title', 0] }
-                }
-            },
-            {
                 $project: {
                     password: 0, // Exclude password
-                    activeCourseData: 0, // Clean up temporary lookup
                     __v: 0
                 }
             }

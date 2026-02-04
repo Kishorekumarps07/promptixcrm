@@ -7,7 +7,8 @@ import AlertsSection from '@/components/dashboard/AlertsSection';
 import QuickActionsPanel from '@/components/dashboard/QuickActionsPanel';
 import RecentActivityFeed from '@/components/dashboard/RecentActivityFeed';
 import WeeklyAttendanceChart from '@/components/dashboard/WeeklyAttendanceChart';
-import EnrollmentChart from '@/components/dashboard/EnrollmentChart';
+import SalaryTrendChart from '@/components/dashboard/SalaryTrendChart';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import { Users, GraduationCap, Calendar, Clock, DollarSign, Lock } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -35,16 +36,17 @@ export default function AdminDashboard() {
     });
 
     return (
-        <div className="flex flex-col md:flex-row bg-gray-50 min-h-screen">
+        <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
             <Sidebar />
-            <main className="md:ml-64 p-4 md:p-8 flex-1 overflow-x-hidden">
+            <main className="md:ml-64 p-4 md:p-8 flex-1 overflow-x-hidden pb-12">
                 {/* Header */}
                 <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-navy-900">Dashboard</h1>
-                        <p className="text-gray-500">Overview of system performance and activities</p>
+                        <h1 className="text-3xl font-black text-navy-900 tracking-tight">Admin Dashboard</h1>
+                        <p className="text-gray-500 font-medium mt-1">System Overview & Performance Metrics</p>
                     </div>
-                    <div className="text-sm bg-white px-4 py-2 rounded-lg shadow-sm text-gray-600 border border-gray-100 font-medium">
+                    <div className="glass-panel px-5 py-2.5 rounded-xl text-sm text-navy-900 font-bold border border-white/50 shadow-sm flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         {dateTime}
                     </div>
                 </header>
@@ -61,69 +63,79 @@ export default function AdminDashboard() {
                         {/* KPI Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <EnhancedKPICard
-                                title="Total Employees"
+                                title="Employees"
                                 value={stats?.employees || 0}
-                                icon={<Users />}
-                                color="bg-blue-100 text-blue-600"
+                                icon={<Users size={24} />}
+                                color="text-blue-600 bg-blue-500"
                                 trend={stats?.trends?.employees}
                                 link="/admin/users"
                                 loading={loading}
+                                delay={0.1}
                             />
                             <EnhancedKPICard
-                                title="Total Students"
+                                title="Students"
                                 value={stats?.students || 0}
-                                icon={<GraduationCap />}
-                                color="bg-green-100 text-green-600"
+                                icon={<GraduationCap size={24} />}
+                                color="text-green-600 bg-green-500"
                                 trend={stats?.trends?.students}
                                 link="/admin/users"
                                 loading={loading}
+                                delay={0.15}
                             />
                             <EnhancedKPICard
-                                title="Pending Leaves"
+                                title="Leave Requests"
                                 value={stats?.leaves?.pending || 0}
-                                icon={<Clock />}
-                                color="bg-orange-100 text-orange-600"
+                                icon={<Clock size={24} />}
+                                color="text-orange-600 bg-orange-500"
                                 link="/admin/leaves"
                                 badge={stats?.leaves?.pending}
                                 loading={loading}
+                                delay={0.2}
                             />
                             <EnhancedKPICard
-                                title="Pending Attendance"
+                                title="Attendance"
                                 value={stats?.attendance?.pending || 0}
-                                icon={<Calendar />}
-                                color="bg-yellow-100 text-yellow-600"
+                                icon={<Calendar size={24} />}
+                                color="text-yellow-600 bg-yellow-500"
                                 link="/admin/attendance"
                                 badge={stats?.attendance?.pending}
                                 loading={loading}
+                                delay={0.25}
                             />
                             <EnhancedKPICard
                                 title="Salary Drafts"
                                 value={stats?.salary?.draft || 0}
-                                icon={<DollarSign />}
-                                color="bg-purple-100 text-purple-600"
+                                icon={<DollarSign size={24} />}
+                                color="text-purple-600 bg-purple-500"
                                 link="/admin/salary/generate"
                                 badge={stats?.salary?.draft}
                                 loading={loading}
+                                delay={0.3}
                             />
                             <EnhancedKPICard
-                                title="Password Requests"
+                                title="Security"
                                 value={stats?.passwordRequests?.pending || 0}
-                                icon={<Lock />}
-                                color="bg-red-100 text-red-600"
+                                icon={<Lock size={24} />}
+                                color="text-red-600 bg-red-500"
                                 link="/admin/security/password-requests"
                                 badge={stats?.passwordRequests?.pending}
                                 loading={loading}
+                                delay={0.35}
                             />
                         </div>
 
                         {/* Charts Row */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="h-80">
-                                <WeeklyAttendanceChart data={stats?.weeklyAttendance || []} />
-                            </div>
-                            <div className="h-80">
-                                <EnrollmentChart data={stats?.enrollmentStats || []} />
-                            </div>
+                            <ModernGlassCard title="Attendance Trends" delay={0.4}>
+                                <div className="h-64 w-full mt-2">
+                                    <WeeklyAttendanceChart data={stats?.weeklyAttendance || []} />
+                                </div>
+                            </ModernGlassCard>
+                            <ModernGlassCard title="Salary Disbursement" delay={0.5}>
+                                <div className="h-64 w-full mt-2">
+                                    <SalaryTrendChart data={stats?.salaryTrends || []} />
+                                </div>
+                            </ModernGlassCard>
                         </div>
                     </div>
 

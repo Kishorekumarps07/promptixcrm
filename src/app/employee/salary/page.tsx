@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import PageHeader from '@/components/ui/PageHeader';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
+import { Download, DollarSign, Calendar, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function MySalary() {
     const [salaries, setSalaries] = useState<any[]>([]);
@@ -49,66 +52,107 @@ export default function MySalary() {
         "July", "August", "September", "October", "November", "December"
     ];
 
-    return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
-            <Sidebar />
-            <main className="md:ml-64 p-4 md:p-8 flex-1">
-                <header className="page-header mb-8">
-                    <h1 className="text-3xl font-bold text-navy-900">My Salary History</h1>
-                    <p className="text-gray-500 mt-1">View your monthly payout details</p>
-                </header>
+    const getStatusInfo = (status: string) => {
+        switch (status) {
+            case 'Paid': return { color: 'bg-green-500', text: 'Paid', icon: CheckCircle };
+            case 'Approved': return { color: 'bg-blue-500', text: 'Approved', icon: CheckCircle };
+            case 'Draft': return { color: 'bg-yellow-500', text: 'Processing', icon: AlertCircle };
+            default: return { color: 'bg-gray-400', text: status, icon: AlertCircle };
+        }
+    }
 
-                <div className="grid gap-6">
+    return (
+        <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
+            <Sidebar />
+            <main className="md:ml-64 p-4 md:p-8 flex-1 pb-24">
+                <PageHeader
+                    title="My Salary History"
+                    subtitle="View your monthly payout details and download payslips"
+                />
+
+                <div className="flex flex-col gap-6 max-w-5xl mx-auto">
                     {loading ? (
-                        <p className="text-gray-500">Loading records...</p>
-                    ) : salaries.length === 0 ? (
-                        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100 text-center">
-                            <p className="text-gray-500">No salary records found yet.</p>
+                        <div className="flex justify-center py-20">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
                         </div>
-                    ) : salaries.map(rec => (
-                        <div key={rec._id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                            <div className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <div>
-                                    <h3 className="text-xl font-bold text-navy-900 flex items-center gap-3">
-                                        {monthNames[rec.month]} {rec.year}
-                                        <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${rec.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                                            }`}>
-                                            {rec.status}
-                                        </span>
-                                    </h3>
-                                    <div className="text-sm text-gray-500 mt-1">
-                                        Per Day Rate: <span className="font-medium text-navy-700">${rec.perDayRate}</span>
+                    ) : salaries.length === 0 ? (
+                        <div className="text-center py-20 opacity-50">
+                            <div className="text-6xl mb-4 grayscale">💰</div>
+                            <h3 className="text-xl font-bold text-navy-900">No Payment History</h3>
+                            <p className="text-gray-500">Salary records will appear here once generated.</p>
+                        </div>
+                    ) : salaries.map((rec, idx) => {
+                        const { color, text, icon: Icon } = getStatusInfo(rec.status);
+                        return (
+                            <ModernGlassCard key={rec._id} delay={idx * 0.1} className="!p-0 overflow-hidden group">
+                                <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center relative overflow-hidden">
+                                    {/* Decorative Blob */}
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-100 to-transparent rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+                                    {/* Date & Badge */}
+                                    <div className="flex-1 min-w-[200px]">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className={`p-2 rounded-lg text-white shadow-lg shadow-orange-500/20 bg-gradient-to-br from-navy-900 to-navy-800`}>
+                                                <Calendar size={20} />
+                                            </div>
+                                            <h3 className="text-2xl font-black text-navy-900">
+                                                {monthNames[rec.month]} {rec.year}
+                                            </h3>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold text-white shadow-sm ${color}`}>
+                                                <Icon size={12} strokeWidth={3} /> {text}
+                                            </span>
+                                            <span className="text-xs text-gray-400 font-medium">#{rec._id.slice(-6).toUpperCase()}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Amount */}
+                                    <div className="flex-1 w-full bg-white/50 rounded-2xl p-4 border border-white/60 backdrop-blur-sm">
+                                        <div className="flex justify-between items-end mb-1">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Payable</span>
+                                            {rec.presentDays > 0 && <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100">{rec.presentDays} Days Present</span>}
+                                        </div>
+                                        <div className="text-3xl font-black text-navy-900 tracking-tight flex items-baseline gap-1">
+                                            <span className="text-lg text-gray-400 font-bold">$</span>
+                                            {rec.calculatedSalary.toLocaleString()}
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                            <TrendingUp size={12} className="text-blue-500" />
+                                            Rate: <span className="font-bold text-navy-700">${rec.perDayRate}/day</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action */}
+                                    <div>
+                                        <button
+                                            onClick={() => handleDownload(rec)}
+                                            className="w-full md:w-auto px-6 py-3 bg-navy-900 hover:bg-orange-500 text-white rounded-xl font-bold shadow-lg shadow-navy-900/20 hover:shadow-orange-500/30 transition-all flex items-center justify-center gap-2 group-hover:-translate-y-1"
+                                        >
+                                            <Download size={18} />
+                                            Download Slip
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-sm text-gray-500 mb-1">Net Payable</div>
-                                    <div className="text-2xl font-bold text-green-600">${rec.calculatedSalary.toLocaleString()}</div>
-                                    <button
-                                        onClick={() => handleDownload(rec)}
-                                        className="mt-2 text-xs bg-navy-900 text-white px-3 py-1.5 rounded hover:bg-navy-800 transition-colors flex items-center gap-1 ml-auto"
-                                    >
-                                        <span>📄</span> Download Slip
-                                    </button>
-                                </div>
-                            </div>
 
-                            {/* Breakdown */}
-                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 grid grid-cols-3 gap-4 text-center">
-                                <div>
-                                    <div className="text-xs text-gray-500 uppercase tracking-wide">Working Days</div>
-                                    <div className="font-semibold text-navy-900 text-lg">{rec.workingDays}</div>
+                                {/* Stats Footer */}
+                                <div className="bg-gray-50/80 px-8 py-4 border-t border-gray-100 grid grid-cols-3 gap-4 divide-x divide-gray-200">
+                                    <div className="text-center px-2">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Days</div>
+                                        <div className="font-bold text-navy-900">{rec.workingDays}</div>
+                                    </div>
+                                    <div className="text-center px-2">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Attended</div>
+                                        <div className="font-bold text-navy-900 text-green-600">{rec.presentDays}</div>
+                                    </div>
+                                    <div className="text-center px-2">
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Unpaid Leave</div>
+                                        <div className="font-bold text-red-500">{rec.unpaidLeaveDays}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-xs text-gray-500 uppercase tracking-wide">Present</div>
-                                    <div className="font-semibold text-green-600 text-lg">{rec.presentDays}</div>
-                                </div>
-                                <div>
-                                    <div className="text-xs text-gray-500 uppercase tracking-wide">Unpaid Leave</div>
-                                    <div className="font-semibold text-red-500 text-lg">{rec.unpaidLeaveDays}</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                            </ModernGlassCard>
+                        );
+                    })}
                 </div>
             </main>
         </div>

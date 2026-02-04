@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Attendance from '@/models/Attendance';
 
-export async function GET() {
+export async function GET(req: Request) {
     await dbConnect();
     try {
-        const attendance = await Attendance.find({})
+        const { searchParams } = new URL(req.url);
+        const userId = searchParams.get('userId');
+
+        const query: any = {};
+        if (userId) query.userId = userId;
+
+        const attendance = await Attendance.find(query)
             .populate('userId', 'name email')
             .populate('approvedBy', 'name')
             .sort({ date: -1 });

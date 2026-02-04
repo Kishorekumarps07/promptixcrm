@@ -1,62 +1,73 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import DashboardWidgetCard from './DashboardWidgetCard';
+import { Calendar, User, DollarSign, Bell, CalendarDays, Key, FileText, Briefcase } from 'lucide-react';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
 
 export default function QuickActionsCard() {
     const actions = [
         {
-            label: 'Mark Attendance',
-            icon: '📅',
-            href: '/employee/attendance',
-            color: 'bg-blue-500 hover:bg-blue-600'
+            label: "Apply Leave",
+            href: "/employee/leaves",
+            icon: <Calendar size={20} />,
+            color: "bg-blue-500",
+            desc: "Request time off"
         },
         {
-            label: 'Apply Leave',
-            icon: '🌴',
-            href: '/employee/leaves',
-            color: 'bg-green-500 hover:bg-green-600'
+            label: "My Profile",
+            href: "/employee/profile",
+            icon: <User size={20} />,
+            color: "bg-purple-500",
+            desc: "View & edit details"
         },
         {
-            label: 'View Salary',
-            icon: '💰',
-            href: '/employee/salary',
-            color: 'bg-orange-500 hover:bg-orange-600'
+            label: "Payslips",
+            href: "/employee/salary",
+            icon: <DollarSign size={20} />,
+            color: "bg-green-500",
+            desc: "View salary history"
         },
         {
-            label: 'Change Password',
-            icon: '🔑',
-            href: '/employee/profile',
-            color: 'bg-purple-500 hover:bg-purple-600'
+            label: "Policies",
+            href: "#", // Placeholder
+            icon: <FileText size={20} />,
+            color: "bg-orange-500",
+            desc: "Company handbook"
         },
         {
-            label: 'Announcements',
-            icon: '📢',
-            href: '/employee/announcements',
-            color: 'bg-pink-500 hover:bg-pink-600'
+            label: "Events",
+            href: "/employee/events",
+            icon: <CalendarDays size={20} />,
+            color: "bg-pink-500",
+            desc: "Upcoming events"
         },
         {
-            label: 'Events',
-            icon: '🎉',
-            href: '/employee/events',
-            color: 'bg-indigo-500 hover:bg-indigo-600'
+            label: "Attendance",
+            href: "/employee/attendance", // Assuming this exists or will exist
+            icon: <Briefcase size={20} />,
+            color: "bg-teal-500",
+            desc: "View records"
         }
     ];
 
     return (
-        <DashboardWidgetCard title="Quick Actions" icon="⚡">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {actions.map((action, index) => (
+        <ModernGlassCard title="Quick Actions" delay={0.1}>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {actions.map((action, idx) => (
                     <Link
-                        key={index}
+                        key={idx}
                         href={action.href}
-                        className={`${action.color} text-white rounded-lg p-4 text-center transition-all hover:scale-105 hover:shadow-md`}
-                        style={{ minHeight: '80px' }}
+                        className="group flex flex-col items-center justify-center p-4 rounded-xl bg-white/40 border border-white/60 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-300 hover:bg-white/80"
                     >
-                        <div className="text-2xl mb-2">{action.icon}</div>
-                        <div className="text-xs md:text-sm font-medium">{action.label}</div>
+                        <div className={`p-3 rounded-full text-white shadow-md mb-3 ${action.color} group-hover:rotate-12 transition-transform duration-300`}>
+                            {action.icon}
+                        </div>
+                        <span className="font-semibold text-navy-900 text-sm whitespace-nowrap">{action.label}</span>
+                        <span className="text-[10px] text-gray-500 mt-1 hidden md:block">{action.desc}</span>
                     </Link>
                 ))}
             </div>
-        </DashboardWidgetCard>
+        </ModernGlassCard>
     );
 }

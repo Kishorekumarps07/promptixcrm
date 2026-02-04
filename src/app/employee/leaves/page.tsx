@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import Table from '@/components/ui/Table';
+import AdvancedTable from '@/components/ui/AdvancedTable';
+import PageHeader from '@/components/ui/PageHeader';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import { X, Calendar, FileText, Clock, Plus } from 'lucide-react';
 
 export default function EmployeeLeaves() {
     const [leaves, setLeaves] = useState<any[]>([]);
@@ -32,174 +35,211 @@ export default function EmployeeLeaves() {
 
         setSubmitLoading(true);
         try {
-            console.log('Submitting leave request:', formData);
             const res = await fetch('/api/employee/leaves', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
 
-            let data;
-            try {
-                data = await res.json();
-            } catch (err) {
-                console.error('Failed to parse JSON:', err);
-                throw new Error('Server response was not valid JSON');
-            }
+            const data = await res.json();
 
             if (res.ok) {
                 setIsModalOpen(false);
                 setFormData({ fromDate: '', toDate: '', reason: '' });
                 fetchLeaves();
-                alert('Leave request submitted!');
             } else {
-                console.error('Submission failed:', data);
                 alert(data.message || 'Failed to apply leave');
             }
         } catch (error: any) {
-            console.error('Request error:', error);
             alert(`Error: ${error.message || 'Something went wrong'}`);
         } finally {
             setSubmitLoading(false);
         }
     };
 
-    const StatusBadge = ({ status }: { status: string }) => {
-        let color = 'badge-info';
-        if (status === 'Approved') color = 'badge-success';
-        if (status === 'Rejected') color = 'badge-error';
-        if (status === 'Pending') color = 'badge-warning';
-        return <span className={`badge ${color}`}>{status}</span>;
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'Approved': return 'bg-green-100 text-green-700 border-green-200';
+            case 'Rejected': return 'bg-red-100 text-red-700 border-red-200';
+            default: return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        }
     };
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
+        <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
             <Sidebar />
-            <main className="md:ml-64 p-4 md:p-8 flex-1">
-                <header className="page-header mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-navy-900">Leave Requests</h1>
-                        <p className="text-gray-500 mt-1">Manage and track your leave applications</p>
-                    </div>
-                    <button
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow transition-colors font-medium w-full md:w-auto mt-4 md:mt-0"
-                        style={{ minHeight: '44px' }}
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        + Apply Leave
-                    </button>
-                </header>
+            <main className="md:ml-64 p-4 md:p-8 flex-1 overflow-x-hidden pb-24">
+                <PageHeader
+                    title="Leave Requests"
+                    subtitle="Manage and track your leave applications"
+                    actions={
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2 hover:-translate-y-0.5"
+                        >
+                            <Plus size={18} strokeWidth={3} /> Apply Leave
+                        </button>
+                    }
+                />
 
-                {loading ? <p className="text-center py-8 text-gray-500">Loading records...</p> : (
-                    <Table
+                <ModernGlassCard title="Leave History" delay={0.2}>
+                    <AdvancedTable
                         data={leaves}
+                        isLoading={loading}
+                        keyField="_id"
+                        searchPlaceholder="Search by reason or status..."
                         columns={[
                             {
                                 header: "Period",
                                 accessor: (item) => (
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-navy-900">
+                                        <span className="font-semibold text-navy-900 flex items-center gap-2">
+                                            <Calendar size={14} className="text-gray-400" />
                                             {new Date(item.fromDate).toLocaleDateString()}
                                         </span>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-gray-500 ml-6">
                                             to {new Date(item.toDate).toLocaleDateString()}
                                         </span>
                                     </div>
-                                )
+                                ),
+                                sortable: true
                             },
                             {
                                 header: "Reason",
-                                accessor: (item) => <span className="truncate max-w-xs block" title={item.reason}>{item.reason}</span>
+                                accessor: (item) => (
+                                    <div className="flex items-start gap-2 max-w-xs group relative">
+                                        <FileText size={14} className="text-gray-400 mt-1 shrink-0" />
+                                        <span className="truncate text-gray-700">{item.reason}</span>
+                                        {/* Tooltip for long reasons */}
+                                        <div className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 shadow-xl pointer-events-none">
+                                            {item.reason}
+                                        </div>
+                                    </div>
+                                ),
+                                className: "max-w-xs"
                             },
                             {
                                 header: "Applied On",
-                                accessor: (item) => new Date(item.createdAt).toLocaleDateString()
+                                accessor: (item) => (
+                                    <span className="text-gray-600 flex items-center gap-2">
+                                        <Clock size={14} className="text-gray-400" />
+                                        {new Date(item.createdAt).toLocaleDateString()}
+                                    </span>
+                                ),
+                                sortable: true
                             },
                             {
                                 header: "Status",
-                                accessor: (item) => <StatusBadge status={item.status} />
+                                accessor: (item) => (
+                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusColor(item.status)}`}>
+                                        {item.status}
+                                    </span>
+                                ),
+                                sortable: true
                             }
                         ]}
-                        mobileCard={(item) => (
-                            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-3">
+                        renderGridLayout={(item) => (
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col gap-4">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <span className="text-xs text-gray-500 uppercase font-bold tracking-wider">Period</span>
-                                        <div className="font-bold text-navy-900 mt-1">
-                                            {new Date(item.fromDate).toLocaleDateString()} - {new Date(item.toDate).toLocaleDateString()}
+                                        <div className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Period</div>
+                                        <div className="font-bold text-navy-900 flex items-center gap-2">
+                                            <Calendar size={16} className="text-orange-500" />
+                                            {new Date(item.fromDate).toLocaleDateString()}
+                                        </div>
+                                        <div className="text-sm text-gray-500 ml-6">
+                                            to {new Date(item.toDate).toLocaleDateString()}
                                         </div>
                                     </div>
-                                    <StatusBadge status={item.status} />
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${getStatusColor(item.status)}`}>
+                                        {item.status}
+                                    </span>
                                 </div>
-                                <div className="bg-gray-50 p-3 rounded text-sm italic border border-gray-100 relative mt-1">
-                                    <span className="absolute -top-2 left-2 bg-white px-1 text-[10px] text-gray-400 font-bold uppercase border border-gray-200 rounded">Reason</span>
+
+                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm text-gray-700 relative mt-2">
+                                    <span className="absolute -top-2.5 left-3 bg-white px-1.5 text-[10px] text-gray-400 font-bold uppercase border border-gray-200 rounded">Reason</span>
                                     "{item.reason}"
                                 </div>
-                                <div className="text-xs text-gray-400 text-right mt-1">
+
+                                <div className="flex items-center justify-end text-xs text-gray-400 gap-1 pt-2 border-t border-gray-50">
+                                    <Clock size={12} />
                                     Applied: {new Date(item.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
                         )}
                     />
-                )}
+                </ModernGlassCard>
 
+                {/* Crystal Glass Modal */}
                 {isModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-                        <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
-                            <div className="bg-navy-900 text-white p-4">
-                                <h2 className="text-lg font-bold">Apply For Leave</h2>
+                    <div className="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={() => setIsModalOpen(false)}>
+                        <div className="bg-white/90 backdrop-filter backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-white/50 animate-in zoom-in-95 slide-in-from-bottom-5 duration-300" onClick={e => e.stopPropagation()}>
+                            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-orange-50 to-white">
+                                <div>
+                                    <h2 className="text-xl font-black text-navy-900 tracking-tight">Apply Leave</h2>
+                                    <p className="text-xs text-gray-500 font-medium mt-1">Submit your leave request for approval</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
                             </div>
-                            <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
+
+                            <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">From</label>
                                         <input
                                             type="date"
                                             value={formData.fromDate}
                                             onChange={e => setFormData({ ...formData, fromDate: e.target.value })}
                                             required
-                                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all text-sm font-medium shadow-sm"
                                             min={new Date().toISOString().split('T')[0]}
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">To</label>
                                         <input
                                             type="date"
                                             value={formData.toDate}
                                             onChange={e => setFormData({ ...formData, toDate: e.target.value })}
                                             required
-                                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all text-sm font-medium shadow-sm"
                                             min={formData.fromDate || new Date().toISOString().split('T')[0]}
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Reason</label>
                                     <textarea
-                                        placeholder="Brief reason for leave..."
+                                        placeholder="Please explain why you need leave..."
                                         value={formData.reason}
                                         onChange={e => setFormData({ ...formData, reason: e.target.value })}
                                         required
-                                        rows={3}
-                                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:outline-none resize-none"
+                                        rows={4}
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all text-sm font-medium shadow-sm resize-none"
                                     />
                                 </div>
 
-                                <div className="flex justify-end gap-3 mt-4">
+                                <div className="flex gap-4 pt-2">
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                                        className="flex-1 px-4 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold transition-colors text-sm"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded shadow transition-colors disabled:opacity-50"
+                                        className="flex-1 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all text-sm disabled:opacity-70 flex items-center justify-center gap-2"
                                         disabled={submitLoading}
                                     >
-                                        {submitLoading ? 'Submitting...' : 'Submit Request'}
+                                        {submitLoading ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : null}
+                                        {submitLoading ? 'Sending...' : 'Submit Form'}
                                     </button>
                                 </div>
                             </form>

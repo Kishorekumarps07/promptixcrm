@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, X } from 'lucide-react';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import { AlertCircle, X, Bell, ChevronRight } from 'lucide-react';
 
 interface Alert {
     id: string;
@@ -23,8 +24,7 @@ export default function AlertsSection() {
 
     useEffect(() => {
         fetchAlerts();
-        // Refresh alerts every 5 minutes
-        const interval = setInterval(fetchAlerts, 5 * 60 * 1000);
+        const interval = setInterval(fetchAlerts, 5 * 60 * 1000); // 5 mins
         return () => clearInterval(interval);
     }, []);
 
@@ -50,94 +50,71 @@ export default function AlertsSection() {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <AlertCircle className="w-5 h-5 text-orange-500" />
-                    <h3 className="text-lg font-bold text-navy-900">Requires Attention</h3>
-                </div>
+            <ModernGlassCard className="animate-pulse">
+                <div className="h-6 w-1/3 bg-gray-200 rounded mb-4"></div>
                 <div className="space-y-3">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="h-16 bg-gray-100 rounded animate-pulse"></div>
-                    ))}
+                    <div className="h-16 bg-gray-100 rounded-xl"></div>
+                    <div className="h-16 bg-gray-100 rounded-xl"></div>
                 </div>
-            </div>
+            </ModernGlassCard>
         );
     }
 
-    if (visibleAlerts.length === 0) {
-        return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <AlertCircle className="w-5 h-5 text-green-500" />
-                    <h3 className="text-lg font-bold text-navy-900">All Clear!</h3>
-                </div>
-                <p className="text-sm text-gray-500">No critical items requiring attention at this time.</p>
-            </div>
-        );
-    }
+    if (visibleAlerts.length === 0) return null;
 
-    const getAlertBorderColor = (type: string) => {
+    const getAlertStyle = (type: string) => {
         switch (type) {
-            case 'critical': return 'border-l-red-500';
-            case 'high': return 'border-l-orange-500';
-            case 'medium': return 'border-l-yellow-500';
-            case 'info': return 'border-l-blue-500';
-            default: return 'border-l-gray-500';
-        }
-    };
-
-    const getAlertBgColor = (type: string) => {
-        switch (type) {
-            case 'critical': return 'bg-red-50';
-            case 'high': return 'bg-orange-50';
-            case 'medium': return 'bg-yellow-50';
-            case 'info': return 'bg-blue-50';
-            default: return 'bg-gray-50';
+            case 'critical': return 'bg-red-50 border-red-100 text-red-900 icon-red-500';
+            case 'high': return 'bg-orange-50 border-orange-100 text-orange-900 icon-orange-500';
+            case 'medium': return 'bg-yellow-50 border-yellow-100 text-yellow-900 icon-yellow-600';
+            default: return 'bg-blue-50 border-blue-100 text-blue-900 icon-blue-500';
         }
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <ModernGlassCard className="relative overflow-hidden">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-orange-500" />
+                    <div className="p-2 bg-red-100 text-red-600 rounded-lg animate-pulse">
+                        <Bell size={18} fill="currentColor" />
+                    </div>
                     <h3 className="text-lg font-bold text-navy-900">
-                        Requires Attention ({visibleAlerts.length})
+                        Requires Attention <span className="text-gray-400 font-medium text-sm ml-1">({visibleAlerts.length})</span>
                     </h3>
                 </div>
             </div>
 
             <div className="space-y-3">
-                {visibleAlerts.map(alert => (
-                    <div
-                        key={alert.id}
-                        className={`relative ${getAlertBgColor(alert.type)} border-l-4 ${getAlertBorderColor(alert.type)} rounded-lg p-4 transition-all hover:shadow-sm`}
-                    >
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xl">{alert.icon}</span>
-                                    <h4 className="font-semibold text-navy-900 text-sm">{alert.title}</h4>
+                {visibleAlerts.map(alert => {
+                    const style = getAlertStyle(alert.type);
+                    return (
+                        <div
+                            key={alert.id}
+                            className={`relative rounded-xl border p-4 transition-all hover:shadow-md hover:-translate-y-0.5 ${style.split(' icon')[0]}`}
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="text-2xl pt-0.5">{alert.icon}</div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-sm mb-0.5">{alert.title}</h4>
+                                    <p className="text-xs opacity-80 mb-2 leading-relaxed">{alert.message}</p>
+                                    <Link
+                                        href={alert.link}
+                                        className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider hover:underline"
+                                    >
+                                        {alert.action} <ChevronRight size={12} strokeWidth={3} />
+                                    </Link>
                                 </div>
-                                <p className="text-xs text-gray-600 mb-2">{alert.message}</p>
-                                <Link
-                                    href={alert.link}
-                                    className="inline-flex items-center gap-1 text-xs font-medium text-orange-600 hover:text-orange-700 transition-colors"
+                                <button
+                                    onClick={() => handleDismiss(alert.id)}
+                                    className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-black/5 transition-colors absolute top-2 right-2"
                                 >
-                                    {alert.action} →
-                                </Link>
+                                    <X size={14} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleDismiss(alert.id)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                                aria-label="Dismiss alert"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
-        </div>
+        </ModernGlassCard>
     );
 }

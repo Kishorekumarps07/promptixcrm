@@ -3,12 +3,19 @@
 import React, { useState, useEffect, use } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
-import { ArrowLeft, Mail, Phone, Calendar, Briefcase, MapPin, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Calendar, Briefcase, MapPin, GraduationCap, Clock, FileText, User as UserIcon } from 'lucide-react';
+import AdvancedTable from '@/components/ui/AdvancedTable';
 
 export default function AdminEmployeeProfileDetail({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params); // Unwrap params
+    const { id } = use(params);
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('overview');
+
+    // Tab Data States
+    const [attendance, setAttendance] = useState<any[]>([]);
+    const [leaves, setLeaves] = useState<any[]>([]);
+    const [loadingTab, setLoadingTab] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -23,6 +30,30 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
                 setLoading(false);
             });
     }, [id]);
+
+    // Fetch Tab Data on Change
+    useEffect(() => {
+        if (!id) return;
+
+        if (activeTab === 'attendance' && attendance.length === 0) {
+            setLoadingTab(true);
+            fetch(`/api/admin/attendance?userId=${id}`)
+                .then(res => res.json())
+                .then(res => {
+                    setAttendance(res.attendance || []);
+                    setLoadingTab(false);
+                });
+        }
+        if (activeTab === 'leaves' && leaves.length === 0) {
+            setLoadingTab(true);
+            fetch(`/api/admin/leaves?userId=${id}`)
+                .then(res => res.json())
+                .then(res => {
+                    setLeaves(res.leaves || []);
+                    setLoadingTab(false);
+                });
+        }
+    }, [activeTab, id]);
 
     if (loading) {
         return (
@@ -71,6 +102,40 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
             </div>
         </div>
     );
+
+    // Columns for Attendance Table
+    const attendanceColumns = [
+        { header: 'Date', accessor: (row: any) => new Date(row.date).toLocaleDateString() },
+        {
+            header: 'Status', accessor: (row: any) => (
+                <span className={`px-2 py-1 rounded text-xs font-medium ${row.status === 'Present' ? 'bg-green-100 text-green-700' :
+                        row.status === 'Absent' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                    }`}>
+                    {row.status}
+                </span>
+            )
+        },
+        { header: 'Check In', accessor: (row: any) => row.checkInTime ? new Date(row.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-' },
+        { header: 'Check Out', accessor: (row: any) => row.checkOutTime ? new Date(row.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-' },
+    ];
+
+    // Columns for Leaves Table
+    const leaveColumns = [
+        { header: 'Type', accessor: 'leaveType' },
+        { header: 'Dates', accessor: (row: any) => `${new Date(row.startDate).toLocaleDateString()} - ${new Date(row.endDate).toLocaleDateString()}` },
+        {
+            header: 'Status', accessor: (row: any) => (
+                <span className={`px-2 py-1 rounded text-xs font-medium ${row.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                        row.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                    }`}>
+                    {row.status}
+                </span>
+            )
+        },
+        { header: 'Reason', accessor: 'reason' },
+    ];
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
@@ -126,80 +191,121 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column - Personal Info */}
-                    <div className="lg:col-span-2 space-y-8">
-                        {/* Personal Section */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                <Briefcase size={18} className="text-orange-500" />
-                                <h2 className="font-bold text-gray-800">Employment Details</h2>
-                            </div>
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <DetailItem label="Employment Type" value={profile?.employmentType} />
-                                <DetailItem label="Employee Code" value={profile?.employeeCode || "N/A"} />
-                                <DetailItem label="Role" value={user.role} />
-                                <DetailItem label="Joined On" value={profile?.dateOfJoining ? new Date(profile.dateOfJoining).toLocaleDateString() : undefined} />
-                            </div>
-                        </div>
+                {/* Tabs Navigation */}
+                <div className="flex items-center gap-6 border-b border-gray-200 mb-8 overflow-x-auto">
+                    {[
+                        { id: 'overview', label: 'Overview', icon: Briefcase },
+                        { id: 'personal', label: 'Personal Info', icon: UserIcon },
+                        { id: 'attendance', label: 'Attendance', icon: Clock },
+                        { id: 'leaves', label: 'Leaves', icon: FileText },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
+                                    ? 'text-orange-600 border-b-2 border-orange-600'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                        >
+                            <tab.icon size={16} />
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
 
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                <MapPin size={18} className="text-orange-500" />
-                                <h2 className="font-bold text-gray-800">Personal Details</h2>
-                            </div>
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <DetailItem label="Date of Birth" value={profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : undefined} />
-                                <DetailItem label="Gender" value={profile?.gender} />
-                                <DetailItem label="Marital Status" value={profile?.maritalStatus} />
-                                <div className="col-span-2"></div>
-                                <div className="col-span-2">
-                                    <DetailItem label="Current Address" value={profile?.currentAddress} />
+                {/* Content Area */}
+                <div className="min-h-[400px]">
+                    {activeTab === 'overview' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                <h3 className="text-gray-500 text-sm font-medium mb-1">Total Attendance</h3>
+                                <div className="text-3xl font-bold text-navy-900">
+                                    {/* Placeholder: Real stat would require aggregate API */}
+                                    -
                                 </div>
-                                <div className="col-span-2">
-                                    <DetailItem label="Permanent Address" value={profile?.permanentAddress} />
+                                <p className="text-xs text-green-600 mt-2">Days Present</p>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                <h3 className="text-gray-500 text-sm font-medium mb-1">Leave Balance</h3>
+                                <div className="text-3xl font-bold text-navy-900">
+                                    {/* Placeholder */}
+                                    12
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">Annual Leaves Remaining</p>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                <h3 className="text-gray-500 text-sm font-medium mb-1">Performance</h3>
+                                <div className="text-3xl font-bold text-navy-900">Good</div>
+                                <p className="text-xs text-orange-500 mt-2">Based on review</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'personal' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Personal Section */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+                                    <Briefcase size={18} className="text-orange-500" />
+                                    <h2 className="font-bold text-gray-800">Employment Details</h2>
+                                </div>
+                                <div className="p-6 grid grid-cols-1 gap-6">
+                                    <DetailItem label="Employment Type" value={profile?.employmentType} />
+                                    <DetailItem label="Employee Code" value={profile?.employeeCode || "N/A"} />
+                                    <DetailItem label="Role" value={user.role} />
+                                    <DetailItem label="Joined On" value={profile?.dateOfJoining ? new Date(profile.dateOfJoining).toLocaleDateString() : undefined} />
+                                </div>
+                            </div>
+                            <div className="space-y-8">
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+                                        <MapPin size={18} className="text-orange-500" />
+                                        <h2 className="font-bold text-gray-800">Address</h2>
+                                    </div>
+                                    <div className="p-6 space-y-4">
+                                        <DetailItem label="Current Address" value={profile?.currentAddress} />
+                                        <DetailItem label="Permanent Address" value={profile?.permanentAddress} />
+                                    </div>
+                                </div>
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+                                        <GraduationCap size={18} className="text-orange-500" />
+                                        <h2 className="font-bold text-gray-800">Education</h2>
+                                    </div>
+                                    <div className="p-6 grid grid-cols-2 gap-4">
+                                        <DetailItem label="Degree" value={edu.level} />
+                                        <DetailItem label="Institution" value={edu.institution} />
+                                        <DetailItem label="Year" value={edu.year} />
+                                        <DetailItem label="Grade" value={edu.score} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    )}
 
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                <GraduationCap size={18} className="text-orange-500" />
-                                <h2 className="font-bold text-gray-800">Education</h2>
-                            </div>
-                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <DetailItem label="Degree" value={edu.level} />
-                                <DetailItem label="Institution" value={edu.institution} />
-                                <DetailItem label="Year of Passing" value={edu.year} />
-                                <DetailItem label="Score/Grade" value={edu.score} />
-                            </div>
+                    {activeTab === 'attendance' && (
+                        <div>
+                            <AdvancedTable
+                                data={attendance}
+                                columns={attendanceColumns}
+                                keyField="_id"
+                                isLoading={loadingTab}
+                                searchPlaceholder="Search dates or status..."
+                            />
                         </div>
-                    </div>
+                    )}
 
-                    {/* Right Column - Contact & Emergency */}
-                    <div className="space-y-8">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                <Phone size={18} className="text-orange-500" />
-                                <h2 className="font-bold text-gray-800">Contact Info</h2>
-                            </div>
-                            <div className="p-6 space-y-6">
-                                <DetailItem label="Personal Phone" value={profile?.phoneNumber} />
-                                <DetailItem label="Work Email" value={user.email} />
-                            </div>
+                    {activeTab === 'leaves' && (
+                        <div>
+                            <AdvancedTable
+                                data={leaves}
+                                columns={leaveColumns}
+                                keyField="_id"
+                                isLoading={loadingTab}
+                                searchPlaceholder="Search leave type..."
+                            />
                         </div>
-
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                <span className="text-lg">🚑</span>
-                                <h2 className="font-bold text-gray-800">Emergency Contact</h2>
-                            </div>
-                            <div className="p-6 space-y-6">
-                                <DetailItem label="Contact Name" value={profile?.emergencyContact?.name} />
-                                <DetailItem label="Contact Phone" value={profile?.emergencyContact?.phone} />
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </main>
         </div>

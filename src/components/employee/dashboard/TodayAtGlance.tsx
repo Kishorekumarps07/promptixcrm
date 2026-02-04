@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
-import DashboardWidgetCard from './DashboardWidgetCard';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import { Sun, Moon, CloudSun, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 interface TodayAtGlanceProps {
     userName: string;
@@ -8,50 +11,57 @@ interface TodayAtGlanceProps {
 }
 
 export default function TodayAtGlance({ userName, attendanceStatus, date }: TodayAtGlanceProps) {
-    // Determine greeting based on time
+    const isCheckedIn = attendanceStatus === 'Present' || attendanceStatus === 'Late' || attendanceStatus === 'Approved';
+
+    // Determine greeting and icon
     const hour = date.getHours();
     let greeting = 'Good morning';
-    if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
-    if (hour >= 17) greeting = 'Good evening';
+    let Icon = Sun;
 
-    // Format date
-    const formattedDate = date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    if (hour >= 12 && hour < 17) {
+        greeting = 'Good afternoon';
+        Icon = Sun;
+    } else if (hour >= 17) {
+        greeting = 'Good evening';
+        Icon = Moon; // or CloudSun
+    }
 
-    // Status badge color
-    const getStatusColor = (status: string) => {
-        if (status === 'Approved' || status === 'Present') return 'bg-green-100 text-green-700';
-        if (status === 'Pending') return 'bg-yellow-100 text-yellow-700';
-        if (status === 'Rejected') return 'bg-red-100 text-red-700';
-        if (status === 'Not Checked In') return 'bg-gray-100 text-gray-700';
-        return 'bg-gray-100 text-gray-700';
-    };
+    const getStatusColor = () => {
+        if (isCheckedIn) return 'bg-green-500 text-white';
+        if (attendanceStatus === 'Leave') return 'bg-purple-500 text-white';
+        return 'bg-amber-500 text-white';
+    }
 
     return (
-        <div className="bg-gradient-to-r from-navy-900 to-blue-900 rounded-lg shadow-sm border border-gray-100 p-6 text-white">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                {/* Greeting */}
+        <ModernGlassCard className="relative overflow-hidden border-0 !p-0">
+            {/* Rich Gradient Background using Standard Tailwind Colors */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 z-0"></div>
+
+            {/* Decorative Blobs */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 z-0 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 z-0 pointer-events-none"></div>
+
+            <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 text-white">
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-bold mb-1">
-                        {greeting}, {userName}! 👋
+                    <h2 className="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight flex items-center gap-3">
+                        {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-200 to-amber-100">{userName}</span>! 👋
                     </h2>
-                    <p className="text-blue-200 text-sm md:text-base">{formattedDate}</p>
+                    <p className="text-blue-100/80 font-medium flex items-center gap-2 text-sm md:text-base">
+                        <Icon size={18} className="text-orange-300" />
+                        {date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
                 </div>
 
-                {/* Today's Status */}
-                <div className="flex items-center gap-3">
-                    <div className="text-right">
-                        <p className="text-sm text-blue-200 mb-1">Today's Status</p>
-                        <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(attendanceStatus)}`}>
-                            {attendanceStatus === 'Not Checked In' ? '⏰ Not Marked' : `✅ ${attendanceStatus}`}
-                        </span>
+                <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-lg hover:bg-white/15 transition-colors cursor-default">
+                    <div className={`p-3 rounded-xl shadow-inner ${getStatusColor()}`}>
+                        {isCheckedIn ? <CheckCircle size={24} strokeWidth={3} /> : <Clock size={24} strokeWidth={3} />}
+                    </div>
+                    <div>
+                        <p className="text-xs text-blue-200 uppercase font-bold tracking-widest mb-0.5">Current Status</p>
+                        <p className="font-bold text-xl tracking-tight">{attendanceStatus}</p>
                     </div>
                 </div>
             </div>
-        </div>
+        </ModernGlassCard>
     );
 }

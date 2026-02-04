@@ -21,7 +21,7 @@ export async function GET(req: Request) {
         const employees = await User.find({
             role: { $in: ['EMPLOYEE', 'Employee', 'employee'] }
         })
-            .select('name email role status createdAt')
+            .select('name email role status createdAt photo')
             .lean();
 
         console.log(`[DEBUG] Found ${employees.length} employees with lenient search`);
@@ -39,6 +39,7 @@ export async function GET(req: Request) {
                 _id: emp._id,
                 name: emp.name,
                 email: emp.email,
+                photo: emp.photo,
                 status: emp.status,
                 joinedAt: emp.createdAt,
                 profile: profile ? {
