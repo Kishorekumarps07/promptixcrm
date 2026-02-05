@@ -21,7 +21,7 @@ export async function GET(req: Request) {
         }
 
         const profile = await EmployeeProfile.findOne({ userId: payload.userId });
-        const user = await (await import('@/models/User')).default.findById(payload.userId).select('name email');
+        const user = await (await import('@/models/User')).default.findById(payload.userId).select('name email photo');
 
         return NextResponse.json({
             exists: !!profile,
