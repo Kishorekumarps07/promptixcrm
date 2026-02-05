@@ -9,6 +9,7 @@ export async function POST(req: Request) {
         await dbConnect();
 
         const { email, password } = await req.json();
+        console.log(`[Login Attempt] Email: ${email}`);
 
         if (!email || !password) {
             return NextResponse.json({ message: 'Missing fields' }, { status: 400 });
@@ -16,13 +17,17 @@ export async function POST(req: Request) {
 
         const user = await User.findOne({ email });
         if (!user) {
+            console.log(`[Login Failed] User not found: ${email}`);
             return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
         }
 
         const isMatch = await comparePassword(password, user.password);
         if (!isMatch) {
+            console.log(`[Login Failed] Password mismatch for: ${email}`);
             return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
         }
+
+        console.log(`[Login Success] User: ${email}, Role: ${user.role}`);
 
         const token = signToken({
             userId: user._id,
