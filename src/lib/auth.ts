@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
+const JWT_SECRET = (process.env.JWT_SECRET || 'fallback-secret').trim();
 
 // Sign a JWT
 export function signToken(payload: object) {
