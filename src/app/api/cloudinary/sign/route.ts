@@ -39,9 +39,14 @@ export async function POST(req: Request) {
 
         console.log('[Cloudinary Sign] Signing request. Cloud Name present:', !!cloudName, 'API Secret present:', !!apiSecret);
 
-        if (!apiSecret || !cloudName) {
-            console.error('[Cloudinary Sign] Missing credentials');
-            return NextResponse.json({ message: 'Server misconfiguration' }, { status: 500 });
+        if (!cloudName) {
+            console.error('[Cloudinary Sign] Missing Cloud Name');
+            return NextResponse.json({ message: 'Server misconfiguration: Missing NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME' }, { status: 500 });
+        }
+
+        if (!apiSecret) {
+            console.error('[Cloudinary Sign] Missing API Secret');
+            return NextResponse.json({ message: 'Server misconfiguration: Missing CLOUDINARY_API_SECRET' }, { status: 500 });
         }
 
         const signature = cloudinary.utils.api_sign_request({
