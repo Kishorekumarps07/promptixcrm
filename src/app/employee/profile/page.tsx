@@ -18,6 +18,7 @@ export default function EmployeeProfilePage() {
         // User Details
         name: '',
         email: '',
+        photo: '',
         phoneNumber: '',
         designation: '',
         dateOfJoining: '',
@@ -47,6 +48,7 @@ export default function EmployeeProfilePage() {
         return {
             name: prof.name || user.name || '',
             email: prof.email || user.email || '',
+            photo: user.photo || '',
             phoneNumber: prof.phoneNumber || '',
             designation: prof.designation || '',
             dateOfJoining: prof.dateOfJoining ? new Date(prof.dateOfJoining).toISOString().split('T')[0] : '',
@@ -83,6 +85,32 @@ export default function EmployeeProfilePage() {
     useEffect(() => {
         fetchProfile();
     }, []);
+
+    const handlePhotoUpdate = async (photoUrl: string) => {
+        try {
+            console.log('[handlePhotoUpdate] Updating photo:', photoUrl);
+            const res = await fetch('/api/employee/profile/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photo: photoUrl })
+            });
+
+            const responseData = await res.json();
+            console.log('[handlePhotoUpdate] API Response:', res.status, responseData);
+
+            if (res.ok) {
+                setProfile(prev => ({ ...prev, photo: photoUrl }));
+                // Refresh full profile to ensure sync
+                fetchProfile();
+                toast.success('Profile picture updated!');
+            } else {
+                throw new Error(responseData.message || 'Failed to update photo');
+            }
+        } catch (error: any) {
+            console.error('Photo update error:', error);
+            throw error;
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -246,6 +274,7 @@ export default function EmployeeProfilePage() {
                         }
                     }}
                     onCancel={() => setIsEditing(false)}
+                    onPhotoUpdate={handlePhotoUpdate}
                 />
             </main>
         </div>

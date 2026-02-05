@@ -28,6 +28,7 @@ export async function PUT(req: Request) {
             // User Details
             name,
             email,
+            photo,
 
             phoneNumber,
             emergencyContactName,
@@ -45,17 +46,28 @@ export async function PUT(req: Request) {
             gender
         } = body;
 
-        // Update User Model (Name & Email)
-        if (name || email) {
-            console.log('[DEBUG] Updating User:', { name, email });
-            await User.findByIdAndUpdate(payload.userId, {
-                name,
-                email
-            });
+        // Update User Model (Name, Email, Photo)
+        if (name || email || photo) {
+            console.log('[DEBUG] Updating User:', { name, email, photo });
+            const userUpdate: any = {};
+            if (name) userUpdate.name = name;
+            if (email) userUpdate.email = email;
+            if (photo) userUpdate.photo = photo;
+
+            await User.findByIdAndUpdate(payload.userId, userUpdate);
         }
 
-        if (!phoneNumber) {
+        // Only validate phoneNumber if updating profile data (not just photo)
+        if (!photo && !phoneNumber) {
             return NextResponse.json({ message: 'Phone number is required' }, { status: 400 });
+        }
+
+        // If only updating photo, skip EmployeeProfile update
+        if (photo && !phoneNumber && !name && !email) {
+            return NextResponse.json({
+                message: 'Photo updated successfully',
+                user: await User.findById(payload.userId).select('-password')
+            });
         }
 
 

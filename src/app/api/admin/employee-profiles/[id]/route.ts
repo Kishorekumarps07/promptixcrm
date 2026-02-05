@@ -52,10 +52,14 @@ export async function PUT(req: Request, props: { params: Promise<{ id: string }>
         const userId = params.id;
         const body = await req.json();
 
-        // 1. Update User Model (Name & Email)
-        const { name, email, ...profileData } = body;
-        if (name || email) {
-            await User.findByIdAndUpdate(userId, { name, email });
+        // 1. Update User Model (Name, Email, Photo)
+        const { name, email, photo, ...profileData } = body;
+        if (name || email || photo) {
+            const userUpdate: any = {};
+            if (name) userUpdate.name = name;
+            if (email) userUpdate.email = email;
+            if (photo) userUpdate.photo = photo;
+            await User.findByIdAndUpdate(userId, userUpdate);
         }
 
         // 2. Update EmployeeProfile Model

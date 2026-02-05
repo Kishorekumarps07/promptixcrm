@@ -1,7 +1,6 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import ProfilePictureUpload from '@/components/ProfilePictureUpload';
 import { User, Briefcase, MapPin, GraduationCap, Phone, Save, X, Loader2 } from 'lucide-react';
 
 interface EmployeeProfileFormProps {
@@ -10,11 +9,17 @@ interface EmployeeProfileFormProps {
     onSave: (data: any) => Promise<void>;
     onCancel: () => void;
     isAdmin?: boolean; // To potentially show extra fields or allow specific overrides
+    onPhotoUpdate?: (photoUrl: string) => Promise<void>;
 }
 
-export default function EmployeeProfileForm({ initialData, isEditing, onSave, onCancel, isAdmin = false }: EmployeeProfileFormProps) {
+export default function EmployeeProfileForm({ initialData, isEditing, onSave, onCancel, isAdmin = false, onPhotoUpdate }: EmployeeProfileFormProps) {
     const [formData, setFormData] = useState(initialData);
     const [submitting, setSubmitting] = useState(false);
+
+    // Update formData when initialData changes (e.g., after photo upload)
+    useEffect(() => {
+        setFormData(initialData);
+    }, [initialData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -36,11 +41,15 @@ export default function EmployeeProfileForm({ initialData, isEditing, onSave, on
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Basic Info */}
                 <ModernGlassCard title="Basic Info" className="h-full" delay={0.1}>
-                    <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                            {formData.name?.charAt(0) || 'U'}
-                        </div>
-                        <div>
+                    <div className="flex flex-col items-center mb-6 pb-6 border-b border-gray-100">
+                        <ProfilePictureUpload
+                            currentPhoto={formData.photo}
+                            userName={formData.name}
+                            onPhotoUpdate={onPhotoUpdate || (async () => { })}
+                            disabled={!onPhotoUpdate}
+                            size="large"
+                        />
+                        <div className="mt-4 text-center">
                             <h3 className="text-xl font-bold text-navy-900">{formData.name}</h3>
                             <p className="text-gray-500">{formData.designation || 'Employee'}</p>
                         </div>
