@@ -32,17 +32,27 @@ export async function POST(req: Request) {
         const timestamp = Math.round((new Date).getTime() / 1000);
 
         // Generate signature
-        // We can enforce validation here (e.g. max file size in params if needed, but usually done in preset or global settings)
-        // For signed uploads, we sign the parameters.
+        // Generate signature
+        // We can enforce validation here
+        const apiSecret = process.env.CLOUDINARY_API_SECRET;
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+
+        console.log('[Cloudinary Sign] Signing request. Cloud Name present:', !!cloudName, 'API Secret present:', !!apiSecret);
+
+        if (!apiSecret || !cloudName) {
+            console.error('[Cloudinary Sign] Missing credentials');
+            return NextResponse.json({ message: 'Server misconfiguration' }, { status: 500 });
+        }
+
         const signature = cloudinary.utils.api_sign_request({
             timestamp: timestamp,
             folder: folder || 'crm-courses',
-        }, process.env.CLOUDINARY_API_SECRET!);
+        }, apiSecret);
 
         return NextResponse.json({
             signature,
             timestamp,
-            cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+            cloudName: cloudName,
             apiKey: process.env.CLOUDINARY_API_KEY
         });
     } catch (error: any) {
