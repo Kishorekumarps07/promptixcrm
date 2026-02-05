@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         // Generate signature
         // We can enforce validation here
         const apiSecret = process.env.CLOUDINARY_API_SECRET;
-        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || 'dlsybqtuw';
 
         console.log('[Cloudinary Sign] Signing request. Cloud Name present:', !!cloudName, 'API Secret present:', !!apiSecret);
 
