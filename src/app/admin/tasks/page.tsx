@@ -22,6 +22,7 @@ import {
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import { cn } from '@/lib/utils';
 import TaskComments from '@/components/TaskComments';
+import { toast } from 'sonner';
 
 interface Task {
     _id: string;

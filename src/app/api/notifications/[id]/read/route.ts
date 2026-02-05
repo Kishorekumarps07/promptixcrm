@@ -18,16 +18,17 @@ async function getUserId() {
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     try {
+        const { id } = await params;
         const userId = await getUserId();
         if (!userId) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
         const notification = await Notification.findOneAndUpdate(
-            { _id: params.id, recipientId: userId },
+            { _id: id, recipientId: userId },
             { $set: { isRead: true } },
             { new: true }
         );

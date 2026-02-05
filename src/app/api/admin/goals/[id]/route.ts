@@ -21,9 +21,10 @@ async function getAdminId() {
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     try {
+        const { id } = await params;
         const adminId = await getAdminId();
         if (!adminId) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -44,7 +45,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         }
 
         const goal = await Goal.findByIdAndUpdate(
-            params.id,
+            id,
             { title, period, ownerId, status, description },
             { new: true }
         ).populate('tasks');
@@ -59,15 +60,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     try {
+        const { id } = await params;
         const adminId = await getAdminId();
         if (!adminId) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const goalId = params.id;
+        const goalId = id;
 
         // Detach tasks instead of deleting them
         await Task.updateMany({ goalId: goalId }, { $set: { goalId: null } });

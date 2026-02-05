@@ -6,6 +6,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import { User, Briefcase, MapPin, GraduationCap, Phone, Edit3, Save, X } from 'lucide-react';
 import EmployeeProfileForm from '@/components/employee/EmployeeProfileForm';
+import { toast } from 'sonner';
 
 export default function EmployeeProfilePage() {
     const [loading, setLoading] = useState(true);

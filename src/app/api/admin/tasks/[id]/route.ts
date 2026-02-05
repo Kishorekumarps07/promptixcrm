@@ -22,15 +22,15 @@ async function getAdminId() {
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     try {
+        const { id } = await params;
         const adminId = await getAdminId();
         if (!adminId) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const body = await req.json();
         const body = await req.json();
         const { title, description, assignedTo, goalId, priority, status, dueDate } = body;
 
@@ -53,7 +53,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             }
         }
 
-        const originalTask = await Task.findById(params.id);
+        const originalTask = await Task.findById(id);
         if (!originalTask) {
             return NextResponse.json({ message: 'Task not found' }, { status: 404 });
         }
@@ -62,7 +62,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         // Security: Mongoose model hook handles progress/completedAt logic.
         // We exclude completedAt from the update body to prevent manual overrides.
         const task = await Task.findByIdAndUpdate(
-            params.id,
+            id,
             {
                 title,
                 description,
@@ -93,18 +93,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     try {
+        const { id } = await params;
         const adminId = await getAdminId();
         if (!adminId) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const taskToDelete = await Task.findById(params.id);
+        const taskToDelete = await Task.findById(id);
         const goalIdToSync = taskToDelete?.goalId;
 
-        const task = await Task.findByIdAndDelete(params.id);
+        const task = await Task.findByIdAndDelete(id);
 
         if (!task) {
             return NextResponse.json({ message: 'Task not found' }, { status: 404 });

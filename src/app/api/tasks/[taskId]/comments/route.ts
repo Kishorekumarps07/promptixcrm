@@ -1,23 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import dbConnect from '@/lib/db';
 import Comment from '@/models/Comment';
-import { verifyJwt } from '@/lib/jwt';
 import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
+
+async function verifyJwt(token: string) {
+    try {
+        const { payload } = await jwtVerify(token, SECRET);
+        return payload;
+    } catch {
+        return null;
+    }
+}
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { taskId: string } }
+    { params }: { params: Promise<{ taskId: string }> }
 ) {
     try {
-        await connectToDatabase();
+        const { taskId } = await params;
+        await dbConnect();
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        if (!token || !await verifyJwt(token)) {
+        if (!token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const comments = await Comment.find({ taskId: params.taskId })
+        const payload = await verifyJwt(token);
+        if (!payload) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const comments = await Comment.find({ taskId })
             .populate('userId', 'name email')
             .sort({ createdAt: 1 }); // Oldest first
 
@@ -30,10 +47,11 @@ export async function GET(
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { taskId: string } }
+    { params }: { params: Promise<{ taskId: string }> }
 ) {
     try {
-        await connectToDatabase();
+        const { taskId } = await params;
+        await dbConnect();
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
@@ -49,7 +67,7 @@ export async function POST(
         }
 
         const comment = await Comment.create({
-            taskId: params.taskId,
+            taskId,
             userId: payload.id,
             content
         });

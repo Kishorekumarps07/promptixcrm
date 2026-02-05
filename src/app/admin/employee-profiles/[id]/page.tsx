@@ -7,6 +7,7 @@ import { ArrowLeft, Mail, Phone, Calendar, Briefcase, MapPin, GraduationCap, Clo
 import AdvancedTable from '@/components/ui/AdvancedTable';
 import EmployeeProfileForm from '@/components/employee/EmployeeProfileForm';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import { toast } from 'sonner';
 
 export default function AdminEmployeeProfileDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
