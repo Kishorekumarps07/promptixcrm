@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
-import User from '@/models/User';
+import Task from '@/models/Task';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
@@ -20,13 +20,17 @@ async function getUserId() {
 
 export async function GET() {
     await dbConnect();
-    const userId = await getUserId();
-    if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
     try {
-        // Find students whose mentorId is the current user's ID
-        const students = await User.find({ mentorId: userId, role: 'STUDENT' });
-        return NextResponse.json({ students });
+        const userId = await getUserId();
+        if (!userId) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        const tasks = await Task.find({ assignedTo: userId })
+            .populate('goalId', 'title period')
+            .sort({ createdAt: -1 });
+
+        return NextResponse.json({ tasks });
     } catch (err: any) {
         return NextResponse.json({ message: err.message }, { status: 500 });
     }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
-import Notification from '@/models/Notification';
+import Goal from '@/models/Goal';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
@@ -18,7 +18,10 @@ async function getUserId() {
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
     await dbConnect();
     try {
         const userId = await getUserId();
@@ -26,17 +29,26 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const notification = await Notification.findOneAndUpdate(
-            { _id: params.id, recipientId: userId },
-            { $set: { isRead: true } },
-            { new: true }
-        );
+        const { id } = await params;
+        const body = await request.json();
+        const { status } = body;
 
-        if (!notification) {
-            return NextResponse.json({ message: 'Notification not found' }, { status: 404 });
+        // Ensure we find the goal AND it belongs to the user
+        const goal = await Goal.findOne({ _id: id, ownerId: userId });
+
+        if (!goal) {
+            return NextResponse.json({ message: 'Goal not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ notification });
+        if (status === 'Completed') {
+            goal.status = 'Completed';
+            goal.progressPercentage = 100;
+            await goal.save();
+        } else {
+            return NextResponse.json({ message: 'Invalid status update' }, { status: 400 });
+        }
+
+        return NextResponse.json({ goal });
     } catch (err: any) {
         return NextResponse.json({ message: err.message }, { status: 500 });
     }

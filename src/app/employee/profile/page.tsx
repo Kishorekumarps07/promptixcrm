@@ -5,6 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import PageHeader from '@/components/ui/PageHeader';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import { User, Briefcase, MapPin, GraduationCap, Phone, Edit3, Save, X } from 'lucide-react';
+import EmployeeProfileForm from '@/components/employee/EmployeeProfileForm';
 
 export default function EmployeeProfilePage() {
     const [loading, setLoading] = useState(true);
@@ -179,99 +180,72 @@ export default function EmployeeProfilePage() {
                     }
                 />
 
-                {message && (
-                    <div className={`p-4 rounded-xl mb-6 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 ${message.includes('Error') || message.includes('Failed') ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
-                        {message}
-                    </div>
-                )}
 
-                <form onSubmit={handleSave} className="space-y-6">
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        {/* Basic Info */}
-                        <ModernGlassCard title="Basic Info" className="h-full" delay={0.1}>
-                            <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                                    {profile.name.charAt(0)}
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-navy-900">{profile.name}</h3>
-                                    <p className="text-gray-500">{profile.designation || 'Employee'}</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <InputField label="Full Name" name="name" value={profile.name} onChange={handleChange} disabled={!isEditing} icon={<User size={16} />} />
-                                <InputField label="Email (Login ID)" name="email" value={profile.email} onChange={handleChange} disabled={!isEditing} icon={<Briefcase size={16} />} />
-                            </div>
-                        </ModernGlassCard>
+                <EmployeeProfileForm
+                    initialData={profile}
+                    isEditing={isEditing}
+                    onSave={async (data) => {
+                        // Adapt data to match API expectations if needed or just pass through
+                        // The form data structure matches what we expect in handleSave
+                        // Re-implement handleSave logic here or keep it wrapper?
+                        // Let's call the logic directly here or via the wrapper
 
-                        {/* Official Details */}
-                        <ModernGlassCard title="Official Details" className="h-full" delay={0.2}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <InputField label="Designation" name="designation" value={profile.designation} onChange={handleChange} disabled={!isEditing} />
-                                <InputField label="Department" name="department" value={profile.department} onChange={handleChange} disabled={!isEditing} />
-                                <InputField label="Date of Joining" name="dateOfJoining" value={profile.dateOfJoining} onChange={handleChange} disabled={!isEditing} type="date" />
-                                <SelectField label="Employment Type" name="employmentType" value={profile.employmentType} onChange={handleChange} disabled={!isEditing} options={['Full-time', 'Part-time', 'Intern', 'Contract']} />
-                            </div>
-                        </ModernGlassCard>
-                    </div>
+                        // We need to trigger the handleSave equivalent.
+                        // Since `handleSave` uses `profile` state, we should use the data passed from form.
 
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        {/* Personal Details */}
-                        <ModernGlassCard title="Personal Details" className="h-full" delay={0.3}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <InputField label="Date of Birth" name="dateOfBirth" value={profile.dateOfBirth} onChange={handleChange} disabled={!isEditing} type="date" />
-                                <SelectField label="Gender" name="gender" value={profile.gender} onChange={handleChange} disabled={!isEditing} options={['Male', 'Female', 'Other']} />
-                                <SelectField label="Marital Status" name="maritalStatus" value={profile.maritalStatus} onChange={handleChange} disabled={!isEditing} options={['Single', 'Married']} />
-                                <div className="md:col-span-2">
-                                    <TextAreaField label="Current Address" name="currentAddress" value={profile.currentAddress} onChange={handleChange} disabled={!isEditing} />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <TextAreaField label="Permanent Address" name="permanentAddress" value={profile.permanentAddress} onChange={handleChange} disabled={!isEditing} />
-                                </div>
-                            </div>
-                        </ModernGlassCard>
+                        // Let's inline the logic or call a function
 
-                        {/* Education & Contacts */}
-                        <div className="space-y-6">
-                            <ModernGlassCard title="Education" className="flex-1" delay={0.4}>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <InputField label="Degree" name="eduLevel" value={profile.eduLevel} onChange={handleChange} disabled={!isEditing} icon={<GraduationCap size={16} />} />
-                                    <InputField label="Institution" name="eduInstitution" value={profile.eduInstitution} onChange={handleChange} disabled={!isEditing} />
-                                    <InputField label="Year" name="eduYear" value={profile.eduYear} onChange={handleChange} disabled={!isEditing} type="number" />
-                                    <InputField label="Score/GPA" name="eduScore" value={profile.eduScore} onChange={handleChange} disabled={!isEditing} />
-                                </div>
-                            </ModernGlassCard>
+                        let educationPayload: any[] = [];
+                        if (data.eduLevel || data.eduInstitution) {
+                            educationPayload = [{
+                                level: data.eduLevel,
+                                institution: data.eduInstitution,
+                                year: parseInt(String(data.eduYear)) || new Date().getFullYear(),
+                                score: data.eduScore
+                            }];
+                        }
 
-                            <ModernGlassCard title="Emergency Contact" className="flex-1" delay={0.5}>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <InputField label="Contact Name" name="emergencyContactName" value={profile.emergencyContactName} onChange={handleChange} disabled={!isEditing} icon={<User size={16} />} />
-                                    <InputField label="Contact Phone" name="emergencyContactPhone" value={profile.emergencyContactPhone} onChange={handleChange} disabled={!isEditing} icon={<Phone size={16} />} type="tel" />
-                                </div>
-                            </ModernGlassCard>
-                        </div>
-                    </div>
+                        try {
+                            const res = await fetch('/api/employee/profile/update', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: data.name,
+                                    email: data.email,
+                                    phoneNumber: data.phoneNumber,
+                                    emergencyContactName: data.emergencyContactName,
+                                    emergencyContactPhone: data.emergencyContactPhone,
+                                    designation: data.designation,
+                                    dateOfJoining: data.dateOfJoining,
+                                    employmentType: data.employmentType,
+                                    department: data.department,
+                                    dateOfBirth: data.dateOfBirth,
+                                    gender: data.gender,
+                                    currentAddress: data.currentAddress,
+                                    permanentAddress: data.permanentAddress,
+                                    maritalStatus: data.maritalStatus,
+                                    education: educationPayload
+                                })
+                            });
 
-                    {isEditing && (
-                        <div className="fixed bottom-6 right-6 z-50 flex gap-3 animate-in slide-in-from-bottom-10 fade-in duration-300">
-                            <button
-                                type="button"
-                                onClick={() => setIsEditing(false)}
-                                className="px-6 py-3 bg-white text-gray-700 rounded-xl shadow-lg border border-gray-100 font-bold hover:bg-gray-50 transition-all flex items-center gap-2"
-                                disabled={submitting}
-                            >
-                                <X size={20} /> Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="px-8 py-3 bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/30 font-bold hover:bg-orange-600 hover:-translate-y-1 transition-all flex items-center gap-2"
-                            >
-                                {submitting ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" /> : <Save size={20} />}
-                                {submitting ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </div>
-                    )}
-                </form>
+                            const resData = await res.json();
+
+                            if (res.ok) {
+                                toast.success("Profile updated successfully!");
+                                setIsEditing(false);
+                                if (resData.profile) {
+                                    setProfile(data);
+                                }
+                            } else {
+                                throw new Error(resData.message || "Failed to update profile");
+                            }
+                        } catch (error: any) {
+                            console.error(error);
+                            toast.error(error.message || "An error occurred while saving");
+                        }
+                    }}
+                    onCancel={() => setIsEditing(false)}
+                />
             </main>
         </div>
     );

@@ -1,12 +1,17 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Bell, Check, ExternalLink, Loader2 } from 'lucide-react'; // Lucide icons for consistency
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface Notification {
     _id: string;
     title: string;
     message: string;
-    type: string;
+    type: 'TASK_ASSIGNED' | 'GOAL_ASSIGNED' | 'GENERAL';
+    link?: string;
     isRead: boolean;
     createdAt: string;
 }
@@ -17,6 +22,7 @@ export default function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     const fetchNotifications = async () => {
         setLoading(true);
@@ -25,7 +31,11 @@ export default function NotificationBell() {
             if (res.ok) {
                 const data = await res.json();
                 setNotifications(data.notifications);
-                setUnreadCount(data.unreadCount);
+                // Calculate unread count from the list (or trust API if it returned count separately)
+                // My API limits to 20, but the count in UI should ideally be accurate.
+                // For now, let's count unreads in the fetched list as a reasonable approximation for "recent" unreads
+                const unread = data.notifications.filter((n: Notification) => !n.isRead).length;
+                setUnreadCount(unread);
             }
         } catch (error) {
             console.error('Failed to fetch notifications', error);
@@ -36,7 +46,7 @@ export default function NotificationBell() {
 
     useEffect(() => {
         fetchNotifications();
-        // Optional: Poll every minute?
+        // Poll every 60s
         const interval = setInterval(fetchNotifications, 60000);
         return () => clearInterval(interval);
     }, []);
@@ -52,14 +62,20 @@ export default function NotificationBell() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const markAsRead = async (id: string) => {
+    const markAsRead = async (id: string, link?: string) => {
         try {
-            await fetch(`/api/notifications/${id}/read`, {
-                method: 'PATCH',
-            });
-            // Update local state deeply
+            // Optimistic update
             setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
+
+            // API Call
+            await fetch(`/api/notifications/${id}/read`, { method: 'PATCH' });
+
+            // Navigation
+            if (link) {
+                setIsOpen(false); // Close dropdown
+                router.push(link);
+            }
         } catch (error) {
             console.error('Failed to mark read', error);
         }
@@ -67,11 +83,12 @@ export default function NotificationBell() {
 
     const markAllRead = async () => {
         try {
-            await fetch('/api/notifications/mark-all-read', {
-                method: 'PATCH',
-            });
+            // Optimistic update
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
+
+            // Correct API call (Bulk PATCH is on /api/notifications)
+            await fetch('/api/notifications', { method: 'PATCH' });
         } catch (error) {
             console.error('Failed to mark all read', error);
         }
@@ -79,77 +96,109 @@ export default function NotificationBell() {
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
-        if (!isOpen) fetchNotifications(); // Refresh on open
+        if (!isOpen) fetchNotifications();
+    };
+
+    const getIconColor = (type: string) => {
+        switch (type) {
+            case 'TASK_ASSIGNED': return 'bg-blue-500/20 text-blue-400';
+            case 'GOAL_ASSIGNED': return 'bg-emerald-500/20 text-emerald-400';
+            default: return 'bg-white/10 text-white/60';
+        }
     };
 
     return (
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={toggleDropdown}
-                className="relative p-2 text-gray-600 hover:text-gray-800 focus:outline-none"
+                className="relative p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all duration-300 focus:outline-none"
             >
-                {/* Bell Icon */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-
-                {/* Badge */}
+                <Bell className="w-6 h-6" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
-                        {unreadCount > 9 ? '9+' : unreadCount}
+                    <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-orange-500 text-[10px] font-bold text-white items-center justify-center">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
                     </span>
                 )}
             </button>
 
-            {/* Dropdown */}
-            {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-md shadow-lg overflow-hidden z-50 ring-1 ring-black ring-opacity-5">
-                    <div className="py-2 px-4 bg-gray-50 border-b flex justify-between items-center">
-                        <span className="font-semibold text-gray-700">Notifications</span>
-                        {unreadCount > 0 && (
-                            <button
-                                onClick={markAllRead}
-                                className="text-xs text-blue-600 hover:underline"
-                            >
-                                Mark all as read
-                            </button>
-                        )}
-                    </div>
+            {/* Dropdown with Crystal Glass styling */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#1a1f3c]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 ring-1 ring-black/20"
+                    >
+                        {/* Header */}
+                        <div className="py-3 px-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                            <span className="font-semibold text-white">Notifications</span>
+                            {unreadCount > 0 && (
+                                <button
+                                    onClick={markAllRead}
+                                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                                >
+                                    <Check className="w-3 h-3" /> Mark all read
+                                </button>
+                            )}
+                        </div>
 
-                    <div className="max-h-96 overflow-y-auto">
-                        {loading && notifications.length === 0 ? (
-                            <div className="p-4 text-center text-gray-500">Loading...</div>
-                        ) : notifications.length === 0 ? (
-                            <div className="p-4 text-center text-gray-500">No notifications</div>
-                        ) : (
-                            <ul>
-                                {notifications.map(notification => (
-                                    <li
-                                        key={notification._id}
-                                        className={`p-4 border-b hover:bg-gray-50 transition duration-150 ease-in-out ${notification.isRead ? 'opacity-60' : 'bg-blue-50'}`}
-                                        onClick={() => !notification.isRead && markAsRead(notification._id)}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                                <p className="text-sm font-semibold text-gray-900">{notification.title}</p>
-                                                <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
-                                                <p className="text-xs text-gray-400 mt-2">{new Date(notification.createdAt).toLocaleString()}</p>
-                                            </div>
-                                            {!notification.isRead && (
-                                                <span className="block h-2 w-2 rounded-full bg-blue-600 mt-1"></span>
+                        {/* List */}
+                        <div className="max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                            {loading && notifications.length === 0 ? (
+                                <div className="p-8 text-center text-white/40 flex flex-col items-center gap-2">
+                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                    <span className="text-sm">Updating...</span>
+                                </div>
+                            ) : notifications.length === 0 ? (
+                                <div className="p-8 text-center text-white/20 flex flex-col items-center gap-2">
+                                    <Bell className="w-8 h-8 opacity-20" />
+                                    <span className="text-sm">No new notifications</span>
+                                </div>
+                            ) : (
+                                <ul>
+                                    {notifications.map(notification => (
+                                        <li
+                                            key={notification._id}
+                                            onClick={() => markAsRead(notification._id, notification.link)}
+                                            className={cn(
+                                                "p-4 border-b border-white/5 hover:bg-white/5 transition-all cursor-pointer group relative",
+                                                notification.isRead ? 'opacity-50 hover:opacity-80' : 'bg-blue-500/5'
                                             )}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-                    <div className="py-2 px-4 bg-gray-50 border-t text-center">
-                        {/* Link to full page if we had one */}
-                        <a href="#" className="text-xs text-blue-600 hover:underline">View all</a>
-                    </div>
-                </div>
-            )}
+                                        >
+                                            <div className="flex gap-3">
+                                                <div className={cn("w-2 h-2 mt-2 rounded-full shrink-0", !notification.isRead ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" : "bg-transparent")} />
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex justify-between items-start">
+                                                        <p className={cn("text-sm font-medium leading-none", notification.isRead ? 'text-white/60' : 'text-white')}>
+                                                            {notification.title}
+                                                        </p>
+                                                        <span className="text-[10px] text-white/20 whitespace-nowrap ml-2">
+                                                            {new Date(notification.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">
+                                                        {notification.message}
+                                                    </p>
+                                                    {notification.link && (
+                                                        <div className="pt-1 flex items-center gap-1 text-[10px] text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <ExternalLink className="w-3 h-3" /> Click to view
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

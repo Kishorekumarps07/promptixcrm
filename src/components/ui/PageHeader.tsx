@@ -16,12 +16,14 @@ interface PageHeaderProps {
     actions?: React.ReactNode;
 }
 
+import Breadcrumbs from './Breadcrumbs';
+
 export default function PageHeader({ title, subtitle, breadcrumbs, actions }: PageHeaderProps) {
     return (
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
                 {/* Breadcrumbs */}
-                {breadcrumbs && breadcrumbs.length > 0 && (
+                {breadcrumbs && breadcrumbs.length > 0 ? (
                     <nav className="flex items-center text-xs text-gray-500 mb-2">
                         {breadcrumbs.map((crumb, index) => (
                             <React.Fragment key={index}>
@@ -36,6 +38,10 @@ export default function PageHeader({ title, subtitle, breadcrumbs, actions }: Pa
                             </React.Fragment>
                         ))}
                     </nav>
+                ) : (
+                    <div className="mb-2">
+                        <Breadcrumbs />
+                    </div>
                 )}
 
                 <h1 className="text-2xl font-bold text-navy-900">{title}</h1>

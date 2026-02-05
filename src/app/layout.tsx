@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   description: 'Internal CRM handling Admin, Employee, and Student portals',
 };
 
+import { Toaster } from 'sonner';
+
+import { CommandMenu } from '@/components/CommandMenu';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -17,6 +21,8 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <AuthProvider>
           {children}
+          <Toaster position="top-right" richColors closeButton />
+          <CommandMenu />
         </AuthProvider>
       </body>
     </html>

@@ -36,3 +36,68 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
         return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
+        await dbConnect();
+
+        // Auth Check
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
+        if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        const payload: any = verifyToken(token);
+        if (!payload || payload.role !== 'ADMIN') return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+
+        const userId = params.id;
+        const body = await req.json();
+
+        // 1. Update User Model (Name & Email)
+        const { name, email, ...profileData } = body;
+        if (name || email) {
+            await User.findByIdAndUpdate(userId, { name, email });
+        }
+
+        // 2. Update EmployeeProfile Model
+        // Extract fields to ensure security/validation mapping matches schema
+        const updateData: any = {
+            phoneNumber: profileData.phoneNumber,
+            currentAddress: profileData.currentAddress,
+            permanentAddress: profileData.permanentAddress,
+            maritalStatus: profileData.maritalStatus,
+            emergencyContact: {
+                name: profileData.emergencyContactName,
+                phone: profileData.emergencyContactPhone
+            },
+            designation: profileData.designation,
+            dateOfJoining: profileData.dateOfJoining ? new Date(profileData.dateOfJoining) : undefined,
+            employmentType: profileData.employmentType,
+            department: profileData.department,
+            dateOfBirth: profileData.dateOfBirth ? new Date(profileData.dateOfBirth) : undefined,
+            gender: profileData.gender,
+            updatedAt: new Date()
+        };
+
+        if (Array.isArray(profileData.education)) {
+            updateData.education = profileData.education;
+        }
+
+        // Clean undefined values
+        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+        const updatedProfile = await EmployeeProfile.findOneAndUpdate(
+            { userId },
+            { $set: updateData },
+            { new: true, runValidators: true, upsert: true, setDefaultsOnInsert: true }
+        );
+
+        return NextResponse.json({
+            message: 'Profile updated successfully',
+            profile: updatedProfile
+        });
+
+    } catch (error: any) {
+        console.error('Admin Profile Update Error:', error);
+        return NextResponse.json({ message: error.message || 'Internal Server Error' }, { status: 500 });
+    }
+}

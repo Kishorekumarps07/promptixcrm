@@ -69,6 +69,26 @@ export default function AdminAttendance() {
         setSelectedDate(date);
     };
 
+    const handleUpdateStatus = async (id: string, action: 'approve' | 'reject') => {
+        if (!confirm(`Are you sure you want to ${action} this attendance record?`)) return;
+
+        try {
+            const res = await fetch(`/api/admin/attendance/${id}/${action}`, { method: 'PATCH' });
+            if (res.ok) {
+                // Refresh data
+                await fetchAttendance();
+                // Close modal or update local state (for now, simply closing to force refresh view)
+                setSelectedDate(null);
+                alert(`Attendance ${action}d successfully`);
+            } else {
+                alert('Failed to update status');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error updating status');
+        }
+    };
+
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
             <Sidebar />
@@ -234,7 +254,7 @@ export default function AdminAttendance() {
                                                     </span>
                                                 </div>
 
-                                                <div className="flex rounded-xl bg-gray-50 border border-gray-100 overflow-hidden">
+                                                <div className="flex rounded-xl bg-gray-50 border border-gray-100 overflow-hidden mb-4">
                                                     <div className="flex-1 p-3 text-center border-r border-gray-100 hover:bg-white transition-colors">
                                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Check In</div>
                                                         <div className="text-navy-900 font-mono font-bold">
@@ -248,6 +268,29 @@ export default function AdminAttendance() {
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {record.status === 'Pending' && (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleUpdateStatus(record._id, 'approve');
+                                                            }}
+                                                            className="flex-1 py-2 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-green-200"
+                                                        >
+                                                            <CheckCircle size={16} /> Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleUpdateStatus(record._id, 'reject');
+                                                            }}
+                                                            className="flex-1 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-red-200"
+                                                        >
+                                                            <XCircle size={16} /> Reject
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>

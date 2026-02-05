@@ -59,13 +59,13 @@ const EmployeeProfileSchema = new mongoose.Schema({
 });
 
 // Update timestamp on save
-EmployeeProfileSchema.pre('save', function (next: any) {
+// Update timestamp on save
+EmployeeProfileSchema.pre('save', async function () {
     this.updatedAt = new Date();
-    next();
 });
 
 // Prevent compilation errors during hot reload
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV !== 'production') {
     if (mongoose.models.EmployeeProfile) {
         delete mongoose.models.EmployeeProfile;
     }

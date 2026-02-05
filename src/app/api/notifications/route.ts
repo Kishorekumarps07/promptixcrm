@@ -18,22 +18,40 @@ async function getUserId() {
     }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
     await dbConnect();
-    const userId = await getUserId();
-    if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
     try {
-        const notifications = await Notification.find({ recipientId: userId })
+        const userId = await getUserId();
+        if (!userId) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Fetch unread notifications, sorted by newest first
+        const notifications = await Notification.find({ recipientId: userId, isRead: false })
             .sort({ createdAt: -1 })
             .limit(20);
 
-        const unreadCount = await Notification.countDocuments({
-            recipientId: userId,
-            isRead: false
-        });
+        return NextResponse.json({ notifications });
+    } catch (err: any) {
+        return NextResponse.json({ message: err.message }, { status: 500 });
+    }
+}
 
-        return NextResponse.json({ notifications, unreadCount });
+export async function PATCH() {
+    // Bulk mark all as read
+    await dbConnect();
+    try {
+        const userId = await getUserId();
+        if (!userId) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+
+        await Notification.updateMany(
+            { recipientId: userId, isRead: false },
+            { $set: { isRead: true } }
+        );
+
+        return NextResponse.json({ message: 'All notifications marked as read' });
     } catch (err: any) {
         return NextResponse.json({ message: err.message }, { status: 500 });
     }

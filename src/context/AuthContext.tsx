@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 interface User {
     name: string;
     email: string;
-    role: 'ADMIN' | 'EMPLOYEE' | 'STUDENT';
+    role: 'ADMIN' | 'EMPLOYEE';
     photo?: string;
     forcePasswordChange?: boolean;
 }
@@ -51,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             router.push('/auth/force-change-password');
         } else if (userData.role === 'ADMIN') router.push('/admin/dashboard');
         else if (userData.role === 'EMPLOYEE') router.push('/employee/dashboard');
-        else if (userData.role === 'STUDENT') router.push('/student/dashboard');
     };
 
     const logout = async () => {

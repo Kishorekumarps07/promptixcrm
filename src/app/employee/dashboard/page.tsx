@@ -9,6 +9,8 @@ import LeaveBalanceCard from '@/components/employee/dashboard/LeaveBalanceCard';
 import SalaryPreviewCard from '@/components/employee/dashboard/SalaryPreviewCard';
 import AnnouncementsCard from '@/components/employee/dashboard/AnnouncementsCard';
 import UpcomingEventsCard from '@/components/employee/dashboard/UpcomingEventsCard';
+import TaskPerformanceChart from '@/components/employee/dashboard/TaskPerformanceChart';
+import GoalProgressWidget from '@/components/employee/dashboard/GoalProgressWidget';
 
 export default function EmployeeDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -16,6 +18,8 @@ export default function EmployeeDashboard() {
     const [events, setEvents] = useState<any[]>([]);
     const [salaries, setSalaries] = useState<any[]>([]);
     const [userName, setUserName] = useState<string>('Employee');
+    const [tasks, setTasks] = useState<any[]>([]);
+    const [goals, setGoals] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -25,13 +29,17 @@ export default function EmployeeDashboard() {
             fetch('/api/announcements').then(res => res.json()),
             fetch('/api/employee/events').then(res => res.json()),
             fetch('/api/employee/salary').then(res => res.json()),
-            fetch('/api/employee/profile/status').then(res => res.json())
+            fetch('/api/employee/profile/status').then(res => res.json()),
+            fetch('/api/employee/tasks').then(res => res.json()),
+            fetch('/api/employee/goals').then(res => res.json())
         ])
-            .then(([statsData, announcementsData, eventsData, salaryData, profileData]) => {
+            .then(([statsData, announcementsData, eventsData, salaryData, profileData, tasksData, goalsData]) => {
                 setStats(statsData);
                 setAnnouncements(announcementsData.announcements || []);
                 setEvents(eventsData.events || []);
                 setSalaries(salaryData.data || []);
+                setTasks(tasksData.tasks || []);
+                setGoals(goalsData.goals || []);
 
                 // Prioritize name from DB profile/user, fall back to "Employee"
                 if (profileData && profileData.user && profileData.user.name) {
@@ -102,6 +110,12 @@ export default function EmployeeDashboard() {
 
                     {/* Quick Actions - Full Width */}
                     <QuickActionsCard />
+
+                    {/* OKR Section - Two Column Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <TaskPerformanceChart tasks={tasks} />
+                        <GoalProgressWidget goals={goals} />
+                    </div>
 
                     {/* Two Column Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

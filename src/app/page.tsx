@@ -42,16 +42,11 @@ export default function LandingPage() {
           </div>
 
           {/* Feature Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-12 mb-20 px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left mt-12 mb-20 px-4 max-w-4xl mx-auto">
             <FeatureCard
               icon="📊"
               title="Smart Analytics"
-              desc="Real-time dashboards for attendance, performance, and student engagement insights."
-            />
-            <FeatureCard
-              icon="🎓"
-              title="Student Management"
-              desc="Track internship progress, assign mentors, and manage student profiles effectively."
+              desc="Real-time dashboards for attendance, performance, and operational insights."
             />
             <FeatureCard
               icon="📅"

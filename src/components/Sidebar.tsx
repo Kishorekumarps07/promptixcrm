@@ -50,6 +50,8 @@ export default function Sidebar() {
     const menuItems = {
         ADMIN: [
             { href: '/admin/dashboard', label: 'Dashboard' },
+            { href: '/admin/goals', label: 'Goal Management' },
+            { href: '/admin/tasks', label: 'Task Management' },
             { href: '/admin/announcements', label: 'Announcements' },
             { href: '/admin/users', label: 'User Management' },
             { href: '/admin/employee-profiles', label: 'Employee Database' },
@@ -63,6 +65,8 @@ export default function Sidebar() {
         ],
         EMPLOYEE: [
             { href: '/employee/dashboard', label: 'Dashboard' },
+            { href: '/employee/tasks', label: 'My Priorities' },
+            { href: '/employee/goals', label: 'My Goals' },
             { href: '/employee/profile', label: 'My Profile' },
             { href: '/employee/attendance', label: 'Attendance' },
             { href: '/employee/leaves', label: 'Leaves' },

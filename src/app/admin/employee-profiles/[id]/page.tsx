@@ -3,14 +3,17 @@
 import React, { useState, useEffect, use } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
-import { ArrowLeft, Mail, Phone, Calendar, Briefcase, MapPin, GraduationCap, Clock, FileText, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Calendar, Briefcase, MapPin, GraduationCap, Clock, FileText, User as UserIcon, Edit } from 'lucide-react';
 import AdvancedTable from '@/components/ui/AdvancedTable';
+import EmployeeProfileForm from '@/components/employee/EmployeeProfileForm';
+import ModernGlassCard from '@/components/ui/ModernGlassCard';
 
 export default function AdminEmployeeProfileDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
+    const [isEditing, setIsEditing] = useState(false);
 
     // Tab Data States
     const [attendance, setAttendance] = useState<any[]>([]);
@@ -109,8 +112,8 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
         {
             header: 'Status', accessor: (row: any) => (
                 <span className={`px-2 py-1 rounded text-xs font-medium ${row.status === 'Present' ? 'bg-green-100 text-green-700' :
-                        row.status === 'Absent' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
+                    row.status === 'Absent' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
                     }`}>
                     {row.status}
                 </span>
@@ -127,8 +130,8 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
         {
             header: 'Status', accessor: (row: any) => (
                 <span className={`px-2 py-1 rounded text-xs font-medium ${row.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                        row.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
+                    row.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
                     }`}>
                     {row.status}
                 </span>
@@ -203,8 +206,8 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 pb-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
-                                    ? 'text-orange-600 border-b-2 border-orange-600'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'text-orange-600 border-b-2 border-orange-600'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             <tab.icon size={16} />
@@ -217,69 +220,112 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
                 <div className="min-h-[400px]">
                     {activeTab === 'overview' && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                                <h3 className="text-gray-500 text-sm font-medium mb-1">Total Attendance</h3>
-                                <div className="text-3xl font-bold text-navy-900">
-                                    {/* Placeholder: Real stat would require aggregate API */}
-                                    -
+                            <ModernGlassCard className="!p-6 flex flex-col items-center justify-center text-center">
+                                <h3 className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Attendance Score</h3>
+                                <div className="text-4xl font-black text-navy-900 mb-1">
+                                    {attendance.filter((a: any) => a.status === 'Present').length}
                                 </div>
-                                <p className="text-xs text-green-600 mt-2">Days Present</p>
-                            </div>
-                            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                                <h3 className="text-gray-500 text-sm font-medium mb-1">Leave Balance</h3>
-                                <div className="text-3xl font-bold text-navy-900">
-                                    {/* Placeholder */}
-                                    12
+                                <p className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-lg">Days Present</p>
+                                <p className="text-[10px] text-gray-400 mt-2">Fetches automatically on tab load</p>
+                            </ModernGlassCard>
+
+                            <ModernGlassCard className="!p-6 flex flex-col items-center justify-center text-center">
+                                <h3 className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Leaves Taken</h3>
+                                <div className="text-4xl font-black text-navy-900 mb-1">
+                                    {leaves.filter((l: any) => l.status === 'Approved').length}
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">Annual Leaves Remaining</p>
-                            </div>
-                            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                                <h3 className="text-gray-500 text-sm font-medium mb-1">Performance</h3>
-                                <div className="text-3xl font-bold text-navy-900">Good</div>
-                                <p className="text-xs text-orange-500 mt-2">Based on review</p>
-                            </div>
+                                <p className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">Approved Leaves</p>
+                                <p className="text-[10px] text-gray-400 mt-2">Fetches automatically on tab load</p>
+                            </ModernGlassCard>
+
+                            <ModernGlassCard className="!p-6 flex flex-col items-center justify-center text-center">
+                                <h3 className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-2">Profile Status</h3>
+                                <div className={`text-4xl font-black mb-1 ${profile?.profileCompleted ? 'text-green-600' : 'text-yellow-500'}`}>
+                                    {profile?.profileCompleted ? '100%' : 'Incomplete'}
+                                </div>
+                                <p className={`text-xs font-semibold px-2 py-1 rounded-lg ${profile?.profileCompleted ? 'text-green-600 bg-green-50' : 'text-yellow-600 bg-yellow-50'}`}>
+                                    {profile?.profileCompleted ? 'Verified' : 'Pending Action'}
+                                </p>
+                            </ModernGlassCard>
                         </div>
                     )}
 
                     {activeTab === 'personal' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Personal Section */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                    <Briefcase size={18} className="text-orange-500" />
-                                    <h2 className="font-bold text-gray-800">Employment Details</h2>
-                                </div>
-                                <div className="p-6 grid grid-cols-1 gap-6">
-                                    <DetailItem label="Employment Type" value={profile?.employmentType} />
-                                    <DetailItem label="Employee Code" value={profile?.employeeCode || "N/A"} />
-                                    <DetailItem label="Role" value={user.role} />
-                                    <DetailItem label="Joined On" value={profile?.dateOfJoining ? new Date(profile.dateOfJoining).toLocaleDateString() : undefined} />
-                                </div>
+                        <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-1">
+                            <div className="flex justify-end mb-4 px-4 pt-4">
+                                {!isEditing && (
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="bg-navy-900 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-navy-900/10 hover:bg-navy-800 transition-all flex items-center gap-2"
+                                    >
+                                        <Edit size={16} /> Edit Profile
+                                    </button>
+                                )}
                             </div>
-                            <div className="space-y-8">
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                        <MapPin size={18} className="text-orange-500" />
-                                        <h2 className="font-bold text-gray-800">Address</h2>
-                                    </div>
-                                    <div className="p-6 space-y-4">
-                                        <DetailItem label="Current Address" value={profile?.currentAddress} />
-                                        <DetailItem label="Permanent Address" value={profile?.permanentAddress} />
-                                    </div>
-                                </div>
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                                        <GraduationCap size={18} className="text-orange-500" />
-                                        <h2 className="font-bold text-gray-800">Education</h2>
-                                    </div>
-                                    <div className="p-6 grid grid-cols-2 gap-4">
-                                        <DetailItem label="Degree" value={edu.level} />
-                                        <DetailItem label="Institution" value={edu.institution} />
-                                        <DetailItem label="Year" value={edu.year} />
-                                        <DetailItem label="Grade" value={edu.score} />
-                                    </div>
-                                </div>
-                            </div>
+
+                            import {toast} from 'sonner';
+
+                            {/* Map data to flat structure required by form */}
+                            <EmployeeProfileForm
+                                initialData={{
+                                    name: user.name,
+                                    email: user.email,
+                                    designation: profile?.designation,
+                                    department: profile?.department,
+                                    dateOfJoining: profile?.dateOfJoining ? new Date(profile.dateOfJoining).toISOString().split('T')[0] : '',
+                                    employmentType: profile?.employmentType,
+                                    dateOfBirth: profile?.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : '',
+                                    gender: profile?.gender,
+                                    maritalStatus: profile?.maritalStatus,
+                                    currentAddress: profile?.currentAddress,
+                                    permanentAddress: profile?.permanentAddress,
+                                    emergencyContactName: profile?.emergencyContact?.name,
+                                    emergencyContactPhone: profile?.emergencyContact?.phone,
+                                    phoneNumber: profile?.phoneNumber,
+                                    eduLevel: edu.level,
+                                    eduInstitution: edu.institution,
+                                    eduYear: edu.year,
+                                    eduScore: edu.score
+                                }}
+                                isEditing={isEditing}
+                                isAdmin={true}
+                                onCancel={() => setIsEditing(false)}
+                                onSave={async (formData) => {
+                                    let educationPayload: any[] = [];
+                                    if (formData.eduLevel || formData.eduInstitution) {
+                                        educationPayload = [{
+                                            level: formData.eduLevel,
+                                            institution: formData.eduInstitution,
+                                            year: parseInt(String(formData.eduYear)) || new Date().getFullYear(),
+                                            score: formData.eduScore
+                                        }];
+                                    }
+
+                                    const res = await fetch(`/api/admin/employee-profiles/${id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            ...formData,
+                                            education: educationPayload
+                                        })
+                                    });
+
+                                    const json = await res.json();
+
+                                    if (res.ok) {
+                                        // Update local state
+                                        setData((prev: any) => ({
+                                            ...prev,
+                                            user: { ...prev.user, name: formData.name, email: formData.email },
+                                            profile: json.profile
+                                        }));
+                                        setIsEditing(false);
+                                        toast.success('Profile updated successfully!');
+                                    } else {
+                                        toast.error(json.message || 'Failed to update profile');
+                                    }
+                                }}
+                            />
                         </div>
                     )}
 
