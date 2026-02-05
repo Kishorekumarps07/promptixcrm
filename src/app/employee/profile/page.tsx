@@ -70,9 +70,12 @@ export default function EmployeeProfilePage() {
 
     const fetchProfile = async () => {
         try {
+            console.log('[fetchProfile] Fetching latest profile data...');
             const res = await fetch(`/api/employee/profile/status?t=${Date.now()}`, { cache: 'no-store' });
             if (res.ok) {
                 const data = await res.json();
+                console.log('[fetchProfile] Received data:', data);
+                console.log('[fetchProfile] Photo URL in data:', data.photo);
                 setProfile(mapDataToState(data));
             }
         } catch (error) {
