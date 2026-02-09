@@ -42,7 +42,7 @@ export async function GET(req: Request) {
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
-        const workingDays = getWorkingDaysInMonth(currentMonth, currentYear);
+        const workingDays = await getWorkingDaysInMonth(currentMonth, currentYear);
 
         // 4. Merge
         const merged = employees.map(emp => {

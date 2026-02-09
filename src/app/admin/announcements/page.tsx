@@ -67,7 +67,6 @@ export default function AdminAnnouncements() {
     const TargetBadge = ({ target }: { target: string }) => {
         let color = 'bg-gray-100 text-gray-800 border-gray-200';
         if (target === 'Employees') color = 'bg-blue-50 text-blue-700 border-blue-100';
-        if (target === 'Students') color = 'bg-green-50 text-green-700 border-green-100';
         return (
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase border flex items-center gap-1.5 ${color}`}>
                 <Users size={10} /> {target}
@@ -199,7 +198,6 @@ export default function AdminAnnouncements() {
                                         >
                                             <option value="All">All Users</option>
                                             <option value="Employees">Employees Only</option>
-                                            <option value="Students">Students Only</option>
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                             <Users size={16} />

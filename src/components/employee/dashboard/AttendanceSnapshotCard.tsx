@@ -2,25 +2,82 @@
 
 import React, { useEffect, useState } from 'react';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function AttendanceSnapshotCard() {
     const [summary, setSummary] = useState<any>(null);
+    const [holidays, setHolidays] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Month navigation state
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
     useEffect(() => {
-        fetch('/api/employee/attendance/summary')
-            .then(res => res.json())
-            .then(data => {
-                setSummary(data);
+        fetchData();
+    }, [selectedMonth, selectedYear]);
+
+    const fetchData = () => {
+        setLoading(true);
+        Promise.all([
+            fetch(`/api/employee/attendance/summary?month=${selectedMonth}&year=${selectedYear}`).then(res => res.json()),
+            fetch(`/api/holidays?year=${selectedYear}&month=${selectedMonth}`).then(res => res.json())
+        ])
+            .then(([summaryData, holidaysData]) => {
+                setSummary(summaryData);
+                setHolidays(holidaysData.holidays || []);
                 setLoading(false);
             })
             .catch(err => {
                 console.error('Error fetching attendance summary:', err);
                 setLoading(false);
             });
-    }, []);
+    };
+
+    const goToPreviousMonth = () => {
+        if (selectedMonth === 0) {
+            setSelectedMonth(11);
+            setSelectedYear(selectedYear - 1);
+        } else {
+            setSelectedMonth(selectedMonth - 1);
+        }
+    };
+
+    const goToNextMonth = () => {
+        if (selectedMonth === 11) {
+            setSelectedMonth(0);
+            setSelectedYear(selectedYear + 1);
+        } else {
+            setSelectedMonth(selectedMonth + 1);
+        }
+    };
+
+    const goToCurrentMonth = () => {
+        setSelectedMonth(new Date().getMonth());
+        setSelectedYear(new Date().getFullYear());
+    };
+
+    // Check if a date is a holiday
+    const isHoliday = (dateString: string) => {
+        return holidays.some(h => {
+            const holidayDate = new Date(h.date);
+            const checkDate = new Date(dateString);
+            return holidayDate.toDateString() === checkDate.toDateString();
+        });
+    };
 
     const getDayColor = (day: any) => {
+        // Check if it's a holiday first
+        if (isHoliday(day.date)) {
+            return 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-bold shadow-md ring-2 ring-indigo-200';
+        }
+
+        // Check if it's Sunday (day of week === 0)
+        const dayOfWeek = new Date(day.date).getDay();
+        if (dayOfWeek === 0) {
+            return 'bg-gradient-to-br from-orange-400 to-orange-500 text-white font-bold shadow-md ring-2 ring-orange-200';
+        }
+
         if (day.isToday) return 'bg-orange-500 text-white font-bold ring-2 ring-orange-200';
         if (day.isWeekend) return 'bg-gray-100/50 text-gray-400';
         if (!day.status) return 'bg-white/50 border border-white/60 text-gray-600';
@@ -67,9 +124,42 @@ export default function AttendanceSnapshotCard() {
 
     return (
         <ModernGlassCard title="Attendance Snapshot" headerAction={ViewFullButton} delay={0.2} hoverEffect>
-            {/* Month Header */}
+            {/* Month Header with Navigation */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-4 mb-4 shadow-lg shadow-blue-500/20">
-                <h4 className="text-sm font-medium mb-1 opacity-90">{summary.monthName} {summary.year}</h4>
+                {/* Month Navigation */}
+                <div className="flex items-center justify-between mb-3">
+                    <button
+                        onClick={goToPreviousMonth}
+                        className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                        title="Previous Month"
+                    >
+                        <ChevronLeft size={18} />
+                    </button>
+
+                    <div className="text-center">
+                        <h4 className="text-sm font-medium opacity-90">{summary.monthName} {summary.year}</h4>
+                    </div>
+
+                    <button
+                        onClick={goToNextMonth}
+                        className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                        title="Next Month"
+                    >
+                        <ChevronRight size={18} />
+                    </button>
+                </div>
+
+                {/* Today Button */}
+                {(selectedMonth !== new Date().getMonth() || selectedYear !== new Date().getFullYear()) && (
+                    <button
+                        onClick={goToCurrentMonth}
+                        className="w-full mb-2 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-medium transition-colors"
+                    >
+                        Go to Today
+                    </button>
+                )}
+
+                {/* Stats */}
                 <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-bold">{summary.totalMarked}</span>
                     <span className="text-sm opacity-90">/ {summary.workingDays} working days</span>
@@ -130,15 +220,59 @@ export default function AttendanceSnapshotCard() {
                     }
 
                     {/* Actual days */}
-                    {summary.calendar.map((day: any, index: number) => (
-                        <div
-                            key={index}
-                            className={`aspect-square flex items-center justify-center rounded-lg text-xs font-medium cursor-default transition-transform hover:scale-110 ${getDayColor(day)}`}
-                            title={day.status ? `${day.type} - ${day.status}` : day.isWeekend ? 'Weekend' : 'No record'}
-                        >
-                            {day.day}
+                    {summary.calendar.map((day: any, index: number) => {
+                        const holiday = holidays.find(h => {
+                            const holidayDate = new Date(h.date);
+                            const dayDate = new Date(day.date);
+                            return holidayDate.toDateString() === dayDate.toDateString();
+                        });
+
+                        const getTooltip = () => {
+                            if (holiday) return `🎉 ${holiday.name}`;
+                            const dayOfWeek = new Date(day.date).getDay();
+                            if (dayOfWeek === 0) return '🌞 Sunday - Weekly Off';
+                            if (day.status) return `${day.type} - ${day.status}`;
+                            if (day.isWeekend) return 'Weekend';
+                            return 'No record';
+                        };
+
+                        return (
+                            <div
+                                key={index}
+                                className={`aspect-square flex items-center justify-center rounded-lg text-xs font-medium cursor-default transition-transform hover:scale-110 ${getDayColor(day)}`}
+                                title={getTooltip()}
+                            >
+                                {day.day}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Color Legend */}
+                <div className="mt-3 pt-3 border-t border-white/60">
+                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">Legend</div>
+                    <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-gradient-to-br from-indigo-500 to-purple-500 ring-1 ring-indigo-200"></div>
+                            <span className="text-gray-600 font-medium">Holiday</span>
                         </div>
-                    ))}
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-gradient-to-br from-orange-400 to-orange-500 ring-1 ring-orange-200"></div>
+                            <span className="text-gray-600 font-medium">Sunday</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-green-500"></div>
+                            <span className="text-gray-600 font-medium">Present</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-blue-500"></div>
+                            <span className="text-gray-600 font-medium">WFH</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-purple-500"></div>
+                            <span className="text-gray-600 font-medium">Leave</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </ModernGlassCard>

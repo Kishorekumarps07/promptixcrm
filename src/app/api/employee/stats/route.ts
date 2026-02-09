@@ -29,8 +29,35 @@ export async function GET() {
         const pendingLeaves = await LeaveRequest.countDocuments({ userId, status: 'Pending' });
         const approvedLeaves = await LeaveRequest.countDocuments({ userId, status: 'Approved' });
 
-        // 3. Attendance Stats
-        const totalAttendance = await Attendance.countDocuments({ userId, status: 'Approved', type: { $in: ['Present', 'WFH'] } });
+        // 3. Comprehensive Attendance Stats
+        const totalApproved = await Attendance.countDocuments({
+            userId,
+            status: 'Approved'
+        });
+
+        const totalPresent = await Attendance.countDocuments({
+            userId,
+            status: 'Approved',
+            type: 'Present'
+        });
+
+        const totalWFH = await Attendance.countDocuments({
+            userId,
+            status: 'Approved',
+            type: 'WFH'
+        });
+
+        const totalHalfDay = await Attendance.countDocuments({
+            userId,
+            status: 'Approved',
+            type: 'Half Day'
+        });
+
+        const totalLate = await Attendance.countDocuments({
+            userId,
+            status: 'Approved',
+            isLate: true
+        });
 
         // 4. Upcoming Events (Next 7 Days)
         const nextWeek = new Date();
@@ -50,7 +77,11 @@ export async function GET() {
                     approved: approvedLeaves
                 },
                 attendance: {
-                    present: totalAttendance
+                    total: totalApproved,
+                    present: totalPresent,
+                    wfh: totalWFH,
+                    halfDay: totalHalfDay,
+                    late: totalLate
                 }
             },
             upcomingEvents: upcomingEventsCount

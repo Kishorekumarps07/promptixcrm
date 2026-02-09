@@ -10,7 +10,7 @@ import { X, Calendar, FileText, Clock, Plus } from 'lucide-react';
 export default function EmployeeLeaves() {
     const [leaves, setLeaves] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ fromDate: '', toDate: '', reason: '' });
+    const [formData, setFormData] = useState({ fromDate: '', toDate: '', reason: '', leaveType: 'Casual' });
     const [loading, setLoading] = useState(true);
     const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -45,7 +45,7 @@ export default function EmployeeLeaves() {
 
             if (res.ok) {
                 setIsModalOpen(false);
-                setFormData({ fromDate: '', toDate: '', reason: '' });
+                setFormData({ fromDate: '', toDate: '', reason: '', leaveType: 'Casual' });
                 fetchLeaves();
             } else {
                 alert(data.message || 'Failed to apply leave');
@@ -110,6 +110,9 @@ export default function EmployeeLeaves() {
                                     <div className="flex items-start gap-2 max-w-xs group relative">
                                         <FileText size={14} className="text-gray-400 mt-1 shrink-0" />
                                         <span className="truncate text-gray-700">{item.reason}</span>
+                                        <div className="ml-2 px-1.5 py-0.5 rounded bg-gray-100 text-[10px] text-gray-500 font-bold uppercase tracking-wider border border-gray-200">
+                                            {item.leaveType || 'Casual'}
+                                        </div>
                                         {/* Tooltip for long reasons */}
                                         <div className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 shadow-xl pointer-events-none">
                                             {item.reason}
@@ -159,6 +162,9 @@ export default function EmployeeLeaves() {
                                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm text-gray-700 relative mt-2">
                                     <span className="absolute -top-2.5 left-3 bg-white px-1.5 text-[10px] text-gray-400 font-bold uppercase border border-gray-200 rounded">Reason</span>
                                     "{item.reason}"
+                                    <div className="mt-2 inline-block px-1.5 py-0.5 rounded bg-gray-200 text-[10px] text-gray-600 font-bold uppercase tracking-wider">
+                                        {item.leaveType || 'Casual'}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center justify-end text-xs text-gray-400 gap-1 pt-2 border-t border-gray-50">
@@ -188,6 +194,20 @@ export default function EmployeeLeaves() {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Leave Type</label>
+                                    <select
+                                        value={formData.leaveType}
+                                        onChange={e => setFormData({ ...formData, leaveType: e.target.value })}
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 outline-none transition-all text-sm font-medium shadow-sm"
+                                    >
+                                        <option value="Casual">Casual Leave</option>
+                                        <option value="Sick">Sick Leave</option>
+                                        <option value="Privilege">Privilege Leave</option>
+                                        <option value="Emergency">Emergency Leave</option>
+                                        <option value="Unpaid">Unpaid Leave</option>
+                                    </select>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-gray-500 uppercase">From</label>

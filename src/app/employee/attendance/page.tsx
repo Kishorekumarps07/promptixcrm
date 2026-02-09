@@ -10,6 +10,7 @@ import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle } from 'luci
 export default function EmployeeAttendance() {
     const [todayRecord, setTodayRecord] = useState<any>(null);
     const [history, setHistory] = useState<any[]>([]);
+    const [holidays, setHolidays] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [checkInType, setCheckInType] = useState('Present');
@@ -17,6 +18,7 @@ export default function EmployeeAttendance() {
     useEffect(() => {
         fetchStatus();
         fetchHistory();
+        fetchHolidays();
     }, []);
 
     const fetchStatus = async () => {
@@ -33,6 +35,32 @@ export default function EmployeeAttendance() {
             const data = await res.json();
             if (data.history) setHistory(data.history);
         } catch (e) { console.error(e); }
+    };
+
+    const fetchHolidays = async () => {
+        try {
+            const now = new Date();
+            const year = now.getFullYear();
+
+            // Fetch all holidays for the current year (not just current month)
+            const res = await fetch(`/api/holidays?year=${year}`);
+            const data = await res.json();
+            if (data.holidays) {
+                // Filter to show only upcoming holidays (from today onwards)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const upcomingHolidays = data.holidays.filter((h: any) => {
+                    const holidayDate = new Date(h.date);
+                    holidayDate.setHours(0, 0, 0, 0);
+                    return holidayDate >= today;
+                });
+
+                setHolidays(upcomingHolidays);
+            }
+        } catch (e) {
+            console.error('Error fetching holidays:', e);
+        }
     };
 
     const handleCheckIn = async () => {
@@ -175,6 +203,61 @@ export default function EmployeeAttendance() {
                         )}
                     </ModernGlassCard>
 
+                    {/* Upcoming Holidays */}
+                    <ModernGlassCard title="Upcoming Holidays" className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100" delay={0.15}>
+                        {holidays.length === 0 ? (
+                            <div className="text-center py-6 text-gray-400">
+                                <Calendar size={32} className="mx-auto mb-2 opacity-50" />
+                                <p className="text-sm">No upcoming holidays</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {holidays.slice(0, 5).map((holiday: any, idx: number) => {
+                                    const holidayDate = new Date(holiday.date);
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    holidayDate.setHours(0, 0, 0, 0);
+                                    const isToday = holidayDate.getTime() === today.getTime();
+
+                                    return (
+                                        <div
+                                            key={holiday._id}
+                                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${isToday
+                                                ? 'bg-orange-50 border-orange-200 shadow-sm'
+                                                : 'bg-white/50 border-indigo-100 hover:border-indigo-200'
+                                                }`}
+                                        >
+                                            <div className={`p-2 rounded-lg ${isToday ? 'bg-orange-500 text-white' : 'bg-indigo-500 text-white'}`}>
+                                                <Calendar size={18} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="font-bold text-navy-900 text-sm">
+                                                    {holiday.name}
+                                                    {isToday && <span className="ml-2 text-xs px-2 py-0.5 bg-orange-500 text-white rounded-full">Today</span>}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    {holidayDate.toLocaleDateString('en-US', {
+                                                        weekday: 'short',
+                                                        month: 'short',
+                                                        day: 'numeric'
+                                                    })}
+                                                </div>
+                                            </div>
+                                            <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md font-bold">
+                                                Holiday
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                                {holidays.length > 5 && (
+                                    <p className="text-xs text-center text-gray-400 pt-2">
+                                        +{holidays.length - 5} more upcoming
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </ModernGlassCard>
+
                     {/* Workplace Rules */}
                     <ModernGlassCard title="Work Rules" className="bg-gradient-to-br from-navy-900 to-navy-800 text-white border-navy-700" delay={0.2}>
                         <div className="space-y-4">
@@ -221,8 +304,8 @@ export default function EmployeeAttendance() {
                                 header: "Type",
                                 accessor: (item) => (
                                     <span className={`text-xs font-bold px-2 py-1 rounded border ${item.type === 'Present' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                                            item.type === 'WFH' ? 'bg-purple-50 text-purple-700 border-purple-100' :
-                                                'bg-gray-50 text-gray-700 border-gray-100'
+                                        item.type === 'WFH' ? 'bg-purple-50 text-purple-700 border-purple-100' :
+                                            'bg-gray-50 text-gray-700 border-gray-100'
                                         }`}>
                                         {item.type}
                                     </span>

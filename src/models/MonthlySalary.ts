@@ -23,6 +23,10 @@ const MonthlySalarySchema = new mongoose.Schema({
         required: true,
         default: 0
     },
+    halfDays: {
+        type: Number,
+        default: 0
+    },
     unpaidLeaveDays: {
         type: Number,
         required: true,

@@ -9,7 +9,7 @@ import RecentActivityFeed from '@/components/dashboard/RecentActivityFeed';
 import WeeklyAttendanceChart from '@/components/dashboard/WeeklyAttendanceChart';
 import SalaryTrendChart from '@/components/dashboard/SalaryTrendChart';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
-import { Users, GraduationCap, Calendar, Clock, DollarSign, Lock } from 'lucide-react';
+import { Users, Target, Calendar, Clock, DollarSign, Lock } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -73,12 +73,12 @@ export default function AdminDashboard() {
                                 delay={0.1}
                             />
                             <EnhancedKPICard
-                                title="Students"
-                                value={stats?.students || 0}
-                                icon={<GraduationCap size={24} />}
+                                title="Active Goals"
+                                value={stats?.goals?.active || 0}
+                                icon={<Target size={24} />}
                                 color="text-green-600 bg-green-500"
-                                trend={stats?.trends?.students}
-                                link="/admin/users"
+                                trend={stats?.trends?.goals}
+                                link="/admin/goals"
                                 loading={loading}
                                 delay={0.15}
                             />

@@ -6,6 +6,7 @@ import LeaveRequest from '@/models/LeaveRequest';
 import Attendance from '@/models/Attendance';
 import MonthlySalary from '@/models/MonthlySalary';
 import PasswordChangeRequest from '@/models/PasswordChangeRequest';
+import Goal from '@/models/Goal';
 
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -53,6 +54,9 @@ export async function GET() {
             // Password requests
             pendingPasswordRequests,
 
+            // Goals
+            activeGoals,
+
             // Trend data (last month)
             employeesLastMonth,
 
@@ -78,6 +82,9 @@ export async function GET() {
 
             // Password requests
             PasswordChangeRequest.countDocuments({ status: 'Pending' }),
+
+            // Goals
+            Goal.countDocuments({ status: { $ne: 'Completed' } }),
 
             // Trend data (last month comparison)
             User.countDocuments({
@@ -158,6 +165,9 @@ export async function GET() {
             employees,
             events,
             pendingLeaves,
+            goals: {
+                active: activeGoals
+            },
             leaves: {
                 pending: pendingLeaves,
                 approved: approvedLeaves,

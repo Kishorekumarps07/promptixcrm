@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     try {
         const body = await req.json();
         console.log('[DEBUG] Leave POST body:', body);
-        const { fromDate, toDate, reason } = body;
+        const { fromDate, toDate, reason, leaveType } = body;
 
         const start = new Date(fromDate);
         const end = new Date(toDate);
@@ -91,11 +91,15 @@ export async function POST(req: Request) {
             });
         }
 
+        const isPaid = leaveType !== 'Unpaid';
+
         const leave = await LeaveRequest.create({
             userId,
             fromDate: start,
             toDate: end,
             reason,
+            leaveType: leaveType || 'Casual',
+            isPaid,
             status: 'Pending',
         });
         console.log('[DEBUG] Leave created:', leave._id);

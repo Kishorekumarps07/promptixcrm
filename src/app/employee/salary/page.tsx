@@ -135,19 +135,55 @@ export default function MySalary() {
                                     </div>
                                 </div>
 
-                                {/* Stats Footer */}
-                                <div className="bg-gray-50/80 px-8 py-4 border-t border-gray-100 grid grid-cols-3 gap-4 divide-x divide-gray-200">
-                                    <div className="text-center px-2">
-                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Days</div>
-                                        <div className="font-bold text-navy-900">{rec.workingDays}</div>
+                                {/* Detailed Breakdown */}
+                                <div className="bg-white border-t border-gray-100 p-6">
+                                    <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Attendance Breakdown</h5>
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                                        {/* Working Days */}
+                                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                                            <div className="text-2xl font-black text-blue-700">{rec.workingDays}</div>
+                                            <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mt-1">Working Days</div>
+                                        </div>
+
+                                        {/* Full Days */}
+                                        <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+                                            <div className="text-2xl font-black text-green-700">
+                                                {rec.halfDays ? rec.presentDays - rec.halfDays : rec.presentDays}
+                                            </div>
+                                            <div className="text-[10px] font-bold text-green-600 uppercase tracking-wider mt-1">Full Days</div>
+                                        </div>
+
+                                        {/* Half Days */}
+                                        <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
+                                            <div className="text-2xl font-black text-orange-700">{rec.halfDays || 0}</div>
+                                            <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mt-1">Half Days</div>
+                                        </div>
+
+                                        {/* Paid Leave */}
+                                        <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
+                                            <div className="text-2xl font-black text-purple-700">{rec.paidLeaveDays || 0}</div>
+                                            <div className="text-[10px] font-bold text-purple-600 uppercase tracking-wider mt-1">Paid Leave</div>
+                                        </div>
+
+                                        {/* Unpaid Days */}
+                                        <div className="bg-red-50 border border-red-100 rounded-lg p-3 text-center">
+                                            <div className="text-2xl font-black text-red-700">{rec.unpaidLeaveDays || 0}</div>
+                                            <div className="text-[10px] font-bold text-red-600 uppercase tracking-wider mt-1">Unpaid Days</div>
+                                        </div>
                                     </div>
-                                    <div className="text-center px-2">
-                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Attended</div>
-                                        <div className="font-bold text-navy-900 text-green-600">{rec.presentDays}</div>
-                                    </div>
-                                    <div className="text-center px-2">
-                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Unpaid Leave</div>
-                                        <div className="font-bold text-red-500">{rec.unpaidLeaveDays}</div>
+
+                                    {/* Payable Days Formula */}
+                                    <div className="bg-gradient-to-r from-indigo-50/50 to-blue-50/50 border border-indigo-100 rounded-lg p-4">
+                                        <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">How Your Salary Was Calculated</div>
+                                        <div className="text-sm font-mono text-gray-700">
+                                            {rec.halfDays ? rec.presentDays - rec.halfDays : rec.presentDays} Full + ({rec.halfDays || 0} × 0.5) + {rec.paidLeaveDays || 0} Paid Leave =
+                                            <span className="font-black text-indigo-700 ml-1">
+                                                {((rec.halfDays ? rec.presentDays - rec.halfDays : rec.presentDays) + (rec.halfDays || 0) * 0.5 + (rec.paidLeaveDays || 0)).toFixed(1)} payable days
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-2">
+                                            {((rec.halfDays ? rec.presentDays - rec.halfDays : rec.presentDays) + (rec.halfDays || 0) * 0.5 + (rec.paidLeaveDays || 0)).toFixed(1)} days × ${rec.perDayRate}/day = ${rec.calculatedSalary.toLocaleString()}
+                                        </div>
                                     </div>
                                 </div>
                             </ModernGlassCard>

@@ -18,7 +18,7 @@ const AttendanceSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['Present', 'WFH', 'Leave'],
+        enum: ['Present', 'WFH', 'Half Day', 'Leave'],
         default: 'Present',
     },
     status: {
@@ -33,6 +33,19 @@ const AttendanceSchema = new mongoose.Schema({
     approvedAt: {
         type: Date,
     },
+    // Salary Integration Fields
+    isHalfDay: {
+        type: Boolean,
+        default: false
+    },
+    isLate: {
+        type: Boolean,
+        default: false
+    },
+    lateMinutes: {
+        type: Number,
+        default: 0
+    }
 });
 
 // Ensure one record per user per day

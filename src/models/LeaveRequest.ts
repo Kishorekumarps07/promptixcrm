@@ -18,6 +18,16 @@ const LeaveRequestSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    leaveType: {
+        type: String,
+        enum: ['Sick', 'Casual', 'Privilege', 'Unpaid', 'Emergency'],
+        required: true,
+        default: 'Casual'
+    },
+    isPaid: {
+        type: Boolean,
+        default: true
+    },
     status: {
         type: String,
         enum: ['Pending', 'Approved', 'Rejected'],

@@ -6,7 +6,7 @@ import { jwtVerify } from 'jose';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
-export async function GET() {
+export async function GET(req: Request) {
     await dbConnect();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
@@ -17,10 +17,14 @@ export async function GET() {
         const { payload } = await jwtVerify(token, SECRET);
         const userId = payload.userId;
 
-        // Get current month start and end
+        // Get month/year from query params or use current month
+        const { searchParams } = new URL(req.url);
+        const queryMonth = searchParams.get('month');
+        const queryYear = searchParams.get('year');
+
         const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
+        const year = queryYear ? parseInt(queryYear) : now.getFullYear();
+        const month = queryMonth !== null ? parseInt(queryMonth) : now.getMonth();
 
         const startOfMonth = new Date(year, month, 1);
         startOfMonth.setHours(0, 0, 0, 0);
@@ -91,7 +95,7 @@ export async function GET() {
         return NextResponse.json({
             month: month + 1, // 1-based month
             year,
-            monthName: now.toLocaleDateString('en-US', { month: 'long' }),
+            monthName: new Date(year, month).toLocaleDateString('en-US', { month: 'long' }),
             workingDays,
             present,
             wfh,

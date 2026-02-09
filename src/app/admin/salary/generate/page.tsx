@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
-import { Check, Download, DollarSign, Calendar, CreditCard, Play, FileText, AlertCircle, CheckCircle, Search } from 'lucide-react';
+import { Check, Download, DollarSign, Calendar, CreditCard, Play, FileText, AlertCircle, CheckCircle, Search, X } from 'lucide-react';
 
 export default function SalaryGeneration() {
     const [month, setMonth] = useState(new Date().getMonth() === 0 ? 11 : new Date().getMonth() - 1);
@@ -143,48 +143,78 @@ export default function SalaryGeneration() {
                 <PageHeader
                     title="Salary Generation"
                     subtitle="Process monthly payroll and generate slips"
-                    breadcrumbs={[{ label: 'Admin', href: '/admin/dashboard' }, { label: 'Salaries', href: '#' }, { label: 'Generate' }]}
+                    breadcrumbs={[
+                        { label: 'Admin', href: '/admin/dashboard' },
+                        { label: 'Salaries', href: '/admin/salary/generate' }
+                    ]}
+                    actions={
+                        <div className="flex gap-3">
+                            <a
+                                href="/admin/salary/individual"
+                                className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-indigo-500 text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-all shadow-sm"
+                            >
+                                <Search size={18} />
+                                Individual Salary
+                            </a>
+                        </div>
+                    }
                 />
 
-                <ModernGlassCard className="mt-8 mb-8 p-6 flex flex-col md:flex-row gap-6 items-end bg-gradient-to-r from-white/80 to-blue-50/30">
-                    <div className="flex-1 w-full grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Year</label>
-                            <div className="relative">
-                                <select
-                                    value={year} onChange={e => setYear(Number(e.target.value))}
-                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-navy-900/10 focus:border-navy-900 outline-none transition-all text-sm font-bold text-navy-900 appearance-none"
+                <div className="mt-8 mb-8">
+                    <ModernGlassCard className="p-8 bg-gradient-to-br from-orange-50/50 via-white to-blue-50/30 border border-orange-100">
+                        <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
+                            {/* Left Side - Period Selector */}
+                            <div className="flex-1 w-full">
+                                <h3 className="text-lg font-black text-navy-900 mb-4 flex items-center gap-2">
+                                    <Calendar className="w-5 h-5 text-orange-500" />
+                                    Select Payroll Period
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Year</label>
+                                        <div className="relative">
+                                            <select
+                                                value={year} onChange={e => setYear(Number(e.target.value))}
+                                                className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 appearance-none cursor-pointer hover:border-orange-300"
+                                            >
+                                                {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+                                            </select>
+                                            <Calendar size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Month</label>
+                                        <div className="relative">
+                                            <select
+                                                value={month} onChange={e => setMonth(Number(e.target.value))}
+                                                className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 appearance-none cursor-pointer hover:border-orange-300"
+                                            >
+                                                {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Side - Action Button */}
+                            <div className="w-full md:w-auto flex flex-col items-center gap-3">
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={generating}
+                                    className={`w-full md:w-auto px-10 py-5 rounded-2xl font-black text-white transition-all shadow-2xl flex items-center justify-center gap-3 text-lg transform hover:scale-105 active:scale-95 ${generating
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-orange-500/30'
+                                        }`}
                                 >
-                                    {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-                                </select>
-                                <Calendar size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    {generating ? <div className="animate-spin h-6 w-6 border-3 border-white rounded-full border-t-transparent" /> : <Play size={24} fill="currentColor" />}
+                                    {generating ? 'Processing...' : 'Run Payroll Batch'}
+                                </button>
+                                <p className="text-xs text-gray-500 font-medium text-center">Generate slips for all employees</p>
                             </div>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Month</label>
-                            <div className="relative">
-                                <select
-                                    value={month} onChange={e => setMonth(Number(e.target.value))}
-                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-navy-900/10 focus:border-navy-900 outline-none transition-all text-sm font-bold text-navy-900 appearance-none"
-                                >
-                                    {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                                </select>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs font-bold">▼</div>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={generating}
-                        className={`px-8 py-3 rounded-xl font-bold text-white transition-all shadow-lg flex items-center justify-center gap-2 ${generating
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-orange-500 hover:bg-orange-600 shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-95'
-                            }`}
-                    >
-                        {generating ? <div className="animate-spin h-5 w-5 border-2 border-white rounded-full border-t-transparent" /> : <Play size={20} fill="currentColor" />}
-                        {generating ? 'Processing...' : 'Run Payroll Batch'}
-                    </button>
-                </ModernGlassCard>
+                    </ModernGlassCard>
+                </div>
 
                 <div className="grid grid-cols-1 gap-4">
                     <div className="flex justify-between items-center mb-2 px-1">
@@ -203,7 +233,8 @@ export default function SalaryGeneration() {
                     ) : salaries.length > 0 ? (
                         salaries.map((salary, idx) => (
                             <ModernGlassCard key={salary._id} delay={idx * 0.05} className="!p-0 overflow-hidden hover:border-orange-200 transition-colors">
-                                <div className="p-5 flex flex-col md:flex-row items-center gap-6">
+                                {/* Header Row */}
+                                <div className="p-5 bg-gradient-to-r from-white to-gray-50/50 border-b border-gray-100 flex items-center justify-between">
                                     <div className="flex items-center gap-4 flex-1">
                                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-lg shadow-sm">
                                             {salary.employeeId?.name?.charAt(0) || 'U'}
@@ -214,61 +245,114 @@ export default function SalaryGeneration() {
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-8 px-4 border-l border-r border-gray-100/50">
-                                        <div className="text-center">
-                                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Attendance</div>
-                                            <div className="font-bold text-navy-900">
-                                                {salary.presentDays} <span className="text-gray-400 font-normal">/ {salary.workingDays}</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Daily Rate</div>
-                                            <div className="font-bold text-navy-900">${salary.perDayRate}</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Payout</div>
-                                            <div className="font-black text-xl text-green-600">${salary.calculatedSalary.toLocaleString()}</div>
-                                        </div>
-                                    </div>
-
                                     <div className="flex items-center gap-3">
                                         <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${salary.status === 'Draft' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
-                                                salary.status === 'Approved' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                                                    'bg-green-50 text-green-700 border-green-100'
+                                            salary.status === 'Approved' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                                'bg-green-50 text-green-700 border-green-100'
                                             }`}>
                                             {salary.status}
                                         </span>
+                                    </div>
+                                </div>
 
-                                        <div className="h-8 w-px bg-gray-200 mx-2"></div>
+                                {/* Attendance Breakdown */}
+                                <div className="p-5 bg-white">
+                                    <div className="mb-4">
+                                        <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Attendance Breakdown</h5>
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                            {/* Working Days */}
+                                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                                                <div className="text-2xl font-black text-blue-700">{salary.workingDays}</div>
+                                                <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mt-1">Working Days</div>
+                                            </div>
 
-                                        {salary.status === 'Draft' && (
+                                            {/* Full Days */}
+                                            <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+                                                <div className="text-2xl font-black text-green-700">
+                                                    {salary.halfDays ? salary.presentDays - salary.halfDays : salary.presentDays}
+                                                </div>
+                                                <div className="text-[10px] font-bold text-green-600 uppercase tracking-wider mt-1">Full Days</div>
+                                            </div>
+
+                                            {/* Half Days */}
+                                            <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
+                                                <div className="text-2xl font-black text-orange-700">{salary.halfDays || 0}</div>
+                                                <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mt-1">Half Days</div>
+                                            </div>
+
+                                            {/* Paid Leave */}
+                                            <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
+                                                <div className="text-2xl font-black text-purple-700">{salary.paidLeaveDays || 0}</div>
+                                                <div className="text-[10px] font-bold text-purple-600 uppercase tracking-wider mt-1">Paid Leave</div>
+                                            </div>
+
+                                            {/* Unpaid Absences */}
+                                            <div className="bg-red-50 border border-red-100 rounded-lg p-3 text-center">
+                                                <div className="text-2xl font-black text-red-700">{salary.unpaidLeaveDays || 0}</div>
+                                                <div className="text-[10px] font-bold text-red-600 uppercase tracking-wider mt-1">Unpaid Days</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Payable Days Calculation */}
+                                    <div className="bg-gradient-to-r from-indigo-50/50 to-blue-50/50 border border-indigo-100 rounded-lg p-4 mb-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">Payable Days Formula</div>
+                                                <div className="text-sm font-mono text-gray-700">
+                                                    {salary.halfDays ? salary.presentDays - salary.halfDays : salary.presentDays} Full + ({salary.halfDays || 0} × 0.5) + {salary.paidLeaveDays || 0} Paid Leave =
+                                                    <span className="font-black text-indigo-700 ml-1">
+                                                        {((salary.halfDays ? salary.presentDays - salary.halfDays : salary.presentDays) + (salary.halfDays || 0) * 0.5 + (salary.paidLeaveDays || 0)).toFixed(1)} days
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Salary Calculation */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-6">
+                                            <div>
+                                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Per Day Rate</div>
+                                                <div className="font-bold text-navy-900 text-lg">${salary.perDayRate}</div>
+                                            </div>
+                                            <div className="h-12 w-px bg-gray-200"></div>
+                                            <div>
+                                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Payout</div>
+                                                <div className="font-black text-2xl text-green-600">${salary.calculatedSalary.toLocaleString()}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            {salary.status === 'Draft' && (
+                                                <button
+                                                    onClick={() => handleApprove(salary._id)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors tooltip"
+                                                    title="Approve Salary"
+                                                >
+                                                    <CheckCircle size={20} />
+                                                </button>
+                                            )}
+                                            {salary.status === 'Approved' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSalary(salary);
+                                                        setShowPayModal(true);
+                                                    }}
+                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors tooltip"
+                                                    title="Mark as Paid"
+                                                >
+                                                    <DollarSign size={20} />
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => handleApprove(salary._id)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors tooltip"
-                                                title="Approve Salary"
+                                                onClick={() => handleDownloadPDF(salary)}
+                                                className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors tooltip"
+                                                title="Download Slip"
                                             >
-                                                <CheckCircle size={20} />
+                                                <FileText size={20} />
                                             </button>
-                                        )}
-                                        {salary.status === 'Approved' && (
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedSalary(salary);
-                                                    setShowPayModal(true);
-                                                }}
-                                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors tooltip"
-                                                title="Mark as Paid"
-                                            >
-                                                <DollarSign size={20} />
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => handleDownloadPDF(salary)}
-                                            className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors tooltip"
-                                            title="Download Slip"
-                                        >
-                                            <FileText size={20} />
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
                             </ModernGlassCard>

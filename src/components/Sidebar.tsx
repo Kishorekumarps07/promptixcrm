@@ -60,6 +60,8 @@ export default function Sidebar() {
             { href: '/admin/events', label: 'Events' },
             { href: '/admin/salary/profiles', label: 'Salary Profiles' },
             { href: '/admin/salary/generate', label: 'Generate Salaries' },
+            { href: '/admin/salary/individual', label: 'Individual Salary' },
+            { href: '/admin/calendar', label: 'Calendar Settings' },
             { href: '/admin/security/password-requests', label: 'Password Requests' },
             { href: '/admin/audit-logs', label: 'Audit Logs' }
         ],

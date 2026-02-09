@@ -25,14 +25,12 @@ export async function GET() {
 
     try {
         // Determine visibility based on role
-        // Admins see all. Employees see All + Employees. Students see All + Students.
-        let filter: any = { target: 'All' };
+        // Admins see all. Employees see All + Employees.
+        let filter = {};
         if (userInfo.role === 'ADMIN') {
-            filter = {}; // All
+            filter = {}; // See all
         } else if (userInfo.role === 'EMPLOYEE') {
             filter = { target: { $in: ['All', 'Employees'] } };
-        } else if (userInfo.role === 'STUDENT') {
-            filter = { target: { $in: ['All', 'Students'] } };
         }
 
         const announcements = await Announcement.find(filter).sort({ date: -1 });

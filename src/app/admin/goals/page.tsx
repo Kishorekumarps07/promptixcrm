@@ -170,28 +170,45 @@ export default function AdminGoalsPage() {
                     </div>
 
                     {/* Quick Stats & Controls */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <ModernGlassCard className="p-4 flex items-center gap-4 bg-white/50">
-                            <div className="p-3 rounded-xl bg-blue-100 text-blue-600">
-                                <Target className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <p className="text-gray-500 text-xs font-bold uppercase">Total Goals</p>
-                                <p className="text-xl font-black text-navy-900">{goals.length}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Total Goals Stat */}
+                        <ModernGlassCard className="p-6 bg-gradient-to-br from-blue-50/80 to-white/80 border border-blue-100">
+                            <div className="flex items-center gap-4">
+                                <div className="p-4 rounded-2xl bg-blue-500 text-white shadow-lg shadow-blue-500/20">
+                                    <Target className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Goals</p>
+                                    <p className="text-3xl font-black text-navy-900 mt-1">{goals.length}</p>
+                                </div>
                             </div>
                         </ModernGlassCard>
 
-                        <div className="md:col-span-3 flex gap-4">
-                            <div className="flex-1 relative group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-navy-900 transition-colors" />
-                                <input
-                                    type="text"
-                                    placeholder="Search goals or owners..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl text-navy-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy-900/10 transition-all shadow-sm"
-                                />
+                        {/* Completed Goals */}
+                        <ModernGlassCard className="p-6 bg-gradient-to-br from-emerald-50/80 to-white/80 border border-emerald-100">
+                            <div className="flex items-center gap-4">
+                                <div className="p-4 rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+                                    <Target className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Completed</p>
+                                    <p className="text-3xl font-black text-navy-900 mt-1">
+                                        {goals.filter(g => g.status === 'Completed').length}
+                                    </p>
+                                </div>
                             </div>
+                        </ModernGlassCard>
+
+                        {/* Search Box */}
+                        <div className="relative group">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-navy-900 transition-colors z-10" />
+                            <input
+                                type="text"
+                                placeholder="Search goals or owners..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full h-full pl-14 pr-5 py-6 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl text-navy-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-navy-900/10 focus:border-navy-900 transition-all shadow-sm font-medium"
+                            />
                         </div>
                     </div>
 
