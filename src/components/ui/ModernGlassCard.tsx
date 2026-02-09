@@ -34,7 +34,7 @@ export default function ModernGlassCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay, ease: "easeOut" }}
             className={cn(
-                "glass-panel rounded-2xl p-4 md:p-6 relative overflow-hidden",
+                "glass-panel rounded-2xl p-4 md:p-6 relative overflow-hidden flex flex-col",
                 hoverEffect && "glass-card-hover cursor-default",
                 className
             )}
