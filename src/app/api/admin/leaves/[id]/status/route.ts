@@ -6,6 +6,8 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { logAction } from '@/lib/audit';
 import { sendNotification } from '@/lib/notification';
+import { sendEmail } from '@/lib/email';
+import { EmailTemplates } from '@/lib/email-templates';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
@@ -68,7 +70,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
         await leave.save();
 
-        // Notify Employee
+        // Notify Employee (DB Notification)
         console.log(`[AUDIT] Notifying Employee ${leave.userId} of Leave ${status}`);
         await sendNotification({
             recipientId: leave.userId.toString(),
@@ -79,6 +81,28 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             entityType: 'LeaveRequest',
             entityId: id
         });
+
+        // Notify Employee (Email)
+        try {
+            // Need to populate userId to get email
+            const user = await import('@/models/User').then(m => m.default.findById(leave.userId).select('name email'));
+            if (user && user.email) {
+                await sendEmail({
+                    to: user.email,
+                    subject: `Leave Request ${status} 📅`,
+                    html: EmailTemplates.leaveStatus(
+                        user.name,
+                        leave.type,
+                        `${new Date(leave.fromDate).toLocaleDateString()} - ${new Date(leave.toDate).toLocaleDateString()}`,
+                        status,
+                        userInfo.role // or get Admin name if available
+                    )
+                });
+                console.info(`[EMAIL] Leave status email sent to ${user.email}`);
+            }
+        } catch (emailError) {
+            console.error(`[EMAIL ERROR] Failed to send leave status email:`, emailError);
+        }
 
         // Audit Log
         await logAction({

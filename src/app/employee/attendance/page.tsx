@@ -11,6 +11,7 @@ export default function EmployeeAttendance() {
     const [todayRecord, setTodayRecord] = useState<any>(null);
     const [history, setHistory] = useState<any[]>([]);
     const [holidays, setHolidays] = useState<any[]>([]);
+    const [settings, setSettings] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [checkInType, setCheckInType] = useState('Present');
@@ -19,7 +20,19 @@ export default function EmployeeAttendance() {
         fetchStatus();
         fetchHistory();
         fetchHolidays();
+        fetchSettings();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/employee/settings');
+            if (res.ok) {
+                setSettings(await res.json());
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const fetchStatus = async () => {
         try {
@@ -212,7 +225,7 @@ export default function EmployeeAttendance() {
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {holidays.slice(0, 5).map((holiday: any, idx: number) => {
+                                {holidays.slice(0, 3).map((holiday: any, idx: number) => {
                                     const holidayDate = new Date(holiday.date);
                                     const today = new Date();
                                     today.setHours(0, 0, 0, 0);
@@ -243,43 +256,56 @@ export default function EmployeeAttendance() {
                                                     })}
                                                 </div>
                                             </div>
-                                            <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md font-bold">
-                                                Holiday
-                                            </span>
                                         </div>
                                     );
                                 })}
-                                {holidays.length > 5 && (
-                                    <p className="text-xs text-center text-gray-400 pt-2">
-                                        +{holidays.length - 5} more upcoming
-                                    </p>
-                                )}
                             </div>
                         )}
                     </ModernGlassCard>
 
-                    {/* Workplace Rules */}
-                    <ModernGlassCard title="Work Rules" className="bg-gradient-to-br from-navy-900 to-navy-800 text-white border-navy-700" delay={0.2}>
-                        <div className="space-y-4">
-                            <div className="flex gap-3 items-start">
-                                <div className="p-2 bg-white/10 rounded-lg text-orange-400 mt-0.5">
-                                    <Clock size={18} />
+                    {/* Workplace Rules (My Schedule) */}
+                    <ModernGlassCard title="My Schedule" className="bg-gradient-to-br from-indigo-50/50 to-white/50 border-indigo-100" delay={0.2}>
+                        {!loading && settings ? (
+                            <div className="space-y-4">
+                                <div className="flex gap-4 items-center">
+                                    <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+                                        <Clock size={24} />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Shift Start</div>
+                                        <div className="text-3xl font-black text-gray-900">{settings.shiftStartTime || "09:00"}</div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {settings.gracePeriodMinutes || 60} min grace period
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-sm mb-0.5">Start Time</h4>
-                                    <p className="text-xs text-gray-300">Check-in by 10:00 AM to avoid late marking.</p>
+
+                                <div className="pt-2 border-t border-indigo-50">
+                                    <div className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-3">Weekly Offs</div>
+                                    <div className="flex gap-2">
+                                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => {
+                                            const isOff = settings.weeklyOffs.includes(idx);
+                                            return (
+                                                <div
+                                                    key={idx}
+                                                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isOff
+                                                            ? 'bg-red-500 text-white shadow-md shadow-red-500/20 scale-110'
+                                                            : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                                        }`}
+                                                    title={isOff ? "Weekly Off" : "Working Day"}
+                                                >
+                                                    {day}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex gap-3 items-start">
-                                <div className="p-2 bg-white/10 rounded-lg text-blue-400 mt-0.5">
-                                    <AlertCircle size={18} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-sm mb-0.5">Half Day</h4>
-                                    <p className="text-xs text-gray-300">Work duration less than 4 hours is marked as half-day.</p>
-                                </div>
+                        ) : (
+                            <div className="flex items-center justify-center h-32">
+                                <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
                             </div>
-                        </div>
+                        )}
                     </ModernGlassCard>
                 </div>
 

@@ -6,6 +6,8 @@ import Task from '@/models/Task';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { sendNotification } from '@/lib/notifications';
+import { sendEmail } from '@/lib/email';
+import { EmailTemplates } from '@/lib/email-templates';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
@@ -71,7 +73,7 @@ export async function POST(req: Request) {
             createdBy: adminId,
         });
 
-        // Notify the employee
+        // Notify the employee (DB Notification)
         await sendNotification(
             ownerId,
             'New Goal Assigned',
@@ -79,6 +81,24 @@ export async function POST(req: Request) {
             'GOAL_ASSIGNED',
             '/employee/goals'
         );
+
+        // Notify the employee (Email)
+        if (targetUser.email) {
+            try {
+                await sendEmail({
+                    to: targetUser.email,
+                    subject: `🎯 New Goal: ${title}`,
+                    html: EmailTemplates.goalAssignedEmail(
+                        title,
+                        period,
+                        'Performance', // Default type or add field if needed
+                        targetUser.name
+                    )
+                });
+            } catch (error) {
+                console.error(`[EMAIL ERROR] Failed to send goal email to ${targetUser.email}`, error);
+            }
+        }
 
         return NextResponse.json({ message: 'Goal created successfully', goal }, { status: 201 });
     } catch (err: any) {

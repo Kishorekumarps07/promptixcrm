@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Attendance from '@/models/Attendance';
 import LeaveRequest from '@/models/LeaveRequest';
+import User from '@/models/User';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { notifyAdmins } from '@/lib/notification';
+import { sendEmail } from '@/lib/email';
+import { EmailTemplates } from '@/lib/email-templates';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'admin@example.com';
 
 async function getUserId() {
     const cookieStore = await cookies();
@@ -56,8 +60,6 @@ export async function POST(req: Request) {
 
     try {
         const existing = await Attendance.findOne({ userId, date: today });
-        // If existing and already fully checked out or leave, block? 
-        // For now, assume single check-in.
         if (existing) {
             return NextResponse.json({ message: 'Already checked in today', record: existing }, { status: 400 });
         }
@@ -79,10 +81,10 @@ export async function POST(req: Request) {
             date: today,
             checkIn: new Date(),
             type: type || 'Present',
-            status: 'Pending', // Attendance needs approval? defined in req "Approve or reject attendance entries"
+            status: 'Pending',
         });
 
-        // Notify Admins
+        // Notify Admins (DB Notification)
         await notifyAdmins({
             title: 'Attendance Submitted',
             message: `Employee has checked in for ${new Date(today).toLocaleDateString()}.`,
@@ -90,6 +92,22 @@ export async function POST(req: Request) {
             entityType: 'Attendance',
             entityId: record._id.toString()
         });
+
+        // Notify Admin (Email Alert)
+        const user = await User.findById(userId).select('name');
+        if (user) {
+            console.log(`[EMAIL] Sending Admin Alert for ${user.name} Check-In`);
+            await sendEmail({
+                to: ADMIN_EMAIL,
+                subject: `📢 Attendance Alert: ${user.name} Checked In`,
+                html: EmailTemplates.adminAttendanceAlert(
+                    user.name,
+                    'CheckIn',
+                    new Date().toLocaleTimeString(),
+                    type || 'Present'
+                )
+            });
+        }
 
         return NextResponse.json({ message: 'Checked in', record });
     } catch (err: any) {
@@ -121,8 +139,23 @@ export async function PATCH() {
 
         // 3. Update Check-out time
         record.checkOut = new Date();
-        // record.status remains 'Pending' (default) until Admin approves
         await record.save();
+
+        // Notify Admin (Email Alert)
+        const user = await User.findById(userId).select('name');
+        if (user) {
+            console.log(`[EMAIL] Sending Admin Alert for ${user.name} Check-Out`);
+            await sendEmail({
+                to: ADMIN_EMAIL,
+                subject: `📢 Attendance Alert: ${user.name} Checked Out`,
+                html: EmailTemplates.adminAttendanceAlert(
+                    user.name,
+                    'CheckOut',
+                    new Date().toLocaleTimeString(),
+                    record.status
+                )
+            });
+        }
 
         return NextResponse.json({ message: 'Checked out successfully', record });
     } catch (err: any) {

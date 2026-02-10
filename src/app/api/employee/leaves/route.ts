@@ -5,6 +5,9 @@ import Attendance from '@/models/Attendance';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { notifyAdmins } from '@/lib/notification';
+import { sendEmail } from '@/lib/email';
+import { EmailTemplates } from '@/lib/email-templates';
+import User from '@/models/User';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
@@ -104,18 +107,34 @@ export async function POST(req: Request) {
         });
         console.log('[DEBUG] Leave created:', leave._id);
 
-        // Notify Admins
+        // Notify Admins (DB Notification)
         try {
             await notifyAdmins({
                 title: 'New Leave Request',
-                message: `Employee has requested leave from ${new Date(start).toLocaleDateString()} to ${new Date(end).toLocaleDateString()}.`,
+                message: `${userId} has requested leave from ${new Date(start).toLocaleDateString()} to ${new Date(end).toLocaleDateString()}.`,
                 type: 'LEAVE_SUBMITTED',
                 entityType: 'LeaveRequest',
                 entityId: leave._id.toString()
             });
+
+            // Notify Admin (Email)
+            const employee = await User.findById(userId).select('name');
+            if (employee) {
+                await sendEmail({
+                    to: process.env.ADMIN_EMAIL || 'infopromptix@gmail.com',
+                    subject: `🚨 New Leave Request: ${employee.name}`,
+                    html: EmailTemplates.adminLeaveRequestAlert(
+                        employee.name,
+                        leaveType || 'Casual',
+                        start.toLocaleDateString(),
+                        end.toLocaleDateString(),
+                        reason
+                    )
+                });
+                console.log(`[EMAIL] Admin alert sent for Leave Request from ${employee.name}`);
+            }
         } catch (notifyErr) {
             console.error('[ERROR] Failed to notify admins:', notifyErr);
-            // Don't fail the request if notification fails
         }
 
         return NextResponse.json({ message: 'Leave applied', leave });

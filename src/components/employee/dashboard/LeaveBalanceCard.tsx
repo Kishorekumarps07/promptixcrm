@@ -39,7 +39,7 @@ export default function LeaveBalanceCard({ total, pending, approved }: LeaveBala
                 <div className="flex items-center justify-between p-3 bg-blue-50/80 rounded-xl border border-blue-100">
                     <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm"></div>
-                        <span className="text-sm font-semibold text-gray-700">Used Leaves</span>
+                        <span className="text-sm font-semibold text-gray-900">Used Leaves</span>
                     </div>
                     <span className="text-lg font-bold text-blue-600">{usedLeaves}</span>
                 </div>
@@ -48,7 +48,7 @@ export default function LeaveBalanceCard({ total, pending, approved }: LeaveBala
                 <div className="flex items-center justify-between p-3 bg-green-50/80 rounded-xl border border-green-100">
                     <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-sm"></div>
-                        <span className="text-sm font-semibold text-gray-700">Remaining</span>
+                        <span className="text-sm font-semibold text-gray-900">Remaining</span>
                     </div>
                     <span className="text-lg font-bold text-green-600">{remainingLeaves}</span>
                 </div>
@@ -58,7 +58,7 @@ export default function LeaveBalanceCard({ total, pending, approved }: LeaveBala
                     <div className="flex items-center justify-between p-3 bg-yellow-50/80 rounded-xl border border-yellow-100">
                         <div className="flex items-center gap-2">
                             <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full shadow-sm animate-pulse"></div>
-                            <span className="text-sm font-semibold text-gray-700">Pending Approval</span>
+                            <span className="text-sm font-semibold text-gray-900">Pending Approval</span>
                         </div>
                         <span className="text-lg font-bold text-yellow-600">{pending}</span>
                     </div>

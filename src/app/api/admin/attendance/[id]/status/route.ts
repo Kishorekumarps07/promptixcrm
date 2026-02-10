@@ -4,7 +4,10 @@ import Attendance from '@/models/Attendance';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { logAction } from '@/lib/audit';
-import { sendNotification } from '@/lib/notification';
+import { sendNotification } from '@/lib/notifications';
+import { sendEmail } from '@/lib/email';
+import { EmailTemplates } from '@/lib/email-templates';
+import User from '@/models/User';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
@@ -65,15 +68,34 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
         // Notify Employee
         console.log(`[AUDIT] Notifying Employee ${record.userId} of Attendance ${status}`);
-        await sendNotification({
-            recipientId: record.userId.toString(), // Assuming userId is stored in record
-            recipientRole: 'EMPLOYEE',
-            title: `Attendance ${status}`,
-            message: `Your attendance for ${new Date(record.date).toLocaleDateString()} has been ${status}.`,
-            type: status === 'Approved' ? 'ATTENDANCE_APPROVED' : 'ATTENDANCE_REJECTED',
-            entityType: 'Attendance',
-            entityId: id
-        });
+        // Notify Employee (DB Notification)
+        console.log(`[AUDIT] Notifying Employee ${record.userId} of Attendance ${status}`);
+        await sendNotification(
+            record.userId.toString(),
+            `Attendance ${status}`,
+            `Your attendance for ${new Date(record.date).toLocaleDateString()} has been ${status}.`,
+            status === 'Approved' ? 'ATTENDANCE_APPROVED' : 'ATTENDANCE_REJECTED',
+            '/employee/attendance'
+        );
+
+        // Notify Employee (Email)
+        // Fetch user email first since it might not be in record
+        const employeeUser = await User.findById(record.userId).select('email name');
+        if (employeeUser && employeeUser.email) {
+            try {
+                await sendEmail({
+                    to: employeeUser.email,
+                    subject: `⏱️ Attendance Update: ${status}`,
+                    html: EmailTemplates.attendanceActionEmail(
+                        new Date(record.date).toLocaleDateString(),
+                        status,
+                        employeeUser.name
+                    )
+                });
+            } catch (error) {
+                console.error(`[EMAIL ERROR] Failed to send attendance email to ${employeeUser.email}`, error);
+            }
+        }
 
         // Audit Log
         await logAction({

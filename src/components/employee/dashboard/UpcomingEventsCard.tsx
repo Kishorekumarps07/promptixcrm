@@ -52,7 +52,7 @@ export default function UpcomingEventsCard({ events }: UpcomingEventsCardProps) 
                                 </span>
                             </div>
 
-                            <h4 className="font-bold text-navy-900 text-sm mb-2 line-clamp-1 group-hover:text-orange-600 transition-colors">
+                            <h4 className="font-bold text-gray-900 text-sm mb-2 line-clamp-1 group-hover:text-orange-600 transition-colors">
                                 {event.title}
                             </h4>
 

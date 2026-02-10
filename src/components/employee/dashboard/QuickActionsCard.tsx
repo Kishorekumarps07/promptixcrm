@@ -63,7 +63,7 @@ export default function QuickActionsCard() {
                         <div className={`p-3 rounded-full text-white shadow-md mb-3 ${action.color} group-hover:rotate-12 transition-transform duration-300`}>
                             {action.icon}
                         </div>
-                        <span className="font-semibold text-navy-900 text-sm whitespace-nowrap">{action.label}</span>
+                        <span className="font-semibold text-gray-900 text-sm whitespace-nowrap">{action.label}</span>
                         <span className="text-[10px] text-gray-500 mt-1 hidden md:block">{action.desc}</span>
                     </Link>
                 ))}

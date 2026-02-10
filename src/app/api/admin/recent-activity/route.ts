@@ -104,7 +104,7 @@ export async function GET() {
                     break;
                 default:
                     icon = '📋';
-                    message = activity.action.replace(/_/g, ' ').toLowerCase();
+                    message = activity.action ? activity.action.replace(/_/g, ' ').toLowerCase() : 'Unknown Action';
                     color = 'gray';
             }
 

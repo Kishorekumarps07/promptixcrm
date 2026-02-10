@@ -95,7 +95,7 @@ export default function EmployeeDashboard() {
             <main className="md:ml-64 p-4 md:p-8 flex-1">
                 {/* Page Header */}
                 <header className="mb-6">
-                    <h1 className="text-3xl font-bold text-navy-900">My Dashboard</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
                     <p className="text-gray-500 mt-1">Your personalized workspace</p>
                 </header>
 

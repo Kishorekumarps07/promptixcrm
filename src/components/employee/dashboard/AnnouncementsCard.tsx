@@ -27,7 +27,7 @@ export default function AnnouncementsCard({ announcements }: AnnouncementsCardPr
                             className="bg-white/60 rounded-xl p-4 border border-white/60 shadow-sm hover:shadow-md hover:bg-white/80 hover:scale-[1.02] transition-all cursor-pointer group"
                         >
                             <div className="flex justify-between items-start mb-1">
-                                <h4 className="font-bold text-navy-900 text-sm group-hover:text-orange-600 transition-colors">
+                                <h4 className="font-bold text-gray-900 text-sm group-hover:text-orange-600 transition-colors">
                                     {announcement.title}
                                 </h4>
                                 <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">

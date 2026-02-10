@@ -17,7 +17,16 @@ const NotificationSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ['TASK_ASSIGNED', 'GOAL_ASSIGNED', 'GENERAL'],
+            enum: [
+                'TASK_ASSIGNED',
+                'GOAL_ASSIGNED',
+                'GENERAL',
+                'LEAVE_APPROVED',
+                'LEAVE_REJECTED',
+                'ATTENDANCE_APPROVED',
+                'ATTENDANCE_REJECTED',
+                'ANNOUNCEMENT'
+            ],
             default: 'GENERAL',
         },
         link: {

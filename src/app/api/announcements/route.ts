@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Announcement from '@/models/Announcement';
+import User from '@/models/User';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { sendEmail } from '@/lib/email';
+import { EmailTemplates } from '@/lib/email-templates';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
 
@@ -49,12 +52,51 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
+        const { title, content, target } = body;
+
+        // 1. Create Announcement
         const announcement = await Announcement.create({
-            ...body,
+            title,
+            content,
+            target: target || 'All',
             createdBy: userInfo.userId
         });
+
+        // 2. Fetch Recipients (Employees + Managers)
+        const allUsers = await User.find({}).select('role status email');
+        console.log(`[DEBUG] Total users in DB: ${allUsers.length}`);
+        console.log(`[DEBUG] Roles found:`, allUsers.map(u => u.role));
+
+        const recipients = await User.find({
+            role: { $in: ['EMPLOYEE', 'MANAGER', 'Employee', 'Manager', 'employee', 'manager'] },
+            status: 'Active'
+        }).select('email name');
+
+        console.log(`[ANNOUNCEMENT] Found ${recipients.length} recipients to notify.`);
+
+        // 3. Send Emails (Awaited with Promise.all)
+        const emailPromises = recipients.map(async (emp) => {
+            if (emp.email) {
+                try {
+                    console.log(`[ANNOUNCEMENT] Sending email to ${emp.email}`);
+                    await sendEmail({
+                        to: emp.email,
+                        subject: `📢 New Announcement: ${title}`,
+                        html: EmailTemplates.announcementEmail(title, content, 'Admin')
+                    });
+                } catch (err) {
+                    console.error(`[ANNOUNCEMENT ERROR] Failed for ${emp.email}`, err);
+                }
+            }
+        });
+
+        // We use Promise.all to ensure the connection doesn't drop before emails are sent
+        await Promise.all(emailPromises);
+        console.log(`[ANNOUNCEMENT] Email broadcasting complete.`);
+
         return NextResponse.json({ announcement });
     } catch (err: any) {
+        console.error('[ANNOUNCEMENT POST ERROR]:', err);
         return NextResponse.json({ message: err.message }, { status: 500 });
     }
 }
