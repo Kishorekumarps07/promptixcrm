@@ -21,8 +21,9 @@ export async function GET() {
             html: '<h1>It Works!</h1><p>Your email integration is fully configured and working.</p>'
         });
 
-        // Debug: List all environment keys starting with SMTP or other critical ones
-        const envKeys = Object.keys(process.env).filter(k =>
+        // Debug: List every single key available in process.env
+        const allEnvKeys = Object.keys(process.env).sort();
+        const envKeys = allEnvKeys.filter(k =>
             k.startsWith('SMTP') ||
             k === 'ADMIN_EMAIL' ||
             k === 'MONGODB_URI' ||
@@ -35,6 +36,7 @@ export async function GET() {
                 message: 'Email sent successfully!',
                 result,
                 envKeys,
+                allEnvKeys,
                 directChecks
             });
         } else {
@@ -44,6 +46,7 @@ export async function GET() {
                 error: result.error,
                 details: (result as any).details,
                 envKeys,
+                allEnvKeys,
                 directChecks
             }, { status: 500 });
         }
@@ -53,6 +56,7 @@ export async function GET() {
             message: 'Internal server error during email test.',
             error: error.message,
             envKeys: Object.keys(process.env).filter(k => k.startsWith('SMTP') || k === 'ADMIN_EMAIL'),
+            allEnvKeys: Object.keys(process.env).sort(),
             directChecks: {
                 errorAt: 'GET_CATCH',
                 SMTP_USER_EXISTS: !!process.env.SMTP_USER
