@@ -97,13 +97,22 @@ export async function POST(req: Request) {
         const user = await User.findById(userId).select('name');
         if (user) {
             console.log(`[EMAIL] Sending Admin Alert for ${user.name} Check-In`);
+            // Format time in IST explicitly for the email alert
+            const istTime = new Intl.DateTimeFormat('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            }).format(new Date());
+
             await sendEmail({
                 to: ADMIN_EMAIL,
                 subject: `📢 Attendance Alert: ${user.name} Checked In`,
                 html: EmailTemplates.adminAttendanceAlert(
                     user.name,
                     'CheckIn',
-                    new Date().toLocaleTimeString(),
+                    istTime,
                     type || 'Present'
                 )
             });
@@ -145,13 +154,22 @@ export async function PATCH() {
         const user = await User.findById(userId).select('name');
         if (user) {
             console.log(`[EMAIL] Sending Admin Alert for ${user.name} Check-Out`);
+            // Format time in IST explicitly for the email alert
+            const istTime = new Intl.DateTimeFormat('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            }).format(new Date());
+
             await sendEmail({
                 to: ADMIN_EMAIL,
                 subject: `📢 Attendance Alert: ${user.name} Checked Out`,
                 html: EmailTemplates.adminAttendanceAlert(
                     user.name,
                     'CheckOut',
-                    new Date().toLocaleTimeString(),
+                    istTime,
                     record.status
                 )
             });
