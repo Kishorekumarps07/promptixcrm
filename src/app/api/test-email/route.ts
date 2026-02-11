@@ -21,25 +21,40 @@ export async function GET() {
             html: '<h1>It Works!</h1><p>Your email integration is fully configured and working.</p>'
         });
 
+        const envDiagnostics = {
+            hasUser: !!process.env.SMTP_USER,
+            userLen: process.env.SMTP_USER?.length || 0,
+            hasPass: !!process.env.SMTP_PASS,
+            passLen: process.env.SMTP_PASS?.length || 0,
+            hasAdmin: !!process.env.ADMIN_EMAIL,
+            now: new Date().toISOString()
+        };
+
         if (result.success) {
             return NextResponse.json({
                 success: true,
                 message: 'Email sent successfully!',
-                result
+                result,
+                envDiagnostics
             });
         } else {
             return NextResponse.json({
                 success: false,
                 message: 'Email failed to send.',
                 error: result.error,
-                details: (result as any).details
+                details: (result as any).details,
+                envDiagnostics
             }, { status: 500 });
         }
     } catch (error: any) {
         return NextResponse.json({
             success: false,
             message: 'Internal server error during email test.',
-            error: error.message
+            error: error.message,
+            envDiagnostics: {
+                errorAt: 'GET_CATCH',
+                now: new Date().toISOString()
+            }
         }, { status: 500 });
     }
 }
