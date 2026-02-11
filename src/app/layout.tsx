@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from 'sonner';
-
 import { CommandMenu } from '@/components/CommandMenu';
+import AIAssistant from '@/components/ai/AIAssistant';
 
 export default function RootLayout({
   children,
@@ -23,6 +23,7 @@ export default function RootLayout({
           {children}
           <Toaster position="top-right" richColors closeButton />
           <CommandMenu />
+          <AIAssistant />
         </AuthProvider>
       </body>
     </html>

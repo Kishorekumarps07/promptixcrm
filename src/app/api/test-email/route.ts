@@ -10,11 +10,24 @@ export async function GET() {
         });
 
         if (result.success) {
-            return NextResponse.json({ message: 'Email sent successfully!', result });
+            return NextResponse.json({
+                success: true,
+                message: 'Email sent successfully!',
+                result
+            });
         } else {
-            return NextResponse.json({ message: 'Email failed to send.', error: result.error }, { status: 500 });
+            return NextResponse.json({
+                success: false,
+                message: 'Email failed to send.',
+                error: result.error,
+                details: (result as any).details
+            }, { status: 500 });
         }
     } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+        return NextResponse.json({
+            success: false,
+            message: 'Internal server error during email test.',
+            error: error.message
+        }, { status: 500 });
     }
 }

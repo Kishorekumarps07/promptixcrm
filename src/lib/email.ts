@@ -1,12 +1,20 @@
 import nodemailer from 'nodemailer';
 
+const SMTP_HOST = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
+const SMTP_PORT = parseInt((process.env.SMTP_PORT || '587').trim());
+const SMTP_USER = (process.env.SMTP_USER || '').trim();
+const SMTP_PASS = (process.env.SMTP_PASS || '').trim();
+
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false, // true for 465, false for other ports
+    // Use service: 'gmail' shortcut if using gmail for better reliability
+    ...(SMTP_USER.includes('gmail.com') ? { service: 'gmail' } : {
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        secure: SMTP_PORT === 465,
+    }),
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: SMTP_USER,
+        pass: SMTP_PASS,
     },
 });
 
@@ -19,17 +27,30 @@ interface EmailOptions {
 
 export const sendEmail = async ({ to, subject, html, attachments }: EmailOptions) => {
     try {
+        if (!SMTP_USER || !SMTP_PASS) {
+            throw new Error("Email configuration missing: SMTP_USER or SMTP_PASS is empty.");
+        }
+
         const info = await transporter.sendMail({
-            from: `"CRM System" <${process.env.SMTP_USER}>`, // sender address
+            from: `"CRM System" <${SMTP_USER}>`, // sender address
             to,
             subject,
             html,
             attachments
         });
-        console.log("Message sent: %s", info.messageId);
+        console.log("[EMAIL SUCCESS] Message sent: %s", info.messageId);
         return { success: true, messageId: info.messageId };
-    } catch (error) {
-        console.error("Error sending email: ", error);
-        return { success: false, error };
+    } catch (error: any) {
+        console.error("[EMAIL ERROR] Detailed failure: ", {
+            message: error.message,
+            code: error.code,
+            command: error.command,
+            response: error.response
+        });
+        return {
+            success: false,
+            error: error.message || "Unknown email error",
+            details: error.code || "No error code"
+        };
     }
 };
