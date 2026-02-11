@@ -21,46 +21,25 @@ export async function GET() {
             html: '<h1>It Works!</h1><p>Your email integration is fully configured and working.</p>'
         });
 
-        // Debug: List every single key available in process.env
-        const allEnvKeys = Object.keys(process.env).sort();
-        const envKeys = allEnvKeys.filter(k =>
-            k.startsWith('SMTP') ||
-            k === 'ADMIN_EMAIL' ||
-            k === 'MONGODB_URI' ||
-            k === 'JWT_SECRET'
-        );
-
         if (result.success) {
             return NextResponse.json({
                 success: true,
                 message: 'Email sent successfully!',
-                result,
-                envKeys,
-                allEnvKeys,
-                directChecks
+                result
             });
         } else {
             return NextResponse.json({
                 success: false,
                 message: 'Email failed to send.',
                 error: result.error,
-                details: (result as any).details,
-                envKeys,
-                allEnvKeys,
-                directChecks
+                details: (result as any).details
             }, { status: 500 });
         }
     } catch (error: any) {
         return NextResponse.json({
             success: false,
             message: 'Internal server error during email test.',
-            error: error.message,
-            envKeys: Object.keys(process.env).filter(k => k.startsWith('SMTP') || k === 'ADMIN_EMAIL'),
-            allEnvKeys: Object.keys(process.env).sort(),
-            directChecks: {
-                errorAt: 'GET_CATCH',
-                SMTP_USER_EXISTS: !!process.env.SMTP_USER
-            }
+            error: error.message
         }, { status: 500 });
     }
 }

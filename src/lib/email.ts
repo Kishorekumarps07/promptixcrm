@@ -8,8 +8,7 @@ interface EmailOptions {
 }
 
 export const sendEmail = async ({ to, subject, html, attachments }: EmailOptions) => {
-    // Read environment variables directly inside the function to ensure 
-    // runtime evaluation on Vercel, avoiding build-time captures.
+    // Read environment variables inside the function for runtime evaluation
     const SMTP_HOST = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
     const SMTP_PORT = parseInt((process.env.SMTP_PORT || '587').trim());
     const SMTP_USER = (process.env.SMTP_USER || '').trim();
@@ -17,15 +16,10 @@ export const sendEmail = async ({ to, subject, html, attachments }: EmailOptions
 
     try {
         if (!SMTP_USER || !SMTP_PASS) {
-            console.error("[EMAIL ERROR] Configuration missing in runtime environment:", {
-                userLength: SMTP_USER.length,
-                passLength: SMTP_PASS.length
-            });
             throw new Error("Email configuration missing: SMTP_USER or SMTP_PASS is empty.");
         }
 
         const transporter = nodemailer.createTransport({
-            // Use service: 'gmail' shortcut if using gmail for better reliability
             ...(SMTP_USER.includes('gmail.com') ? { service: 'gmail' } : {
                 host: SMTP_HOST,
                 port: SMTP_PORT,
@@ -38,7 +32,7 @@ export const sendEmail = async ({ to, subject, html, attachments }: EmailOptions
         });
 
         const info = await transporter.sendMail({
-            from: `"CRM System" <${SMTP_USER}>`, // sender address
+            from: `"CRM System" <${SMTP_USER}>`,
             to,
             subject,
             html,
@@ -52,8 +46,7 @@ export const sendEmail = async ({ to, subject, html, attachments }: EmailOptions
             message: error.message,
             code: error.code,
             command: error.command,
-            response: error.response,
-            smtp_user: SMTP_USER ? "provided" : "MISSING"
+            response: error.response
         });
         return {
             success: false,
