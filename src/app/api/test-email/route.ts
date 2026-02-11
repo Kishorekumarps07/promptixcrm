@@ -11,8 +11,13 @@ export async function GET() {
             html: '<h1>It Works!</h1><p>Your email integration is fully configured and working.</p>'
         });
 
-        // Debug: List all environment keys starting with SMTP
-        const envKeys = Object.keys(process.env).filter(k => k.startsWith('SMTP') || k === 'ADMIN_EMAIL');
+        // Debug: List all environment keys starting with SMTP or other critical ones
+        const envKeys = Object.keys(process.env).filter(k =>
+            k.startsWith('SMTP') ||
+            k === 'ADMIN_EMAIL' ||
+            k === 'MONGODB_URI' ||
+            k === 'JWT_SECRET'
+        );
 
         if (result.success) {
             return NextResponse.json({
