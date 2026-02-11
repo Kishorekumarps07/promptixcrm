@@ -22,11 +22,13 @@ export async function GET() {
         });
 
         const envDiagnostics = {
+            hasValUser: !!process.env.VAL_SMTP_USER,
+            valUserLen: process.env.VAL_SMTP_USER?.length || 0,
+            hasValPass: !!process.env.VAL_SMTP_PASS,
+            valPassLen: process.env.VAL_SMTP_PASS?.length || 0,
+            hasValAdmin: !!process.env.VAL_ADMIN_EMAIL,
             hasUser: !!process.env.SMTP_USER,
-            userLen: process.env.SMTP_USER?.length || 0,
             hasPass: !!process.env.SMTP_PASS,
-            passLen: process.env.SMTP_PASS?.length || 0,
-            hasAdmin: !!process.env.ADMIN_EMAIL,
             now: new Date().toISOString()
         };
 

@@ -10,7 +10,7 @@ import { sendEmail } from '@/lib/email';
 import { EmailTemplates } from '@/lib/email-templates';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'admin@example.com';
+const ADMIN_EMAIL = process.env.VAL_ADMIN_EMAIL || process.env.ADMIN_EMAIL || process.env.VAL_SMTP_USER || process.env.SMTP_USER || 'admin@example.com';
 
 async function getUserId() {
     const cookieStore = await cookies();

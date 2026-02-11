@@ -8,14 +8,16 @@ interface EmailOptions {
 }
 
 export const sendEmail = async ({ to, subject, html, attachments }: EmailOptions) => {
-    // Read environment variables inside the function for runtime evaluation
-    const SMTP_HOST = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
-    const SMTP_PORT = parseInt((process.env.SMTP_PORT || '587').trim());
-    const SMTP_USER = (process.env.SMTP_USER || '').trim();
-    const SMTP_PASS = (process.env.SMTP_PASS || '').trim();
+    // Read environment variables inside the function for runtime evaluation.
+    // We prioritize VAL_ prefixed variables to bypass Vercel env-sync issues.
+    const SMTP_HOST = (process.env.VAL_SMTP_HOST || process.env.SMTP_HOST || 'smtp.gmail.com').trim();
+    const SMTP_PORT = parseInt((process.env.VAL_SMTP_PORT || process.env.SMTP_PORT || '587').trim());
+    const SMTP_USER = (process.env.VAL_SMTP_USER || process.env.SMTP_USER || '').trim();
+    const SMTP_PASS = (process.env.VAL_SMTP_PASS || process.env.SMTP_PASS || '').trim();
 
     try {
         if (!SMTP_USER || !SMTP_PASS) {
+            console.error("[EMAIL ERROR] Missing credentials (VAL_ prefixed or standard)");
             throw new Error("Email configuration missing: SMTP_USER or SMTP_PASS is empty.");
         }
 
