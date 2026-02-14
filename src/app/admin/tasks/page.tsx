@@ -81,6 +81,18 @@ export default function AdminTasksPage() {
         fetchData();
     }, []);
 
+    // Lock body scroll when modal is open
+    useEffect(() => {
+        if (isModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isModalOpen]);
+
     const fetchData = async () => {
         setIsLoading(true);
         try {
@@ -413,7 +425,7 @@ export default function AdminTasksPage() {
             {/* Creation/Editing Modal */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -425,9 +437,9 @@ export default function AdminTasksPage() {
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative z-10"
+                            className="bg-white w-full max-w-lg max-h-[90vh] rounded-3xl overflow-hidden shadow-2xl relative z-10 flex flex-col my-8"
                         >
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
                                 <h2 className="text-xl font-black text-navy-900 flex items-center gap-2">
                                     <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
                                         <CheckSquare className="w-5 h-5" />
@@ -439,127 +451,129 @@ export default function AdminTasksPage() {
                                 </button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-navy-900">Task Title</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-300 font-medium"
-                                        placeholder="e.g., Q1 Financial Report"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-navy-900">Description <span className="text-gray-400 font-normal">(Optional)</span></label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-300 resize-none resize-y"
-                                        placeholder="Add specific instructions, deadlines, or context..."
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="overflow-y-auto flex-1">
+                                <form onSubmit={handleSubmit} className="p-6 space-y-5">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-bold text-navy-900">Assign To</label>
+                                        <label className="text-sm font-bold text-navy-900">Task Title</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            value={formData.title}
+                                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-300 font-medium"
+                                            placeholder="e.g., Q1 Financial Report"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-navy-900">Description <span className="text-gray-400 font-normal">(Optional)</span></label>
+                                        <textarea
+                                            rows={3}
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-300 resize-none resize-y"
+                                            placeholder="Add specific instructions, deadlines, or context..."
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-navy-900">Assign To</label>
+                                            <div className="relative">
+                                                <select
+                                                    required
+                                                    value={formData.assignedTo}
+                                                    onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer hover:bg-gray-50"
+                                                >
+                                                    <option value="" disabled>Select employee</option>
+                                                    {employees.map(emp => (
+                                                        <option key={emp._id} value={emp._id}>
+                                                            {emp.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <UserIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-navy-900">Priority Level</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={formData.priority}
+                                                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer hover:bg-gray-50"
+                                                >
+                                                    <option value="Low">Low</option>
+                                                    <option value="Medium">Medium</option>
+                                                    <option value="High">High</option>
+                                                </select>
+                                                <Flag className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-navy-900">Due Date</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="date"
+                                                    value={formData.dueDate}
+                                                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-300 font-medium"
+                                                />
+                                                <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-navy-900">Link to Strategic Goal <span className="text-gray-400 font-normal">(Optional)</span></label>
                                         <div className="relative">
                                             <select
-                                                required
-                                                value={formData.assignedTo}
-                                                onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                                                value={formData.goalId}
+                                                onChange={(e) => setFormData({ ...formData, goalId: e.target.value })}
                                                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer hover:bg-gray-50"
                                             >
-                                                <option value="" disabled>Select employee</option>
-                                                {employees.map(emp => (
-                                                    <option key={emp._id} value={emp._id}>
-                                                        {emp.name}
+                                                <option value="">No Linked Goal</option>
+                                                {goals.map(goal => (
+                                                    <option key={goal._id} value={goal._id}>
+                                                        {goal.period}: {goal.title}
                                                     </option>
                                                 ))}
                                             </select>
-                                            <UserIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            <LinkIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-navy-900">Priority Level</label>
-                                        <div className="relative">
-                                            <select
-                                                value={formData.priority}
-                                                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer hover:bg-gray-50"
-                                            >
-                                                <option value="Low">Low</option>
-                                                <option value="Medium">Medium</option>
-                                                <option value="High">High</option>
-                                            </select>
-                                            <Flag className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-navy-900">Due Date</label>
-                                        <div className="relative">
-                                            <input
-                                                type="date"
-                                                value={formData.dueDate}
-                                                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-300 font-medium"
-                                            />
-                                            <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-navy-900">Link to Strategic Goal <span className="text-gray-400 font-normal">(Optional)</span></label>
-                                    <div className="relative">
-                                        <select
-                                            value={formData.goalId}
-                                            onChange={(e) => setFormData({ ...formData, goalId: e.target.value })}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-navy-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none cursor-pointer hover:bg-gray-50"
+                                    <div className="flex gap-3 pt-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 font-semibold transition-all"
                                         >
-                                            <option value="">No Linked Goal</option>
-                                            {goals.map(goal => (
-                                                <option key={goal._id} value={goal._id}>
-                                                    {goal.period}: {goal.title}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <LinkIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="flex-1 px-4 py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 transition-all shadow-lg shadow-navy-900/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            {isLoading ? <Loader2 className="animate-spin" /> : (editingTask ? 'Update Task' : 'Assign Task')}
+                                        </button>
                                     </div>
-                                </div>
+                                </form>
 
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 font-semibold transition-all"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="flex-1 px-4 py-3 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 transition-all shadow-lg shadow-navy-900/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {isLoading ? <Loader2 className="animate-spin" /> : (editingTask ? 'Update Task' : 'Assign Task')}
-                                    </button>
-                                </div>
-                            </form>
-
-                            {editingTask && (
-                                <div className="mt-8 pt-8 border-t border-gray-100">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <MessageSquare className="w-4 h-4 text-navy-900" />
-                                        <h3 className="font-bold text-navy-900">Discussion</h3>
+                                {editingTask && (
+                                    <div className="mt-8 pt-8 border-t border-gray-100">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <MessageSquare className="w-4 h-4 text-navy-900" />
+                                            <h3 className="font-bold text-navy-900">Discussion</h3>
+                                        </div>
+                                        <div className="h-[400px]">
+                                            <TaskComments taskId={editingTask._id} />
+                                        </div>
                                     </div>
-                                    <div className="h-[400px]">
-                                        <TaskComments taskId={editingTask._id} />
-                                    </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </motion.div>
 
                     </div>
