@@ -6,7 +6,8 @@ import Image from 'next/image';
 import PageHeader from '@/components/ui/PageHeader';
 import AdvancedTable from '@/components/ui/AdvancedTable';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
-import { UserPlus, Trash2, CheckCircle, XCircle, Users, Mail, Phone, Shield, Camera, X, Loader2, Edit, AlertCircle } from 'lucide-react';
+import { UserPlus, Trash2, CheckCircle, XCircle, Users, Mail, Phone, Shield, Camera, X, Loader2, Edit, AlertCircle, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminUsers() {
     const [users, setUsers] = useState<any[]>([]);
@@ -20,6 +21,7 @@ export default function AdminUsers() {
 
     // Bulk Actions State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALL' | 'EMPLOYEE' | 'ADMIN'>('EMPLOYEE');
 
     useEffect(() => {
@@ -44,31 +46,75 @@ export default function AdminUsers() {
     };
 
     const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
-        if (!confirm(`Are you sure you want to ${action} ${selectedIds.length} users?`)) return;
-
-        setLoading(true);
-        try {
-            const promises = selectedIds.map(id => {
+        setActionLoading('bulk-' + action);
+        const count = selectedIds.length;
+        
+        toast.promise(async () => {
+            const promises = selectedIds.map(async (id) => {
                 if (action === 'delete') {
-                    return fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                    if (!res.ok) throw new Error(`Failed to delete user ${id}`);
                 } else {
                     const newStatus = action === 'activate' ? 'Active' : 'Inactive';
-                    return fetch(`/api/admin/users/${id}/status`, {
+                    const res = await fetch(`/api/admin/users/${id}/status`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status: newStatus }),
                     });
+                    if (!res.ok) throw new Error(`Failed to update status for user ${id}`);
                 }
             });
 
             await Promise.all(promises);
             setSelectedIds([]);
-            fetchUsers();
-        } catch (error) {
-            console.error("Bulk action failed", error);
-        } finally {
-            setLoading(false);
-        }
+            await fetchUsers();
+            return `Bulk ${action} completed for ${count} users`;
+        }, {
+            loading: `Performing bulk ${action}...`,
+            success: (msg) => {
+                setActionLoading(null);
+                return msg;
+            },
+            error: (err) => {
+                setActionLoading(null);
+                return `Error: ${err.message}`;
+            }
+        });
+    };
+
+    const handleSingleStatusUpdate = async (id: string, action: 'activate' | 'deactivate') => {
+        setActionLoading(id + action);
+        const newStatus = action === 'activate' ? 'Active' : 'Inactive';
+        
+        // Optimistic UI update
+        const previousUsers = [...users];
+        setUsers(prev => prev.map(u => u._id === id ? { ...u, status: newStatus } : u));
+
+        toast.promise(async () => {
+            const res = await fetch(`/api/admin/users/${id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to update status');
+            }
+            await fetchUsers();
+            return `User ${action === 'activate' ? 'activated' : 'deactivated'} successfully`;
+        }, {
+            loading: `Updating user...`,
+            success: (msg) => {
+                setActionLoading(null);
+                return msg;
+            },
+            error: (err) => {
+                setActionLoading(null);
+                setUsers(previousUsers); // Revert on failure
+                return `Error: ${err.message}`;
+            }
+        });
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,9 +246,28 @@ export default function AdminUsers() {
             header: "Actions",
             accessor: (user: any) => (
                 <div className="flex items-center gap-2">
+                    {user.status === 'Inactive' ? (
+                        <button
+                            onClick={() => handleSingleStatusUpdate(user._id, 'activate')}
+                            disabled={actionLoading === user._id + 'activate'}
+                            className="p-2 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 rounded-lg transition-all border border-green-100 disabled:opacity-50"
+                            title="Activate User"
+                        >
+                            {actionLoading === user._id + 'activate' ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => handleSingleStatusUpdate(user._id, 'deactivate')}
+                            disabled={actionLoading === user._id + 'deactivate'}
+                            className="p-2 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700 rounded-lg transition-all border border-orange-100 disabled:opacity-50"
+                            title="Deactivate User"
+                        >
+                            {actionLoading === user._id + 'deactivate' ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                        </button>
+                    )}
                     <button
                         onClick={() => openEditModal(user)}
-                        className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        className="p-2 bg-gray-50 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-100 rounded-lg transition-all"
                         title="Edit User"
                     >
                         <Edit size={16} />
@@ -255,16 +320,31 @@ export default function AdminUsers() {
                         onSelectionChange={setSelectedIds}
                         actions={
                             <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
-                                <button onClick={() => handleBulkAction('activate')} className="p-1.5 hover:bg-white text-green-600 rounded-md shadow-sm transition-all" title="Activate Selected">
-                                    <CheckCircle size={16} />
+                                <button 
+                                    onClick={() => handleBulkAction('activate')} 
+                                    disabled={actionLoading === 'bulk-activate'}
+                                    className="p-1.5 hover:bg-white text-green-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
+                                    title="Activate Selected"
+                                >
+                                    {actionLoading === 'bulk-activate' ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                                 </button>
                                 <div className="w-px h-4 bg-gray-200"></div>
-                                <button onClick={() => handleBulkAction('deactivate')} className="p-1.5 hover:bg-white text-orange-600 rounded-md shadow-sm transition-all" title="Deactivate Selected">
-                                    <XCircle size={16} />
+                                <button 
+                                    onClick={() => handleBulkAction('deactivate')} 
+                                    disabled={actionLoading === 'bulk-deactivate'}
+                                    className="p-1.5 hover:bg-white text-orange-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
+                                    title="Deactivate Selected"
+                                >
+                                    {actionLoading === 'bulk-deactivate' ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
                                 </button>
                                 <div className="w-px h-4 bg-gray-200"></div>
-                                <button onClick={() => handleBulkAction('delete')} className="p-1.5 hover:bg-white text-red-600 rounded-md shadow-sm transition-all" title="Delete Selected">
-                                    <Trash2 size={16} />
+                                <button 
+                                    onClick={() => handleBulkAction('delete')} 
+                                    disabled={actionLoading === 'bulk-delete'}
+                                    className="p-1.5 hover:bg-white text-red-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
+                                    title="Delete Selected"
+                                >
+                                    {actionLoading === 'bulk-delete' ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                                 </button>
                             </div>
                         }
@@ -400,8 +480,8 @@ export default function AdminUsers() {
                                         className="px-6 py-2.5 bg-navy-900 text-white rounded-xl hover:bg-orange-500 font-bold shadow-lg shadow-navy-900/20 hover:shadow-orange-500/30 transition-all active:scale-95 disabled:opacity-70 flex items-center gap-2 text-sm"
                                         disabled={loading}
                                     >
-                                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <SaveIcon />}
-                                        {loading ? 'Saving...' : 'Save User'}
+                                        {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                        {loading ? 'Saving...' : editingUser ? 'Update User' : 'Save User'}
                                     </button>
                                 </div>
                             </form>
