@@ -6,6 +6,9 @@ import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import AdvancedTable from '@/components/ui/AdvancedTable';
+import * as XLSX from 'xlsx';
+import { Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AuditLog {
     _id: string;
@@ -60,6 +63,31 @@ export default function AuditLogsPage() {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleExport = () => {
+        try {
+            const dataToExport = logs.map(log => ({
+                Date: new Date(log.createdAt).toLocaleString(),
+                Action: log.actionType.replace(/_/g, ' '),
+                'Performed By': log.performedBy?.name || 'Unknown',
+                Role: log.performerRole,
+                Entity: log.entityType,
+                'Entity ID': log.entityId,
+                Metadata: JSON.stringify(log.metadata)
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(dataToExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "AuditLogs");
+            
+            const fileName = `Audit_Logs_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            toast.success('Logs exported successfully');
+        } catch (error) {
+            console.error('Export failed', error);
+            toast.error('Failed to export logs');
         }
     };
 
@@ -130,12 +158,20 @@ export default function AuditLogsPage() {
                     subtitle="Track security events and administrative actions"
                     breadcrumbs={[{ label: 'Admin', href: '/admin/dashboard' }, { label: 'Audit Logs' }]}
                     actions={
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className="bg-white text-navy-900 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
-                        >
-                            <SlidersHorizontal size={16} /> Filters
-                        </button>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleExport}
+                                className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-green-600/20 transition-all flex items-center gap-2 active:scale-95"
+                            >
+                                <Download size={16} /> Export
+                            </button>
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="bg-white text-navy-900 border border-gray-200 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                            >
+                                <SlidersHorizontal size={16} /> Filters
+                            </button>
+                        </div>
                     }
                 />
 

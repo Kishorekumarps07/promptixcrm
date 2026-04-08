@@ -9,7 +9,7 @@ import RecentActivityFeed from '@/components/dashboard/RecentActivityFeed';
 import WeeklyAttendanceChart from '@/components/dashboard/WeeklyAttendanceChart';
 import SalaryTrendChart from '@/components/dashboard/SalaryTrendChart';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
-import { Users, Target, Calendar, Clock, DollarSign, Lock } from 'lucide-react';
+import { Users, Target, Calendar, Clock, DollarSign, Lock, Activity } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -39,8 +39,9 @@ export default function AdminDashboard() {
         <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
             <Sidebar />
             <main className="md:ml-64 p-4 md:p-8 flex-1 overflow-x-hidden pb-12">
-                {/* Header */}
-                <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                <div className="max-w-[1600px] mx-auto space-y-8">
+                    {/* Header */}
+                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-black text-navy-900 tracking-tight">Admin Dashboard</h1>
                         <p className="text-gray-500 font-medium mt-1">System Overview & Performance Metrics</p>
@@ -51,11 +52,10 @@ export default function AdminDashboard() {
                     </div>
                 </header>
 
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-
-                    {/* Left Column (Alerts + Charts) - Spans 2 cols */}
-                    <div className="lg:col-span-2 space-y-6">
+                    {/* Main Content Grid */}
+                    <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+                        {/* Left Column (Alerts + KPIs + Charts) - Spans 3 cols on XL */}
+                        <div className="xl:col-span-3 space-y-8">
 
                         {/* Alerts Section (Full Width of column) */}
                         <AlertsSection />
@@ -125,30 +125,67 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Charts Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <ModernGlassCard title="Attendance Trends" delay={0.4}>
-                                <div className="h-64 w-full mt-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <ModernGlassCard title="Attendance Trends" delay={0.4} className="h-full">
+                                <div className="h-80 w-full">
                                     <WeeklyAttendanceChart data={stats?.weeklyAttendance || []} />
                                 </div>
                             </ModernGlassCard>
-                            <ModernGlassCard title="Salary Disbursement" delay={0.5}>
-                                <div className="h-64 w-full mt-2">
+                            <ModernGlassCard title="Salary Disbursement" delay={0.5} className="h-full">
+                                <div className="h-80 w-full">
                                     <SalaryTrendChart data={stats?.salaryTrends || []} />
                                 </div>
                             </ModernGlassCard>
                         </div>
+
+                        {/* Wide Recent Activity Feed */}
+                        <RecentActivityFeed />
                     </div>
 
-                    {/* Right Column (Quick Actions + Activity) - Spans 1 col */}
-                    <div className="space-y-6">
+                    {/* Right Column (Health + Quick Actions) - Spans 1 col */}
+                    <div className="xl:col-span-1 space-y-8">
+                        {/* System Health Widget */}
+                        <ModernGlassCard title="System Health">
+                            <div className="space-y-4 pt-2">
+                                <div className="flex items-center justify-between p-3.5 bg-green-50/50 rounded-xl border border-green-100/50 group hover:bg-green-50 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                                            <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-green-500 animate-ping opacity-75"></div>
+                                        </div>
+                                        <span className="text-sm font-bold text-navy-900">Database</span>
+                                    </div>
+                                    <span className="text-[10px] font-black text-green-600 bg-white px-2 py-1 rounded-md border border-green-200 uppercase tracking-wider shadow-sm">Operational</span>
+                                </div>
+                                <div className="flex items-center justify-between p-3.5 bg-blue-50/50 rounded-xl border border-blue-100/50 group hover:bg-blue-50 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg">
+                                            <Activity size={14} />
+                                        </div>
+                                        <span className="text-sm font-bold text-navy-900">API Gateway</span>
+                                    </div>
+                                    <span className="text-[10px] font-black text-blue-600 bg-white px-2 py-1 rounded-md border border-blue-200 uppercase tracking-wider shadow-sm">Active</span>
+                                </div>
+                                <div className="flex items-center justify-between p-3.5 bg-orange-50/50 rounded-xl border border-orange-100/50 group hover:bg-orange-50 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-1.5 bg-orange-100 text-orange-600 rounded-lg">
+                                            <Users size={14} />
+                                        </div>
+                                        <span className="text-sm font-bold text-navy-900">Live Sessions</span>
+                                    </div>
+                                    <span className="text-[10px] font-black text-orange-600 bg-white px-2 py-1 rounded-md border border-orange-200 uppercase tracking-wider shadow-sm">{stats?.activeSessions || 1} Online</span>
+                                </div>
+                            </div>
+                        </ModernGlassCard>
+
                         <QuickActionsPanel
                             pendingLeaves={stats?.leaves?.pending}
                             pendingAttendance={stats?.attendance?.pending}
                         />
-                        <RecentActivityFeed />
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
+    </div>
     );
 }

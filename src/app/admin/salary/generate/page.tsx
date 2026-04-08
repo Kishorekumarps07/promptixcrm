@@ -6,6 +6,8 @@ import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
 import { Check, Download, DollarSign, Calendar, CreditCard, Play, FileText, AlertCircle, CheckCircle, Search, X } from 'lucide-react';
+import { toast } from 'sonner';
+import ModernConfirmModal from '@/components/ui/ModernConfirmModal';
 
 export default function SalaryGeneration() {
     const [month, setMonth] = useState(new Date().getMonth() === 0 ? 11 : new Date().getMonth() - 1);
@@ -19,6 +21,21 @@ export default function SalaryGeneration() {
     const [paymentDate, setPaymentDate] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
     const [transactionRef, setTransactionRef] = useState('');
+    
+    // Modern Confirm States
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        variant: 'danger' | 'warning' | 'info';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        variant: 'info'
+    });
 
     useEffect(() => {
         fetchSalaries();
@@ -38,56 +55,81 @@ export default function SalaryGeneration() {
     };
 
     const handleGenerate = async () => {
-        if (!confirm(`Generate salaries for ${month + 1}/${year}? This cannot be undone.`)) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Generate Salaries',
+            message: `Generate salaries for ${monthNames[month]} ${year}? This process will calculate dues for all employees based on their current attendance records.`,
+            variant: 'warning',
+            onConfirm: async () => {
+                setGenerating(true);
+                const promise = fetch('/api/admin/salary/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ month, year, bypassDateCheck: true })
+                }).then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message);
+                    fetchSalaries();
+                    return data;
+                });
 
-        setGenerating(true);
-        try {
-            const res = await fetch('/api/admin/salary/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ month, year, bypassDateCheck: true })
-            });
+                toast.promise(promise, {
+                    loading: 'Generating payroll records...',
+                    success: (data) => `Successfully generated ${data.generatedCount} salary records!`,
+                    error: (err) => `Generation failed: ${err.message}`
+                });
 
-            const data = await res.json();
-            if (res.ok) {
-                alert(`Success! Generated ${data.generatedCount} records.`);
-                fetchSalaries();
-            } else {
-                alert(`Error: ${data.message}`);
+                try {
+                    await promise;
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setGenerating(false);
+                }
             }
-        } catch (e) {
-            alert('Failed to generate.');
-        } finally {
-            setGenerating(false);
-        }
+        });
     };
 
     const handleApprove = async (salaryId: string) => {
-        if (!confirm('Approve this salary record?')) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Approve Salary',
+            message: 'Are you sure you want to approve this salary record? This will move it to the payment stage.',
+            variant: 'info',
+            onConfirm: async () => {
+                const promise = fetch('/api/admin/salary/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ salaryId })
+                }).then(async res => {
+                    if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.message);
+                    }
+                    return res.json();
+                });
 
-        try {
-            const res = await fetch('/api/admin/salary/approve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ salaryId })
-            });
+                toast.promise(promise, {
+                    loading: 'Approving record...',
+                    success: 'Salary record approved successfully!',
+                    error: (err) => `Approval failed: ${err.message}`
+                });
 
-            if (res.ok) {
-                fetchSalaries();
-            } else {
-                const data = await res.json();
-                alert(`Error: ${data.message}`);
+                try {
+                    await promise;
+                    fetchSalaries();
+                } catch (e) {
+                    console.error(e);
+                }
             }
-        } catch (e) {
-            alert('Failed to approve salary.');
-        }
+        });
     };
 
     const handleMarkAsPaid = async () => {
         if (!selectedSalary) return;
 
         try {
-            const res = await fetch('/api/admin/salary/pay', {
+            const promise = fetch('/api/admin/salary/pay', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -96,20 +138,28 @@ export default function SalaryGeneration() {
                     paymentMethod,
                     transactionReference: transactionRef
                 })
+            }).then(async res => {
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.message);
+                }
+                return res.json();
             });
 
-            const data = await res.json();
-            if (res.ok) {
-                setShowPayModal(false);
-                setSelectedSalary(null);
-                setPaymentDate('');
-                setTransactionRef('');
-                fetchSalaries();
-            } else {
-                alert(`Error: ${data.message}`);
-            }
+            toast.promise(promise, {
+                loading: 'Recording payment...',
+                success: 'Salary marked as paid!',
+                error: (err) => `Payment failed: ${err.message}`
+            });
+
+            await promise;
+            setShowPayModal(false);
+            setSelectedSalary(null);
+            setPaymentDate('');
+            setTransactionRef('');
+            fetchSalaries();
         } catch (e) {
-            alert('Failed to mark salary as paid.');
+            console.error(e);
         }
     };
 
@@ -431,6 +481,15 @@ export default function SalaryGeneration() {
                         </div>
                     </div>
                 )}
+
+                <ModernConfirmModal
+                    isOpen={confirmModal.isOpen}
+                    onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    onConfirm={confirmModal.onConfirm}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    variant={confirmModal.variant}
+                />
             </main>
         </div>
     );

@@ -22,6 +22,7 @@ interface AdvancedTableProps<T> {
     searchPlaceholder?: string;
     renderGridLayout?: (item: T) => React.ReactNode;
     initialViewMode?: 'list' | 'grid';
+    rowsPerPage?: number;
 }
 
 export default function AdvancedTable<T extends Record<string, any>>({
@@ -34,11 +35,12 @@ export default function AdvancedTable<T extends Record<string, any>>({
     title,
     searchPlaceholder = "Search...",
     renderGridLayout,
-    initialViewMode = 'list'
+    initialViewMode = 'list',
+    rowsPerPage = 10
 }: AdvancedTableProps<T>) {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(rowsPerPage);
     const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({
         key: null,
         direction: 'asc'

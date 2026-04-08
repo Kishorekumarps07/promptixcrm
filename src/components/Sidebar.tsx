@@ -47,37 +47,92 @@ export default function Sidebar() {
         </Link>
     );
 
-    const menuItems = {
-        ADMIN: [
-            { href: '/admin/dashboard', label: 'Dashboard' },
-            { href: '/admin/goals', label: 'Goal Management' },
-            { href: '/admin/tasks', label: 'Task Management' },
-            { href: '/admin/announcements', label: 'Announcements' },
-            { href: '/admin/users', label: 'User Management' },
-            { href: '/admin/employee-profiles', label: 'Employee Database' },
-            { href: '/admin/attendance', label: 'Attendance' },
-            { href: '/admin/leaves', label: 'Leaves' },
-            { href: '/admin/events', label: 'Events' },
-            { href: '/admin/salary/profiles', label: 'Salary Profiles' },
-            { href: '/admin/salary/generate', label: 'Generate Salaries' },
-            { href: '/admin/salary/individual', label: 'Individual Salary' },
-            { href: '/admin/calendar', label: 'Calendar Settings' },
-            { href: '/admin/security/password-requests', label: 'Password Requests' },
-            { href: '/admin/audit-logs', label: 'Audit Logs' }
-        ],
-        EMPLOYEE: [
-            { href: '/employee/dashboard', label: 'Dashboard' },
-            { href: '/employee/tasks', label: 'My Priorities' },
-            { href: '/employee/goals', label: 'My Goals' },
-            { href: '/employee/profile', label: 'My Profile' },
-            { href: '/employee/attendance', label: 'Attendance' },
-            { href: '/employee/leaves', label: 'Leaves' },
-            { href: '/employee/events', label: 'Events' },
-            { href: '/employee/salary', label: 'My Salary' }
-        ]
-    };
+    interface MenuItem {
+        href: string;
+        label: string;
+    }
 
-    const currentMenu = menuItems[user.role as keyof typeof menuItems] || [];
+    interface Category {
+        title: string;
+        items: MenuItem[];
+    }
+
+    const adminMenu: Category[] = [
+        {
+            title: 'Overview',
+            items: [
+                { href: '/admin/dashboard', label: 'Dashboard' },
+                { href: '/admin/announcements', label: 'Announcements' },
+                { href: '/admin/events', label: 'Events' },
+            ]
+        },
+        {
+            title: 'Work Management',
+            items: [
+                { href: '/admin/goals', label: 'Goal Management' },
+                { href: '/admin/tasks', label: 'Task Management' },
+            ]
+        },
+        {
+            title: 'Employees',
+            items: [
+                { href: '/admin/users', label: 'User Management' },
+                { href: '/admin/employee-profiles', label: 'Employee Database' },
+                { href: '/admin/attendance', label: 'Attendance' },
+                { href: '/admin/leaves', label: 'Leaves' },
+            ]
+        },
+        {
+            title: 'Hiring',
+            items: [
+                { href: '#', label: 'Interview Assessment (Coming Soon)' },
+            ]
+        },
+        {
+            title: 'Payroll & Finance',
+            items: [
+                { href: '/admin/salary/profiles', label: 'Salary Profiles' },
+                { href: '/admin/salary/generate', label: 'Generate Salaries' },
+                { href: '/admin/salary/individual', label: 'Individual Salary' },
+            ]
+        },
+        {
+            title: 'System',
+            items: [
+                { href: '/admin/calendar', label: 'Calendar Settings' },
+                { href: '/admin/security/password-requests', label: 'Password Requests' },
+                { href: '/admin/audit-logs', label: 'Audit Logs' },
+            ]
+        }
+    ];
+
+    const employeeMenu: Category[] = [
+        {
+            title: 'Personal',
+            items: [
+                { href: '/employee/dashboard', label: 'Dashboard' },
+                { href: '/employee/profile', label: 'My Profile' },
+                { href: '/employee/events', label: 'Events' },
+            ]
+        },
+        {
+            title: 'My Work',
+            items: [
+                { href: '/employee/tasks', label: 'My Priorities' },
+                { href: '/employee/goals', label: 'My Goals' },
+            ]
+        },
+        {
+            title: 'Records',
+            items: [
+                { href: '/employee/attendance', label: 'Attendance' },
+                { href: '/employee/leaves', label: 'Leaves' },
+                { href: '/employee/salary', label: 'My Salary' },
+            ]
+        }
+    ];
+
+    const menuItems = user.role === 'ADMIN' ? adminMenu : employeeMenu;
 
     return (
         <>
@@ -143,10 +198,10 @@ export default function Sidebar() {
                 </div>
 
                 {/* User Profile Summary */}
-                <div className="p-6 border-b border-gray-200 bg-white">
+                <div className="p-6 border-b border-gray-200 bg-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.05)]">
                     <div className="flex items-center gap-4">
                         <div className="relative shrink-0">
-                            <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-orange-400 to-orange-600 shadow-sm">
+                            <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-orange-400 to-orange-600 shadow-sm animate-pulse-subtle">
                                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-white">
                                     {user.photo ? (
                                         <Image
@@ -160,27 +215,32 @@ export default function Sidebar() {
                                     )}
                                 </div>
                             </div>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full box-content"></div>
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full box-content ring-2 ring-white"></div>
                         </div>
                         <div className="overflow-hidden">
-                            <h3 className="font-semibold text-navy-900 truncate text-base tracking-wide">{user.name}</h3>
-                            <p className="text-xs text-orange-600 font-bold tracking-wider uppercase">{user.role}</p>
+                            <h3 className="font-bold text-navy-900 truncate text-base tracking-tight">{user.name}</h3>
+                            <p className="text-[10px] text-orange-600 font-black tracking-widest uppercase opacity-80">{user.role}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Navigation Links */}
-                <nav className="flex-1 px-3 py-4 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-                    <div className="text-xs font-bold text-gray-500 mb-3 px-4 uppercase tracking-wider flex items-center gap-2">
-                        <span className="w-8 h-[1px] bg-gray-300"></span> Main Menu
-                    </div>
-                    <div className="space-y-1">
-                        {currentMenu.map((item) => (
-                            <LinkItem key={item.href} href={item.href}>
-                                {item.label}
-                            </LinkItem>
-                        ))}
-                    </div>
+                <nav className="flex-1 px-3 py-6 overflow-y-auto overscroll-contain scrollbar-hide space-y-6">
+                    {menuItems.map((category) => (
+                        <div key={category.title}>
+                            <div className="text-[10px] font-black text-gray-400 mb-2 px-4 uppercase tracking-[0.2em] flex items-center gap-3">
+                                <span className="w-4 h-[1px] bg-gray-200"></span>
+                                {category.title}
+                            </div>
+                            <div className="space-y-0.5">
+                                {category.items.map((item) => (
+                                    <LinkItem key={item.href} href={item.href}>
+                                        {item.label}
+                                    </LinkItem>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </nav>
 
                 {/* Footer Actions */}

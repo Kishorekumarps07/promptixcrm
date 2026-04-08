@@ -151,12 +151,13 @@ export default function AdminUsers() {
             if (res.ok) {
                 closeModal();
                 fetchUsers();
+                toast.success(`User ${editingUser ? 'updated' : 'created'} successfully`);
             } else {
                 const err = await res.json();
-                alert(`Operation failed: ${err.message}`);
+                toast.error(`Operation failed: ${err.message}`);
             }
         } catch (error) {
-            alert("An unexpected error occurred.");
+            toast.error("An unexpected error occurred.");
         } finally {
             setLoading(false);
         }

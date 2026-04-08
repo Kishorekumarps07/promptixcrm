@@ -18,6 +18,9 @@ import {
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, X, User, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, Filter, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getHoliday } from '@/utils/holidays';
+import * as XLSX from 'xlsx';
+import { Download } from 'lucide-react';
 
 export default function AdminAttendance() {
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -110,6 +113,31 @@ export default function AdminAttendance() {
         });
     };
 
+    const handleExport = () => {
+        try {
+            const dataToExport = attendanceData.map(record => ({
+                Date: format(new Date(record.date), 'yyyy-MM-dd'),
+                Name: record.userId?.name || 'Unknown',
+                Email: record.userId?.email || 'N/A',
+                Status: record.status,
+                'Check In': record.checkIn ? format(new Date(record.checkIn), 'HH:mm:ss') : '--',
+                'Check Out': record.checkOut ? format(new Date(record.checkOut), 'HH:mm:ss') : '--',
+                Type: record.type || 'Present'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(dataToExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+            
+            const fileName = `Attendance_Report_${format(currentMonth, 'MMM_yyyy')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            toast.success('Attendance report exported successfully');
+        } catch (error) {
+            console.error('Export failed', error);
+            toast.error('Failed to export attendance data');
+        }
+    };
+
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-mesh-gradient">
             <Sidebar />
@@ -120,16 +148,26 @@ export default function AdminAttendance() {
                         <p className="text-gray-500 font-medium mt-1">Monitor daily check-ins and absences</p>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-white/60">
-                        <button onClick={prevMonth} className="p-2 hover:bg-white rounded-lg transition-all text-navy-700 hover:shadow-sm">
-                            <ChevronLeft size={20} />
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={handleExport}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-600/20 transition-all active:scale-95"
+                        >
+                            <Download size={18} />
+                            <span className="hidden sm:inline">Export Excel</span>
                         </button>
-                        <h2 className="text-lg font-bold text-navy-900 min-w-[160px] text-center">
-                            {format(currentMonth, 'MMMM yyyy')}
-                        </h2>
-                        <button onClick={nextMonth} className="p-2 hover:bg-white rounded-lg transition-all text-navy-700 hover:shadow-sm">
-                            <ChevronRight size={20} />
-                        </button>
+                        
+                        <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-white/60">
+                            <button onClick={prevMonth} className="p-2 hover:bg-white rounded-lg transition-all text-navy-700 hover:shadow-sm">
+                                <ChevronLeft size={20} />
+                            </button>
+                            <h2 className="text-lg font-bold text-navy-900 min-w-[160px] text-center">
+                                {format(currentMonth, 'MMMM yyyy')}
+                            </h2>
+                            <button onClick={nextMonth} className="p-2 hover:bg-white rounded-lg transition-all text-navy-700 hover:shadow-sm">
+                                <ChevronRight size={20} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -166,6 +204,7 @@ export default function AdminAttendance() {
                                         ${!isCurrentMonth ? 'bg-gray-50/30 text-gray-300' : 'bg-transparent text-navy-900'}
                                         ${isToday ? 'bg-orange-50/30' : ''}
                                         ${isSelected ? 'bg-navy-900/5 ring-inset ring-2 ring-navy-900/10 z-10' : 'hover:bg-white/40'}
+                                        ${getHoliday(day) ? 'bg-red-50/20' : ''}
                                     `}
                                 >
                                     <div className="flex justify-between items-start mb-2">
@@ -173,6 +212,7 @@ export default function AdminAttendance() {
                                             text-xs md:text-sm font-bold w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-lg transition-all
                                             ${isToday ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 scale-110' : ''}
                                             ${isSelected && !isToday ? 'bg-navy-900 text-white shadow-md' : ''}
+                                            ${getHoliday(day) && !isToday && !isSelected ? 'text-red-600 bg-red-100 ring-1 ring-red-200 shadow-sm' : ''}
                                         `}>
                                             {format(day, 'd')}
                                         </span>
@@ -204,6 +244,15 @@ export default function AdminAttendance() {
                                                     <span className="hidden xl:inline opacity-70">Pending</span>
                                                 </div>
                                             )}
+                                        </div>
+                                    )}
+
+                                    {getHoliday(day) && (
+                                        <div className="mt-2">
+                                            <div className="flex items-center text-[10px] text-red-700 bg-red-100/60 px-2 py-1.5 rounded-md border border-red-200 font-black backdrop-blur-sm shadow-sm animate-in fade-in zoom-in duration-300">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-red-600 mr-2 animate-pulse"></div>
+                                                <span className="truncate" title={getHoliday(day)?.name}>Off Day: {getHoliday(day)?.name}</span>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

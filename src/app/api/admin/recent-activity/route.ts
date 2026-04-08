@@ -139,6 +139,42 @@ export async function GET() {
                     message = `${activity.entityType} rejected by ${userName}`;
                     color = 'red';
                     break;
+                
+                case 'USER_ACTIVATED':
+                    icon = '👤';
+                    message = `User account activated: ${metadata.userName || 'Employee'}`;
+                    color = 'green';
+                    break;
+                
+                case 'USER_DEACTIVATED':
+                    icon = '🚫';
+                    message = `User account deactivated: ${metadata.userName || 'Employee'}`;
+                    color = 'red';
+                    break;
+                
+                case 'USER_CREATED':
+                    icon = '🆕';
+                    message = `New user created: ${metadata.userName || 'Employee'}`;
+                    color = 'green';
+                    break;
+                
+                case 'USER_UPDATED':
+                    icon = '📝';
+                    message = `User profile updated: ${metadata.userName || 'Employee'}`;
+                    color = 'blue';
+                    break;
+                
+                case 'ATTENDANCE_APPROVED':
+                    icon = '✅';
+                    message = `Attendance record approved: ${metadata.userName || 'Employee'}`;
+                    color = 'green';
+                    break;
+                
+                case 'ATTENDANCE_REJECTED':
+                    icon = '❌';
+                    message = `Attendance record rejected: ${metadata.userName || 'Employee'}`;
+                    color = 'red';
+                    break;
 
                 case 'PASSWORD_RESET':
                     icon = '🔐';
@@ -147,8 +183,14 @@ export async function GET() {
                     break;
 
                 default:
+                    // Fallback for underscore strings like "USER_DEACTIVATED"
+                    const humanizedAction = (activity.actionType || 'Action')
+                        .toLowerCase()
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, (l: string) => l.toUpperCase());
+                    
                     icon = '📋';
-                    message = `${activity.actionType || 'Action'} on ${activity.entityType || 'entity'}`;
+                    message = `${humanizedAction} on ${activity.entityType || 'entity'}`;
                     color = 'gray';
             }
 

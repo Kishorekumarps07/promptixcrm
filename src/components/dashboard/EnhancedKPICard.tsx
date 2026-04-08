@@ -71,7 +71,7 @@ export default function EnhancedKPICard({
 
     return (
         <ModernGlassCard
-            className="h-full transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/5 hover:-translate-y-1"
+            className="h-full min-h-[160px] transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/5 hover:-translate-y-1"
             hoverEffect={!!link}
             delay={delay}
         >
