@@ -28,12 +28,24 @@ export default function RecentActivityFeed() {
     const fetchActivities = async () => {
         try {
             const res = await fetch('/api/admin/recent-activity');
-            if (res.ok) {
-                const data = await res.json();
-                setActivities(data.activities || []);
+            
+            if (!res.ok) {
+                const text = await res.text();
+                console.error(`Activities fetch error (HTTP ${res.status}):`, text.substring(0, 100));
+                return;
             }
-        } catch (error) {
-            console.error('Failed to fetch activities:', error);
+
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await res.text();
+                console.error('Expected JSON activities but got:', contentType, text.substring(0, 100));
+                return;
+            }
+
+            const data = await res.json();
+            setActivities(data.activities || []);
+        } catch (error: any) {
+            console.error('Failed to fetch activities:', error.message);
         } finally {
             setLoading(false);
         }

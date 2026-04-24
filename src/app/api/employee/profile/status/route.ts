@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import dbConnect from '@/lib/db';
 import EmployeeProfile from '@/models/EmployeeProfile';
+import User from '@/models/User';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
@@ -21,18 +23,21 @@ export async function GET(req: Request) {
         }
 
         const profile = await EmployeeProfile.findOne({ userId: payload.userId });
-        const user = await (await import('@/models/User')).default.findById(payload.userId).select('name email photo');
+        const userData = await User.findById(payload.userId).select('name email photo');
+
+        if (!userData) {
+            return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        }
 
         return NextResponse.json({
             exists: !!profile,
             completed: profile ? profile.profileCompleted : false,
-            // Merge profile with user details if needed, or return separate
-            profile: profile ? { ...profile.toObject(), name: user?.name, email: user?.email } : null,
-            user: user // Also returning explicitly
+            profile: profile ? { ...profile.toObject(), name: userData.name, email: userData.email } : null,
+            user: userData
         });
 
     } catch (error: any) {
-        console.error('Profile Check Error:', error);
-        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+        console.error('Profile Check API Error:', error.message);
+        return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
     }
 }

@@ -31,12 +31,24 @@ export default function AlertsSection() {
     const fetchAlerts = async () => {
         try {
             const res = await fetch('/api/admin/stats/alerts');
-            if (res.ok) {
-                const data = await res.json();
-                setAlerts(data.alerts || []);
+            
+            if (!res.ok) {
+                const text = await res.text();
+                console.error(`Alerts fetch error (HTTP ${res.status}):`, text.substring(0, 100));
+                return;
             }
-        } catch (error) {
-            console.error('Failed to fetch alerts:', error);
+
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await res.text();
+                console.error('Expected JSON alerts but got:', contentType, text.substring(0, 100));
+                return;
+            }
+
+            const data = await res.json();
+            setAlerts(data.alerts || []);
+        } catch (error: any) {
+            console.error('Failed to fetch alerts:', error.message);
         } finally {
             setLoading(false);
         }

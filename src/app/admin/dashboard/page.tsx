@@ -17,13 +17,24 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         fetch('/api/admin/stats')
-            .then(res => res.json())
+            .then(async res => {
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`HTTP ${res.status}: ${text.substring(0, 100)}`);
+                }
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await res.text();
+                    throw new Error(`Expected JSON but got ${contentType}. Body: ${text.substring(0, 100)}`);
+                }
+                return res.json();
+            })
             .then(data => {
                 setStats(data);
                 setLoading(false);
             })
             .catch(err => {
-                console.error("Dashboard stats fetch failed", err);
+                console.error("Dashboard stats fetch failed:", err.message);
                 setLoading(false);
             });
     }, []);
