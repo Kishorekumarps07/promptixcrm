@@ -2,12 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Calendar, User, DollarSign, Bell, CalendarDays, Key, FileText, Briefcase } from 'lucide-react';
+import { Calendar, User, DollarSign, Bell, CalendarDays, Key, FileText, Briefcase, LogOut } from 'lucide-react';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PolicyModal from './PolicyModal';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function QuickActionsCard() {
     const [isPolicyOpen, setIsPolicyOpen] = useState(false);
+    const { logout } = useAuth();
 
     const actions = [
         {
@@ -43,18 +46,22 @@ export default function QuickActionsCard() {
             }
         },
         {
-            label: "Events",
-            href: "/employee/events",
-            icon: <CalendarDays size={20} />,
-            color: "bg-pink-500",
-            desc: "Upcoming events"
-        },
-        {
             label: "Attendance",
             href: "/employee/attendance",
             icon: <Briefcase size={20} />,
             color: "bg-teal-500",
             desc: "View records"
+        },
+        {
+            label: "Sign Out",
+            href: "#",
+            icon: <LogOut size={20} />,
+            color: "bg-red-500",
+            desc: "Securely exit",
+            onClick: (e: React.MouseEvent) => {
+                e.preventDefault();
+                logout();
+            }
         }
     ];
 
