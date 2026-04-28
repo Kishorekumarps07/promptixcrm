@@ -17,9 +17,9 @@ export async function GET(req: Request) {
         if (!payload || payload.role !== 'ADMIN') return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
         // Fetch all employees
-        // Fetch all employees (case insensitive role check)
+        // Fetch all employees (including all sub-roles)
         const employees = await User.find({
-            role: { $in: ['EMPLOYEE', 'Employee', 'employee'] }
+            role: { $in: ['EMPLOYEE', 'MANAGER', 'HR', 'SALES', 'ACCOUNTS', 'MARKETING', 'SUPPORT', 'IT'] }
         })
             .select('name email role status createdAt photo')
             .lean();
@@ -40,6 +40,8 @@ export async function GET(req: Request) {
                 name: emp.name,
                 email: emp.email,
                 photo: emp.photo,
+                role: emp.role,
+                designation: emp.designation,
                 status: emp.status,
                 joinedAt: emp.createdAt,
                 profile: profile ? {

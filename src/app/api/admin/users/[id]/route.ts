@@ -3,6 +3,21 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { hashPassword } from '@/lib/auth';
 
+// GET Individual User
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    await dbConnect();
+    const { id } = await params;
+    try {
+        const user = await User.findById(id).select('-password');
+        if (!user) {
+            return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        }
+        return NextResponse.json({ user });
+    } catch (err: any) {
+        return NextResponse.json({ message: err.message }, { status: 500 });
+    }
+}
+
 // UPDATE User Details
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();

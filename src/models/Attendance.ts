@@ -45,6 +45,14 @@ const AttendanceSchema = new mongoose.Schema({
     lateMinutes: {
         type: Number,
         default: 0
+    },
+    remarks: {
+        type: String,
+        default: ''
+    },
+    isLocked: {
+        type: Boolean,
+        default: false
     }
 });
 

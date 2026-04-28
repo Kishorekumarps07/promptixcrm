@@ -6,14 +6,21 @@ import AdvancedTable from '@/components/ui/AdvancedTable';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Eye, Mail, Phone, Briefcase, Calendar, ShieldCheck, MapPin } from 'lucide-react';
+import { Eye, Mail, Phone, Briefcase, Calendar, ShieldCheck, MapPin, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
+import { toast } from 'sonner';
 
 export default function AdminEmployeeProfiles() {
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    const fetchEmployees = () => {
+        console.log("[DEBUG] Fetching employees...");
+        setLoading(true);
         fetch('/api/admin/employee-profiles')
             .then(res => res.json())
             .then(data => {
@@ -24,7 +31,29 @@ export default function AdminEmployeeProfiles() {
                 console.error("Failed to load profiles", err);
                 setLoading(false);
             });
-    }, []);
+    };
+
+    const handleDelete = async (id: string, name: string) => {
+        console.log("[DEBUG] handleDelete called for:", id, name);
+        if (!window.confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+            console.log("[DEBUG] Deletion cancelled by user");
+            return;
+        }
+
+        console.log("[DEBUG] Proceeding with deletion of:", id);
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                toast.success('Employee deleted successfully');
+                fetchEmployees();
+            } else {
+                const data = await res.json();
+                toast.error(data.message || 'Failed to delete employee');
+            }
+        } catch (error) {
+            toast.error('Network error. Please try again.');
+        }
+    };
 
     const columns = [
         {
@@ -76,12 +105,20 @@ export default function AdminEmployeeProfiles() {
         {
             header: 'Action',
             accessor: (emp: any) => (
-                <Link
-                    href={`/admin/employee-profiles/${emp._id}`}
-                    className="inline-flex items-center px-3 py-1.5 rounded-lg bg-navy-50 text-navy-700 hover:bg-navy-900 hover:text-white transition-all text-xs font-bold gap-1"
-                >
-                    <Eye size={14} /> View
-                </Link>
+                <div className="flex items-center gap-2">
+                    <Link
+                        href={`/admin/employee-profiles/${emp._id}`}
+                        className="inline-flex items-center px-3 py-1.5 rounded-lg bg-navy-50 text-navy-700 hover:bg-navy-900 hover:text-white transition-all text-xs font-bold gap-1"
+                    >
+                        <Eye size={14} /> View
+                    </Link>
+                    <button
+                        onClick={() => handleDelete(emp._id, emp.name)}
+                        className="inline-flex items-center px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all text-xs font-bold gap-1 border border-red-100"
+                    >
+                        <Trash2 size={14} className="pointer-events-none" /> Delete
+                    </button>
+                </div>
             )
         }
     ];
@@ -128,10 +165,16 @@ export default function AdminEmployeeProfiles() {
                     <h3 className="font-bold text-lg text-navy-900 leading-tight group-hover:text-orange-600 transition-colors">
                         {emp.name || 'Unknown'}
                     </h3>
-                    <p className="text-sm text-indigo-600 font-semibold mt-0.5">{emp.profile?.designation || 'No Designation'}</p>
-                    {emp.profile?.department && (
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{emp.profile.department}</p>
-                    )}
+                    <p className="text-sm text-indigo-600 font-semibold mt-0.5">{emp.designation || emp.profile?.designation || 'General Staff'}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{emp.role}</span>
+                        {emp.profile?.department && (
+                            <>
+                                <span className="text-[10px] text-gray-300">•</span>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{emp.profile.department}</span>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-2.5 mb-6 flex-1">
@@ -157,12 +200,21 @@ export default function AdminEmployeeProfiles() {
                     </div>
                 </div>
 
-                <Link
-                    href={`/admin/employee-profiles/${emp._id}`}
-                    className="w-full py-2.5 rounded-xl bg-gray-50 hover:bg-navy-900 text-navy-700 hover:text-white font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 border border-gray-100 hover:border-navy-900 group-hover:shadow-lg group-hover:shadow-navy-900/10"
-                >
-                    View Full Profile
-                </Link>
+                <div className="flex gap-2">
+                    <Link
+                        href={`/admin/employee-profiles/${emp._id}`}
+                        className="flex-1 py-2.5 rounded-xl bg-gray-50 hover:bg-navy-900 text-navy-700 hover:text-white font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 border border-gray-100 hover:border-navy-900 group-hover:shadow-lg group-hover:shadow-navy-900/10"
+                    >
+                        View Full Profile
+                    </Link>
+                    <button
+                        onClick={() => handleDelete(emp._id, emp.name)}
+                        className="px-3 rounded-xl bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-all border border-red-100 shadow-sm"
+                        title="Delete Employee"
+                    >
+                        <Trash2 size={16} className="pointer-events-none" />
+                    </button>
+                </div>
             </div>
         </ModernGlassCard>
     );

@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import AdvancedTable from '@/components/ui/AdvancedTable';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
-import { CheckCircle, XCircle, Clock, Calendar, FileText, Check, X, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Calendar, FileText, Check, X, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminLeaves() {
@@ -62,6 +62,32 @@ export default function AdminLeaves() {
                 return `Error: ${err.message}`;
             }
         });
+    };
+
+    const handleDelete = async (id: string) => {
+        console.log("[DEBUG] handleDelete leave called for:", id);
+        if (!window.confirm('Are you sure you want to delete this leave request? This cannot be undone.')) {
+            console.log("[DEBUG] Leave deletion cancelled");
+            return;
+        }
+        
+        console.log("[DEBUG] Proceeding with leave deletion:", id);
+        setActionLoading(id + 'delete');
+        try {
+            const res = await fetch(`/api/admin/leaves/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            
+            if (res.ok) {
+                toast.success('Leave request deleted');
+                setLeaves(prev => prev.filter(l => l._id !== id));
+            } else {
+                toast.error(data.message || 'Failed to delete');
+            }
+        } catch (e) {
+            toast.error('Network error');
+        } finally {
+            setActionLoading(null);
+        }
     };
 
     // Derived Data for Summary
@@ -149,7 +175,18 @@ export default function AdminLeaves() {
         {
             header: "Actions",
             accessor: (item: any) => {
-                if (item.status !== 'Pending') return <span className="text-gray-300 text-sm font-medium italic">Completed</span>;
+                if (item.status !== 'Pending') {
+                    return (
+                        <button
+                            onClick={() => handleDelete(item._id)}
+                            disabled={actionLoading === item._id + 'delete' || item.isLocked}
+                            className="p-2 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all shadow-sm border border-gray-100 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100"
+                            title="Delete History Record"
+                        >
+                            {actionLoading === item._id + 'delete' ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} className="pointer-events-none" />}
+                        </button>
+                    );
+                }
 
                 return (
                     <div className="flex gap-2">
@@ -168,6 +205,14 @@ export default function AdminLeaves() {
                             title="Reject Request"
                         >
                             {actionLoading === item._id + 'Rejected' ? <Loader2 size={16} className="animate-spin" /> : <X size={16} strokeWidth={3} />}
+                        </button>
+                        <button
+                            onClick={() => handleDelete(item._id)}
+                            disabled={actionLoading === item._id + 'delete' || item.isLocked}
+                            className="p-2 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all shadow-sm border border-gray-100 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100"
+                            title="Delete Request"
+                        >
+                            {actionLoading === item._id + 'delete' ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} className="pointer-events-none" />}
                         </button>
                     </div>
                 );

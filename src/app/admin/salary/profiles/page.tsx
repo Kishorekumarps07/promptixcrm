@@ -5,7 +5,8 @@ import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { useRouter } from 'next/navigation';
-import { DollarSign, User, Calendar, Edit2, Save, X, Calculator, ShieldCheck, AlertCircle } from 'lucide-react';
+import { DollarSign, User, Calendar, Edit2, Save, X, Calculator, ShieldCheck, AlertCircle, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SalaryProfiles() {
     const [employees, setEmployees] = useState<any[]>([]);
@@ -68,6 +69,27 @@ export default function SalaryProfiles() {
             console.error(e);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleDeleteProfile = async (id: string, name: string) => {
+        console.log("[DEBUG] handleDeleteProfile called for:", id, name);
+        if (!window.confirm(`Are you sure you want to remove the salary profile for ${name}? This will stop automatic salary generation for them.`)) {
+            console.log("[DEBUG] Salary profile deletion cancelled");
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/salary/profile?employeeId=${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                toast.success('Salary profile removed');
+                fetchProfiles();
+            } else {
+                const data = await res.json();
+                toast.error(data.message || 'Failed to delete');
+            }
+        } catch (e) {
+            toast.error('Network error');
         }
     };
 
@@ -144,12 +166,23 @@ export default function SalaryProfiles() {
                                         </div>
                                     )}
 
-                                    <button
-                                        onClick={() => handleEdit(emp)}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-900 text-white text-xs font-bold hover:bg-indigo-600 transition-colors shadow-lg shadow-navy-900/10 hover:shadow-indigo-600/20 active:scale-95"
-                                    >
-                                        <Edit2 size={12} /> {emp.salaryProfile ? 'Modify' : 'Assign'}
-                                    </button>
+                                    <div className="flex gap-2">
+                                        {emp.salaryProfile && (
+                                            <button
+                                                onClick={() => handleDeleteProfile(emp._id, emp.name)}
+                                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100"
+                                                title="Delete Profile"
+                                            >
+                                                <Trash2 size={16} className="pointer-events-none" />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleEdit(emp)}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-navy-900 text-white text-xs font-bold hover:bg-indigo-600 transition-colors shadow-lg shadow-navy-900/10 hover:shadow-indigo-600/20 active:scale-95"
+                                        >
+                                            <Edit2 size={12} /> {emp.salaryProfile ? 'Modify' : 'Assign'}
+                                        </button>
+                                    </div>
                                 </div>
                             </ModernGlassCard>
                         ))

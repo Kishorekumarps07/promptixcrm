@@ -16,7 +16,7 @@ import {
     addMonths,
     subMonths
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, X, User, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, Filter, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, User, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, Filter, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getHoliday } from '@/utils/holidays';
 import * as XLSX from 'xlsx';
@@ -111,6 +111,33 @@ export default function AdminAttendance() {
                 return `Error: ${err.message}`;
             },
         });
+    };
+
+    const handleDeleteRecord = async (id: string) => {
+        console.log("[DEBUG] handleDeleteRecord called for:", id);
+        if (!window.confirm('Are you sure you want to delete this attendance log? This cannot be undone.')) {
+            console.log("[DEBUG] Attendance deletion cancelled");
+            return;
+        }
+        
+        console.log("[DEBUG] Proceeding with attendance deletion:", id);
+        setActionId(id + 'delete');
+        try {
+            const res = await fetch(`/api/admin/attendance/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            
+            if (res.ok) {
+                toast.success('Record deleted');
+                setDayRecords(prev => prev.filter(r => r._id !== id));
+                setAttendanceData(prev => prev.filter(r => r._id !== id));
+            } else {
+                toast.error(data.message || 'Failed to delete');
+            }
+        } catch (e) {
+            toast.error('Network error');
+        } finally {
+            setActionId(null);
+        }
     };
 
     const handleExport = () => {
@@ -322,6 +349,17 @@ export default function AdminAttendance() {
                                                         }`}>
                                                         {record.status}
                                                     </span>
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteRecord(record._id);
+                                                        }}
+                                                        disabled={actionId === record._id + 'delete' || record.isLocked}
+                                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30"
+                                                        title="Delete Record"
+                                                    >
+                                                        {actionId === record._id + 'delete' ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} className="pointer-events-none" />}
+                                                    </button>
                                                 </div>
 
                                                 <div className="flex rounded-xl bg-gray-50 border border-gray-100 overflow-hidden mb-4">

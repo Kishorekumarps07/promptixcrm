@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import MonthlySalary from '@/models/MonthlySalary';
-import AuditLog from '@/models/AuditLog';
+import { logAction } from '@/lib/audit';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
@@ -58,12 +58,13 @@ export async function PATCH(req: Request) {
         await salary.save();
 
         // Create audit log
-        await AuditLog.create({
-            userId: userInfo.userId,
+        await logAction({
             action: 'SALARY_PAID',
-            targetModel: 'MonthlySalary',
-            targetId: salary._id,
-            details: {
+            entityType: 'MonthlySalary',
+            entityId: salary._id.toString(),
+            performedBy: userInfo.userId,
+            role: userInfo.role,
+            metadata: {
                 employeeId: salary.employeeId._id,
                 employeeName: salary.employeeId.name,
                 month: salary.month,

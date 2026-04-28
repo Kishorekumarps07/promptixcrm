@@ -61,7 +61,13 @@ const MonthlySalarySchema = new mongoose.Schema({
     },
     transactionReference: {
         type: String
-    }
+    },
+    dailyBreakdown: [{
+        date: Date,
+        status: String,
+        type: String,
+        remarks: String
+    }]
 }, { timestamps: true });
 
 // Prevent duplicate generation for same employee/month/year

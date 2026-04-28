@@ -6,7 +6,7 @@ import Image from 'next/image';
 import PageHeader from '@/components/ui/PageHeader';
 import AdvancedTable from '@/components/ui/AdvancedTable';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
-import { UserPlus, Trash2, CheckCircle, XCircle, Users, Mail, Phone, Shield, Camera, X, Loader2, Edit, AlertCircle, Save } from 'lucide-react';
+import { UserPlus, Trash2, CheckCircle, XCircle, Users, Mail, Phone, Shield, Camera, X, Loader2, Edit, AlertCircle, Save, FileText, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminUsers() {
@@ -15,14 +15,15 @@ export default function AdminUsers() {
 
     // Modal & Form States
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'EMPLOYEE', phone: '', photo: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'EMPLOYEE', designation: '', phone: '', photo: '' });
     const [uploading, setUploading] = useState(false);
     const [editingUser, setEditingUser] = useState<any>(null);
 
     // Bulk Actions State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'ALL' | 'EMPLOYEE' | 'ADMIN'>('EMPLOYEE');
+    const [activeTab, setActiveTab] = useState<'ALL' | 'EMPLOYEE' | 'ADMIN' | 'MANAGER' | 'HR' | 'SALES' | 'ACCOUNTS' | 'MARKETING' | 'SUPPORT' | 'IT'>('ALL');
+    const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('GRID');
 
     useEffect(() => {
         fetchUsers();
@@ -165,7 +166,7 @@ export default function AdminUsers() {
 
     const openCreateModal = () => {
         setEditingUser(null);
-        setFormData({ name: '', email: '', password: '', role: 'EMPLOYEE', phone: '', photo: '' });
+        setFormData({ name: '', email: '', password: '', role: 'EMPLOYEE', designation: '', phone: '', photo: '' });
         setIsModalOpen(true);
     };
 
@@ -176,6 +177,7 @@ export default function AdminUsers() {
             email: user.email,
             password: '',
             role: user.role,
+            designation: user.designation || '',
             phone: user.phone || '',
             photo: user.photo || ''
         });
@@ -287,69 +289,193 @@ export default function AdminUsers() {
                     subtitle="Control access and manage user accounts"
                     breadcrumbs={[{ label: 'Admin', href: '/admin/dashboard' }, { label: 'Users' }]}
                     actions={
-                        <button
-                            onClick={openCreateModal}
-                            className="bg-navy-900 hover:bg-navy-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-navy-900/20 transition-all flex items-center gap-2 hover:-translate-y-0.5"
-                        >
-                            <UserPlus size={18} /> Add User
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="flex bg-white/50 backdrop-blur-sm p-1 rounded-xl border border-gray-200 shadow-sm">
+                                <button 
+                                    onClick={() => setViewMode('GRID')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'GRID' ? 'bg-navy-900 text-white shadow-md' : 'text-gray-400 hover:text-navy-900'}`}
+                                >
+                                    <Users size={18} />
+                                </button>
+                                <button 
+                                    onClick={() => setViewMode('TABLE')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'TABLE' ? 'bg-navy-900 text-white shadow-md' : 'text-gray-400 hover:text-navy-900'}`}
+                                >
+                                    <FileText size={18} />
+                                </button>
+                            </div>
+                            <button
+                                onClick={openCreateModal}
+                                className="bg-navy-900 hover:bg-navy-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-navy-900/20 transition-all flex items-center gap-2 hover:-translate-y-0.5"
+                            >
+                                <UserPlus size={18} /> Add User
+                            </button>
+                        </div>
                     }
                 />
 
+                {/* Stats Overview */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                    <ModernGlassCard className="!p-4 border-l-4 border-l-indigo-500">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Users</div>
+                        <div className="text-2xl font-black text-navy-900 mt-1">{users.length}</div>
+                    </ModernGlassCard>
+                    <ModernGlassCard className="!p-4 border-l-4 border-l-green-500">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Active</div>
+                        <div className="text-2xl font-black text-green-600 mt-1">{users.filter(u => u.status === 'Active').length}</div>
+                    </ModernGlassCard>
+                    <ModernGlassCard className="!p-4 border-l-4 border-l-orange-500">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Admins</div>
+                        <div className="text-2xl font-black text-orange-600 mt-1">{users.filter(u => u.role === 'ADMIN').length}</div>
+                    </ModernGlassCard>
+                    <ModernGlassCard className="!p-4 border-l-4 border-l-red-500">
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Inactive</div>
+                        <div className="text-2xl font-black text-red-600 mt-1">{users.filter(u => u.status === 'Inactive').length}</div>
+                    </ModernGlassCard>
+                </div>
+
                 <ModernGlassCard className="mt-6 !p-0 overflow-hidden">
                     {/* Tabs */}
-                    <div className="flex border-b border-gray-100 bg-white/50 backdrop-blur-sm px-6">
-                        {['EMPLOYEE', 'ADMIN', 'ALL'].map((tab) => (
+                    <div className="flex border-b border-gray-100 bg-white/50 backdrop-blur-sm px-6 overflow-x-auto scrollbar-hide gap-4">
+                        {['ALL', 'EMPLOYEE', 'MANAGER', 'HR', 'SALES', 'ACCOUNTS', 'MARKETING', 'SUPPORT', 'IT', 'ADMIN'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => { setActiveTab(tab as any); setSelectedIds([]); }}
-                                className={`px-6 py-4 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === tab
-                                    ? 'border-orange-500 text-orange-600 bg-orange-50/50'
-                                    : 'border-transparent text-gray-500 hover:text-navy-900 hover:bg-gray-50'
+                                className={`px-4 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === tab
+                                    ? 'border-navy-900 text-navy-900'
+                                    : 'border-transparent text-gray-400 hover:text-gray-600'
                                     }`}
                             >
-                                {tab === 'ALL' ? 'All Roles' : tab}
+                                {tab === 'ALL' ? 'All Accounts' : tab}
                             </button>
                         ))}
                     </div>
 
-                    <AdvancedTable
-                        data={users}
-                        columns={columns}
-                        keyField="_id"
-                        isLoading={loading}
-                        onSelectionChange={setSelectedIds}
-                        actions={
-                            <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
-                                <button 
-                                    onClick={() => handleBulkAction('activate')} 
-                                    disabled={actionLoading === 'bulk-activate'}
-                                    className="p-1.5 hover:bg-white text-green-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
-                                    title="Activate Selected"
-                                >
-                                    {actionLoading === 'bulk-activate' ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-                                </button>
-                                <div className="w-px h-4 bg-gray-200"></div>
-                                <button 
-                                    onClick={() => handleBulkAction('deactivate')} 
-                                    disabled={actionLoading === 'bulk-deactivate'}
-                                    className="p-1.5 hover:bg-white text-orange-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
-                                    title="Deactivate Selected"
-                                >
-                                    {actionLoading === 'bulk-deactivate' ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
-                                </button>
-                                <div className="w-px h-4 bg-gray-200"></div>
-                                <button 
-                                    onClick={() => handleBulkAction('delete')} 
-                                    disabled={actionLoading === 'bulk-delete'}
-                                    className="p-1.5 hover:bg-white text-red-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
-                                    title="Delete Selected"
-                                >
-                                    {actionLoading === 'bulk-delete' ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                </button>
-                            </div>
-                        }
-                    />
+                    {viewMode === 'TABLE' ? (
+                        <AdvancedTable
+                            data={users}
+                            columns={columns}
+                            keyField="_id"
+                            isLoading={loading}
+                            onSelectionChange={setSelectedIds}
+                            actions={
+                                <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                                    <button 
+                                        onClick={() => handleBulkAction('activate')} 
+                                        disabled={actionLoading === 'bulk-activate'}
+                                        className="p-1.5 hover:bg-white text-green-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
+                                        title="Activate Selected"
+                                    >
+                                        {actionLoading === 'bulk-activate' ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                                    </button>
+                                    <div className="w-px h-4 bg-gray-200"></div>
+                                    <button 
+                                        onClick={() => handleBulkAction('deactivate')} 
+                                        disabled={actionLoading === 'bulk-deactivate'}
+                                        className="p-1.5 hover:bg-white text-orange-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
+                                        title="Deactivate Selected"
+                                    >
+                                        {actionLoading === 'bulk-deactivate' ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                                    </button>
+                                    <div className="w-px h-4 bg-gray-200"></div>
+                                    <button 
+                                        onClick={() => handleBulkAction('delete')} 
+                                        disabled={actionLoading === 'bulk-delete'}
+                                        className="p-1.5 hover:bg-white text-red-600 rounded-md shadow-sm transition-all disabled:opacity-50" 
+                                        title="Delete Selected"
+                                    >
+                                        {actionLoading === 'bulk-delete' ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                    </button>
+                                </div>
+                            }
+                        />
+                    ) : (
+                        <div className="p-6">
+                            {loading ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {[...Array(6)].map((_, i) => (
+                                        <div key={i} className="h-48 bg-gray-100 rounded-2xl animate-pulse"></div>
+                                    ))}
+                                </div>
+                            ) : users.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {users.map((user, idx) => (
+                                        <ModernGlassCard key={user._id} delay={idx * 0.05} className="group hover:shadow-xl transition-all border-gray-100">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="relative w-14 h-14">
+                                                        {user.photo ? (
+                                                            <Image src={user.photo} alt={user.name} fill className="object-cover rounded-2xl shadow-sm border border-white" />
+                                                        ) : (
+                                                            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-200">
+                                                                {user.name?.charAt(0)}
+                                                            </div>
+                                                        )}
+                                                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${user.status === 'Active' ? 'bg-green-500 shadow-sm shadow-green-500/50' : 'bg-gray-400 shadow-sm'}`} />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-navy-900 group-hover:text-indigo-600 transition-colors">{user.name}</h3>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{user.role}</span>
+                                                            {user.designation && (
+                                                                <span className="text-[10px] font-medium text-gray-400 italic">({user.designation})</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    <button onClick={() => openEditModal(user)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"><Edit size={16} /></button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="mt-6 space-y-2">
+                                                <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+                                                    <Mail size={14} className="text-gray-400" /> {user.email}
+                                                </div>
+                                                {user.phone && (
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+                                                        <Phone size={14} className="text-gray-400" /> {user.phone}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                                                <span className={`text-[10px] font-black uppercase tracking-tighter ${user.status === 'Active' ? 'text-green-500' : 'text-gray-400'}`}>
+                                                    Account {user.status}
+                                                </span>
+                                                <div className="flex gap-2">
+                                                    {user.status === 'Inactive' ? (
+                                                        <button 
+                                                            onClick={() => handleSingleStatusUpdate(user._id, 'activate')}
+                                                            className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold hover:bg-green-600 hover:text-white transition-all"
+                                                        >
+                                                            Activate
+                                                        </button>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => handleSingleStatusUpdate(user._id, 'deactivate')}
+                                                            className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-bold hover:bg-orange-600 hover:text-white transition-all"
+                                                        >
+                                                            Suspend
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </ModernGlassCard>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="py-20 text-center flex flex-col items-center justify-center">
+                                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-4">
+                                        <Users size={40} />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-navy-900">No users found</h3>
+                                    <p className="text-sm text-gray-500 mt-1 max-w-xs">There are no accounts matching your current filter in the system.</p>
+                                    <button onClick={openCreateModal} className="mt-6 px-6 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-600 hover:text-white transition-all">Add First User</button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </ModernGlassCard>
 
                 {/* Create/Edit Modal */}
@@ -417,12 +543,36 @@ export default function AdminUsers() {
                                                 onChange={e => setFormData({ ...formData, role: e.target.value })}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-semibold appearance-none"
                                             >
-                                                <option value="EMPLOYEE">Employee</option>
-                                                <option value="ADMIN">Admin</option>
+                                                <option value="ADMIN">System Administrator</option>
+                                                <option value="MANAGER">Operations Manager</option>
+                                                <option value="HR">HR & Recruitment</option>
+                                                <option value="ACCOUNTS">Finance & Accounts</option>
+                                                <option value="SALES">Sales Executive</option>
+                                                <option value="MARKETING">Marketing & Growth</option>
+                                                <option value="SUPPORT">Customer Support</option>
+                                                <option value="IT">IT & Tech Support</option>
+                                                <option value="EMPLOYEE">General Employee</option>
                                             </select>
-                                            <Shield size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <Shield size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" />
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Sub Role / Designation</label>
+                                    <div className="relative">
+                                        <input
+                                            value={formData.designation}
+                                            onChange={e => setFormData({ ...formData, designation: e.target.value })}
+                                            className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-semibold"
+                                            placeholder="e.g. Senior Full Stack Developer"
+                                        />
+                                        <Briefcase size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 font-medium px-1">Specific job title within the department.</p>
                                 </div>
 
                                 <div className="space-y-1.5">

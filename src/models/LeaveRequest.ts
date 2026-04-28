@@ -44,6 +44,10 @@ const LeaveRequestSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    isLocked: {
+        type: Boolean,
+        default: false
+    }
 });
 
 // Index for fetching user history and admin filtering

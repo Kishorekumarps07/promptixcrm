@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
-import AuditLog from '@/models/AuditLog';
+import { logAction } from '@/lib/audit';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -51,10 +51,13 @@ export async function POST(req: Request) {
         user.forcePasswordChange = false; // Clear flag
         await user.save();
 
-        await AuditLog.create({
+        await logAction({
             action: 'PASSWORD_CHANGE_USER',
+            entityType: 'User',
+            entityId: userInfo.userId,
             performedBy: userInfo.userId,
-            details: { email: userInfo.email }
+            role: userInfo.role,
+            metadata: { email: userInfo.email }
         });
 
         return NextResponse.json({ message: 'Password changed successfully.' });

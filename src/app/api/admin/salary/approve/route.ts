@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import MonthlySalary from '@/models/MonthlySalary';
 import Notification from '@/models/Notification';
-import AuditLog from '@/models/AuditLog';
+import { logAction } from '@/lib/audit';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
@@ -54,8 +54,23 @@ export async function POST(req: Request) {
 
         await salary.save();
 
+        // LOCK Attendance and Leaves
+        const startDate = new Date(salary.year, salary.month, 1);
+        const endDate = new Date(salary.year, salary.month + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
+
+        await Attendance.updateMany(
+            { userId: salary.employeeId._id, date: { $gte: startDate, $lte: endDate } },
+            { $set: { isLocked: true } }
+        );
+
+        await LeaveRequest.updateMany(
+            { userId: salary.employeeId._id, fromDate: { $lte: endDate }, toDate: { $gte: startDate } },
+            { $set: { isLocked: true } }
+        );
+
         // Create Notification for Employee
-        const employee = await MonthlySalary.findById(salaryId).populate('employeeId'); // Need role from employeeId? populate 'employeeId' returns User object which has role.
+        const employee = await MonthlySalary.findById(salaryId).populate('employeeId');
         // Wait, line 38 already populated: .populate('employeeId', 'name email'). It DID NOT populate role.
         // I need to add 'role' to population or fetch it.
 
@@ -63,11 +78,13 @@ export async function POST(req: Request) {
         // Actually, easiest is to just update line 38 to include role.
 
         // Create Audit Log
-        await AuditLog.create({
+        await logAction({
             action: 'SALARY_APPROVE',
+            entityType: 'MonthlySalary',
+            entityId: salary._id.toString(),
             performedBy: userInfo.userId,
-            details: {
-                salaryId: salary._id,
+            role: userInfo.role,
+            metadata: {
                 employeeName: salary.employeeId.name,
                 month: salary.month,
                 year: salary.year,

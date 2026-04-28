@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
-import { Check, Download, DollarSign, Calendar, CreditCard, Play, FileText, AlertCircle, CheckCircle, Search, X } from 'lucide-react';
+import { Check, Download, DollarSign, Calendar, CreditCard, Play, FileText, AlertCircle, CheckCircle, Search, X, Info, MessageSquare, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ModernConfirmModal from '@/components/ui/ModernConfirmModal';
 
@@ -17,7 +17,9 @@ export default function SalaryGeneration() {
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [showPayModal, setShowPayModal] = useState(false);
+    const [showBreakdownModal, setShowBreakdownModal] = useState(false);
     const [selectedSalary, setSelectedSalary] = useState<any>(null);
+    const [pendingCount, setPendingCount] = useState(0);
     const [paymentDate, setPaymentDate] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
     const [transactionRef, setTransactionRef] = useState('');
@@ -39,6 +41,7 @@ export default function SalaryGeneration() {
 
     useEffect(() => {
         fetchSalaries();
+        checkPendingRecords();
     }, [month, year]);
 
     const fetchSalaries = async () => {
@@ -51,6 +54,16 @@ export default function SalaryGeneration() {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const checkPendingRecords = async () => {
+        try {
+            const res = await fetch(`/api/admin/stats/pending?month=${month}&year=${year}`);
+            const data = await res.json();
+            setPendingCount(data.totalPending || 0);
+        } catch (e) {
+            console.error(e);
         }
     };
 
@@ -85,6 +98,29 @@ export default function SalaryGeneration() {
                     console.error(e);
                 } finally {
                     setGenerating(false);
+                }
+            }
+        });
+    };
+
+    const handleDelete = async (id: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Salary Record',
+            message: 'Are you sure you want to delete this salary record? This will also unlock the associated attendance for that month.',
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/admin/salary/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        toast.success('Salary record deleted');
+                        fetchSalaries();
+                    } else {
+                        const data = await res.json();
+                        toast.error(data.message || 'Failed to delete');
+                    }
+                } catch (e) {
+                    toast.error('Network error');
                 }
             }
         });
@@ -209,6 +245,22 @@ export default function SalaryGeneration() {
                         </div>
                     }
                 />
+
+                {pendingCount > 0 && (
+                    <div className="mt-6 bg-orange-100 border-2 border-orange-200 p-4 rounded-2xl flex items-center gap-4 text-orange-800 shadow-lg shadow-orange-500/10 animate-pulse">
+                        <AlertCircle className="shrink-0" size={24} />
+                        <div className="flex-1">
+                            <p className="font-black text-sm uppercase tracking-wider">Incomplete Data Detected</p>
+                            <p className="text-sm font-medium opacity-90">There are {pendingCount} pending attendance or leave requests for this month. You must approve or reject them before you can run the payroll batch.</p>
+                        </div>
+                        <button 
+                            onClick={() => window.location.href = '/admin/attendance'}
+                            className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-all shadow-md shadow-orange-600/20"
+                        >
+                            Fix Now
+                        </button>
+                    </div>
+                )}
 
                 <div className="mt-8 mb-8">
                     <ModernGlassCard className="p-8 bg-gradient-to-br from-orange-50/50 via-white to-blue-50/30 border border-orange-100">
@@ -396,12 +448,31 @@ export default function SalaryGeneration() {
                                                 </button>
                                             )}
                                             <button
+                                                onClick={() => {
+                                                    setSelectedSalary(salary);
+                                                    setShowBreakdownModal(true);
+                                                }}
+                                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors tooltip"
+                                                title="View Daily Breakdown"
+                                            >
+                                                <Info size={20} />
+                                            </button>
+                                            <button
                                                 onClick={() => handleDownloadPDF(salary)}
                                                 className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors tooltip"
                                                 title="Download Slip"
                                             >
                                                 <FileText size={20} />
                                             </button>
+                                            {salary.status !== 'Paid' && (
+                                                <button
+                                                    onClick={() => handleDelete(salary._id)}
+                                                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors tooltip"
+                                                    title="Delete Draft/Approved Salary"
+                                                >
+                                                    <Trash2 size={20} />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -490,6 +561,59 @@ export default function SalaryGeneration() {
                     message={confirmModal.message}
                     variant={confirmModal.variant}
                 />
+
+                {/* Daily Breakdown Modal */}
+                {showBreakdownModal && selectedSalary && (
+                    <div className="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowBreakdownModal(false)}>
+                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                            <div className="p-6 bg-navy-900 text-white flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-xl font-bold">Daily Breakdown</h3>
+                                    <p className="text-navy-300 text-xs">Verification for {selectedSalary.employeeId?.name} - {monthNames[selectedSalary.month]} {selectedSalary.year}</p>
+                                </div>
+                                <button onClick={() => setShowBreakdownModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X /></button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6">
+                                <div className="space-y-3">
+                                    {selectedSalary.dailyBreakdown?.map((day: any, i: number) => (
+                                        <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <div className="w-10 text-center">
+                                                <div className="text-xs font-bold text-gray-400 uppercase">{format(new Date(day.date), 'EEE')}</div>
+                                                <div className="text-lg font-black text-navy-900">{format(new Date(day.date), 'd')}</div>
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                                        day.status === 'Present' ? 'bg-green-100 text-green-700' :
+                                                        day.status === 'Leave' ? 'bg-purple-100 text-purple-700' :
+                                                        day.status === 'Absent' ? 'bg-red-100 text-red-700' :
+                                                        'bg-gray-200 text-gray-600'
+                                                    }`}>
+                                                        {day.status}
+                                                    </span>
+                                                    <span className="text-xs font-medium text-gray-500">({day.type})</span>
+                                                </div>
+                                                {day.remarks && (
+                                                    <div className="text-[11px] text-gray-500 mt-1 italic flex items-center gap-1">
+                                                        <MessageSquare size={10} className="text-orange-500" /> {day.remarks}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!selectedSalary.dailyBreakdown || selectedSalary.dailyBreakdown.length === 0) && (
+                                        <div className="py-10 text-center text-gray-400 italic">No daily breakdown data available for this record.</div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+                                <button onClick={() => setShowBreakdownModal(false)} className="px-6 py-2 bg-navy-900 text-white rounded-xl font-bold">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

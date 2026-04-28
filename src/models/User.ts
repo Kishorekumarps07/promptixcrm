@@ -21,13 +21,17 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    designation: {
+        type: String,
+        default: '',
+    },
     password: {
         type: String,
         required: [true, 'Please provide a password for this user.'],
     },
     role: {
         type: String,
-        enum: ['ADMIN', 'MANAGER', 'EMPLOYEE'], // Changed enum to include 'MANAGER'
+        enum: ['ADMIN', 'MANAGER', 'EMPLOYEE', 'HR', 'SALES', 'ACCOUNTS', 'MARKETING', 'SUPPORT', 'IT'],
         default: 'EMPLOYEE',
     },
     status: {

@@ -343,6 +343,15 @@ export default function AdminEmployeeProfileDetail({ params }: { params: Promise
 
                     {activeTab === 'attendance' && (
                         <div>
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-bold text-navy-900">Recent Logs</h3>
+                                <Link 
+                                    href={`/admin/employee-profiles/${id}/attendance`}
+                                    className="px-4 py-2 bg-orange-100 text-orange-700 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-orange-200 transition-all border border-orange-200"
+                                >
+                                    <Calendar size={16} /> Manage Full Calendar & Remarks
+                                </Link>
+                            </div>
                             <AdvancedTable
                                 data={attendance}
                                 columns={attendanceColumns}

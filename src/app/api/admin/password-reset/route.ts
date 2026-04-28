@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import PasswordChangeRequest from '@/models/PasswordChangeRequest';
 import User from '@/models/User';
-import AuditLog from '@/models/AuditLog';
+import { logAction } from '@/lib/audit';
 import Notification from '@/models/Notification';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
@@ -74,10 +74,13 @@ export async function POST(req: Request) {
             });
 
             // 4. Audit Log
-            await AuditLog.create({
+            await logAction({
                 action: 'PASSWORD_RESET',
+                entityType: 'User',
+                entityId: request.userId._id.toString(),
                 performedBy: userInfo.userId,
-                details: {
+                role: userInfo.role,
+                metadata: {
                     targetUser: request.userId.email,
                     requestId: request._id
                 }
@@ -103,10 +106,13 @@ export async function POST(req: Request) {
             });
 
             // 3. Audit Log
-            await AuditLog.create({
+            await logAction({
                 action: 'PASSWORD_REQUEST_REJECT',
+                entityType: 'PasswordChangeRequest',
+                entityId: request._id.toString(),
                 performedBy: userInfo.userId,
-                details: {
+                role: userInfo.role,
+                metadata: {
                     targetUser: request.userId.email,
                     requestId: request._id
                 }

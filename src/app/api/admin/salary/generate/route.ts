@@ -52,6 +52,9 @@ export async function POST(req: Request) {
         // Earliest allowed: March (2) 5th.
 
         const generationThresholdDate = new Date(year, month + 1, 5); // 5th of Next Month
+        const startDate = new Date(year, month, 1);
+        const endDate = new Date(year, month + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
 
         // Reset times for clean comparison
         now.setHours(0, 0, 0, 0);
@@ -88,6 +91,32 @@ export async function POST(req: Request) {
                     continue;
                 }
 
+                // Check for PENDING Attendance
+                const pendingAttendance = await Attendance.countDocuments({
+                    userId: profile.employeeId,
+                    date: { $gte: startDate, $lte: endDate },
+                    status: 'Pending'
+                });
+
+                if (pendingAttendance > 0) {
+                    errors.push(`Cannot generate: ${pendingAttendance} pending attendance records for employee ${profile.employeeId}`);
+                    continue;
+                }
+
+                // Check for PENDING Leaves
+                const pendingLeaves = await LeaveRequest.countDocuments({
+                    userId: profile.employeeId,
+                    status: 'Pending',
+                    $or: [
+                        { fromDate: { $lte: endDate }, toDate: { $gte: startDate } }
+                    ]
+                });
+
+                if (pendingLeaves > 0) {
+                    errors.push(`Cannot generate: ${pendingLeaves} pending leave requests for employee ${profile.employeeId}`);
+                    continue;
+                }
+
                 // Use shared calculation function
                 const { calculateEmployeeSalary } = await import('@/lib/salary-calculation');
                 const breakdown = await calculateEmployeeSalary(
@@ -109,6 +138,7 @@ export async function POST(req: Request) {
                     unpaidLeaveDays: breakdown.unpaidLeaveDays,
                     perDayRate: breakdown.perDayRate,
                     calculatedSalary: breakdown.calculatedSalary,
+                    dailyBreakdown: breakdown.dailyBreakdown,
                     status: 'Draft'
                 });
 

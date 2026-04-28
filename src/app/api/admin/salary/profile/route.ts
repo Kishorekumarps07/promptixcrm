@@ -31,7 +31,10 @@ export async function GET(req: Request) {
 
     try {
         // 1. Get all employees
-        const employees = await User.find({ role: { $in: ['EMPLOYEE', 'ADMIN'] } })
+        const employees = await User.find({ 
+            role: { $in: ['EMPLOYEE', 'ADMIN'] },
+            status: 'Active' 
+        })
             .select('name email role photo')
             .lean();
 
@@ -94,6 +97,35 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ message: 'Salary profile saved', profile });
 
+    } catch (error: any) {
+        return NextResponse.json({ message: error.message }, { status: 500 });
+    }
+}
+
+// DELETE: Remove Profile
+export async function DELETE(req: Request) {
+    await dbConnect();
+    const userInfo = await getUserInfo();
+
+    if (!userInfo || userInfo.role !== 'ADMIN') {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+    }
+
+    try {
+        const { searchParams } = new URL(req.url);
+        const employeeId = searchParams.get('employeeId');
+
+        if (!employeeId) {
+            return NextResponse.json({ message: 'Missing employeeId' }, { status: 400 });
+        }
+
+        const deleted = await EmployeeSalaryProfile.findOneAndDelete({ employeeId });
+        
+        if (!deleted) {
+            return NextResponse.json({ message: 'Profile not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'Salary profile deleted successfully' });
     } catch (error: any) {
         return NextResponse.json({ message: error.message }, { status: 500 });
     }

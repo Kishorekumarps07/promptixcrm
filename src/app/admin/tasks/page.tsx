@@ -218,7 +218,7 @@ export default function AdminTasksPage() {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
             task.title.toLowerCase().includes(query) ||
-            task.assignedTo.name.toLowerCase().includes(query);
+            task.assignedTo?.name?.toLowerCase().includes(query);
         const matchesPriority = filterPriority === 'All' || task.priority === filterPriority;
 
         return matchesSearch && matchesPriority;
@@ -327,11 +327,11 @@ export default function AdminTasksPage() {
                                                     <td className="px-6 py-6 text-gray-600">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded-full bg-navy-900 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-navy-900/20">
-                                                                {task.assignedTo.name.charAt(0)}
+                                                                {task.assignedTo?.name?.charAt(0) || '?'}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="text-sm font-semibold text-navy-900">{task.assignedTo.name}</span>
-                                                                <span className="text-[10px] text-gray-400">{task.assignedTo.email}</span>
+                                                                <span className="text-sm font-semibold text-navy-900">{task.assignedTo?.name || 'Unassigned'}</span>
+                                                                <span className="text-[10px] text-gray-400">{task.assignedTo?.email || 'No Email'}</span>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -432,9 +432,9 @@ export default function AdminTasksPage() {
                                         <div className="flex items-center justify-between py-2 border-t border-gray-100">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-6 h-6 rounded-full bg-navy-900 flex items-center justify-center text-[10px] font-bold text-white">
-                                                    {task.assignedTo.name.charAt(0)}
+                                                    {task.assignedTo?.name?.charAt(0) || '?'}
                                                 </div>
-                                                <span className="text-xs text-gray-600">{task.assignedTo.name}</span>
+                                                <span className="text-xs text-gray-600">{task.assignedTo?.name || 'Unassigned'}</span>
                                             </div>
                                             <span className={cn(
                                                 "text-xs font-bold uppercase",
