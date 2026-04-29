@@ -11,6 +11,7 @@ import AnnouncementsCard from '@/components/employee/dashboard/AnnouncementsCard
 import UpcomingEventsCard from '@/components/employee/dashboard/UpcomingEventsCard';
 import TaskPerformanceChart from '@/components/employee/dashboard/TaskPerformanceChart';
 import GoalProgressWidget from '@/components/employee/dashboard/GoalProgressWidget';
+import DailySalaryBreakdownModal from '@/components/employee/dashboard/DailySalaryBreakdownModal';
 
 export default function EmployeeDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -20,6 +21,8 @@ export default function EmployeeDashboard() {
     const [userName, setUserName] = useState<string>('Employee');
     const [tasks, setTasks] = useState<any[]>([]);
     const [goals, setGoals] = useState<any[]>([]);
+    const [runningSalary, setRunningSalary] = useState<any>(null);
+    const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -31,15 +34,17 @@ export default function EmployeeDashboard() {
             fetch('/api/employee/salary').then(res => res.json()),
             fetch('/api/employee/profile/status').then(res => res.json()),
             fetch('/api/employee/tasks').then(res => res.json()),
-            fetch('/api/employee/goals').then(res => res.json())
+            fetch('/api/employee/goals').then(res => res.json()),
+            fetch('/api/employee/salary/estimate').then(res => res.json())
         ])
-            .then(([statsData, announcementsData, eventsData, salaryData, profileData, tasksData, goalsData]) => {
+            .then(([statsData, announcementsData, eventsData, salaryData, profileData, tasksData, goalsData, estimateData]) => {
                 setStats(statsData);
                 setAnnouncements(announcementsData.announcements || []);
                 setEvents(eventsData.events || []);
                 setSalaries(salaryData.data || []);
                 setTasks(tasksData.tasks || []);
                 setGoals(goalsData.goals || []);
+                setRunningSalary(estimateData);
 
                 // Prioritize name from DB profile/user, fall back to "Employee"
                 if (profileData && profileData.user && profileData.user.name) {
@@ -132,6 +137,8 @@ export default function EmployeeDashboard() {
                         {/* Salary Preview */}
                         <SalaryPreviewCard
                             latestSalary={latestSalary}
+                            runningSalary={runningSalary}
+                            onViewBreakdown={() => setIsBreakdownOpen(true)}
                         />
 
                         {/* Announcements */}
@@ -146,6 +153,12 @@ export default function EmployeeDashboard() {
                     />
                 </div>
             </main>
+
+            <DailySalaryBreakdownModal 
+                isOpen={isBreakdownOpen}
+                onClose={() => setIsBreakdownOpen(false)}
+                breakdown={runningSalary}
+            />
         </div>
     );
 }

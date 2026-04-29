@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { Search, Eye, Play, FileText, Download, Calendar, IndianRupee, CheckCircle, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import ModernConfirmModal from '@/components/ui/ModernConfirmModal';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
 
 export default function IndividualSalaryPage() {
@@ -19,6 +22,12 @@ export default function IndividualSalaryPage() {
     const [preview, setPreview] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; month: number; year: number }>({ isOpen: false, month: 0, year: 0 });
+
+    // Custom Range States
+    const [isCustomRange, setIsCustomRange] = useState(false);
+    const [customFromDate, setCustomFromDate] = useState('');
+    const [customToDate, setCustomToDate] = useState('');
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -65,7 +74,7 @@ export default function IndividualSalaryPage() {
 
     const handlePreview = async () => {
         if (!selectedEmployee) {
-            alert('Please select an employee');
+            toast.error('Please select an employee');
             return;
         }
 
@@ -78,7 +87,9 @@ export default function IndividualSalaryPage() {
                     employeeId: selectedEmployee._id,
                     month,
                     year,
-                    preview: true
+                    preview: true,
+                    customFromDate: isCustomRange ? customFromDate : undefined,
+                    customToDate: isCustomRange ? customToDate : undefined
                 })
             });
 
@@ -86,10 +97,10 @@ export default function IndividualSalaryPage() {
             if (res.ok) {
                 setPreview(data);
             } else {
-                alert(data.message);
+                toast.error(data.message || 'Failed to preview');
             }
         } catch (error) {
-            alert('Failed to preview salary');
+            toast.error('Failed to preview salary');
         } finally {
             setLoading(false);
         }
@@ -97,14 +108,14 @@ export default function IndividualSalaryPage() {
 
     const handleGenerate = async () => {
         if (!selectedEmployee) {
-            alert('Please select an employee');
+            toast.error('Please select an employee');
             return;
         }
 
-        if (!confirm(`Generate salary for ${selectedEmployee.name} - ${monthNames[month]} ${year}?`)) {
-            return;
-        }
+        setConfirmModal({ isOpen: true, month, year });
+    };
 
+    const confirmGenerate = async () => {
         setGenerating(true);
         try {
             const res = await fetch('/api/admin/salary/individual', {
@@ -112,22 +123,24 @@ export default function IndividualSalaryPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     employeeId: selectedEmployee._id,
-                    month,
-                    year,
-                    preview: false
+                    month: confirmModal.month,
+                    year: confirmModal.year,
+                    preview: false,
+                    customFromDate: isCustomRange ? customFromDate : undefined,
+                    customToDate: isCustomRange ? customToDate : undefined
                 })
             });
 
             const data = await res.json();
             if (res.ok) {
-                alert('Salary generated successfully!');
+                toast.success('Salary generated successfully!');
                 setPreview(null);
                 fetchSalaryHistory();
             } else {
-                alert(data.message);
+                toast.error(data.message || 'Failed to generate');
             }
         } catch (error) {
-            alert('Failed to generate salary');
+            toast.error('Failed to generate salary');
         } finally {
             setGenerating(false);
         }
@@ -224,28 +237,73 @@ export default function IndividualSalaryPage() {
                                 {/* Generation Controls */}
                                 <ModernGlassCard title={`Generate Salary for ${selectedEmployee.name}`}>
                                     <div className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Year</label>
-                                                <select
-                                                    value={year}
-                                                    onChange={(e) => setYear(Number(e.target.value))}
-                                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                                            <h3 className="text-sm font-bold text-navy-900 flex items-center gap-2">
+                                                <Calendar className="w-4 h-4 text-orange-500" />
+                                                Payroll Period
+                                            </h3>
+                                            
+                                            <div className="flex bg-gray-100 p-1 rounded-xl w-fit">
+                                                <button 
+                                                    onClick={() => setIsCustomRange(false)}
+                                                    className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${!isCustomRange ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
                                                 >
-                                                    {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-                                                </select>
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Month</label>
-                                                <select
-                                                    value={month}
-                                                    onChange={(e) => setMonth(Number(e.target.value))}
-                                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                                                    Monthly
+                                                </button>
+                                                <button 
+                                                    onClick={() => setIsCustomRange(true)}
+                                                    className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${isCustomRange ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
                                                 >
-                                                    {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                                                </select>
+                                                    Custom
+                                                </button>
                                             </div>
                                         </div>
+
+                                        {!isCustomRange ? (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Year</label>
+                                                    <select
+                                                        value={year}
+                                                        onChange={(e) => setYear(Number(e.target.value))}
+                                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                                                    >
+                                                        {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Month</label>
+                                                    <select
+                                                        value={month}
+                                                        onChange={(e) => setMonth(Number(e.target.value))}
+                                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                                                    >
+                                                        {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">From Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={customFromDate}
+                                                        onChange={e => setCustomFromDate(e.target.value)}
+                                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">To Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={customToDate}
+                                                        onChange={e => setCustomToDate(e.target.value)}
+                                                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="flex gap-3">
                                             <button
@@ -333,7 +391,13 @@ export default function IndividualSalaryPage() {
                                                 <div key={salary._id} className="bg-white border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
                                                     <div className="flex items-center justify-between">
                                                         <div>
-                                                            <div className="font-bold text-navy-900">{monthNames[salary.month]} {salary.year}</div>
+                                                            <div className="font-bold text-navy-900">
+                                                                {salary.fromDate && salary.toDate ? (
+                                                                    `${format(new Date(salary.fromDate), 'dd MMM')} - ${format(new Date(salary.toDate), 'dd MMM yyyy')}`
+                                                                ) : (
+                                                                    `${monthNames[salary.month]} ${salary.year}`
+                                                                )}
+                                                            </div>
                                                             <div className="text-sm text-gray-500">
                                                                 {salary.presentDays}/{salary.workingDays} days • ₹{salary.calculatedSalary.toLocaleString()}
                                                             </div>
@@ -362,6 +426,16 @@ export default function IndividualSalaryPage() {
                         )}
                     </div>
                 </div>
+
+                <ModernConfirmModal
+                    isOpen={confirmModal.isOpen}
+                    onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                    onConfirm={confirmGenerate}
+                    title="Generate Individual Salary"
+                    message={`Are you sure you want to generate salary for ${selectedEmployee?.name} - ${monthNames[confirmModal.month]} ${confirmModal.year}?`}
+                    confirmText="Generate"
+                    variant="warning"
+                />
             </main>
         </div>
     );

@@ -14,7 +14,8 @@ export async function GET(req: Request) {
         const token = cookieStore.get('token')?.value;
         if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         const payload: any = verifyToken(token);
-        if (!payload || payload.role !== 'ADMIN') return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+        if (!payload || !adminRoles.includes(payload.role)) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
         // Fetch all employees
         // Fetch all employees (including all sub-roles)

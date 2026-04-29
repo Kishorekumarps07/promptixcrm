@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     }
 
     try {
-        const { employeeId, month, year, preview = false } = await req.json();
+        const { employeeId, month, year, preview = false, customFromDate, customToDate } = await req.json();
 
         if (!employeeId || month === undefined || !year) {
             return NextResponse.json({
@@ -86,18 +86,21 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        // Check if already exists (unless preview mode)
-        const existing = await MonthlySalary.findOne({
-            employeeId,
-            month,
-            year
-        });
+        // Check if already exists (Only for standard monthly generation and non-preview)
+        if (!preview && !customFromDate && !customToDate) {
+            const existing = await MonthlySalary.findOne({
+                employeeId,
+                month,
+                year,
+                fromDate: { $exists: false }
+            });
 
-        if (existing && !preview) {
-            return NextResponse.json({
-                message: 'Salary already generated for this period',
-                salary: existing
-            }, { status: 400 });
+            if (existing) {
+                return NextResponse.json({
+                    message: 'Salary already generated for this period',
+                    salary: existing
+                }, { status: 400 });
+            }
         }
 
         // Get employee salary profile
@@ -113,7 +116,9 @@ export async function POST(req: Request) {
             employeeId,
             profile.monthlySalary,
             month,
-            year
+            year,
+            customFromDate,
+            customToDate
         );
 
         // If preview mode, return calculation without saving
@@ -125,11 +130,16 @@ export async function POST(req: Request) {
             });
         }
 
+        const startDate = customFromDate ? new Date(customFromDate) : new Date(year, month, 1);
+        const endDate = customToDate ? new Date(customToDate) : new Date(year, month + 1, 0);
+
         // Create and save salary record
         const record = await MonthlySalary.create({
             employeeId,
             month,
             year,
+            fromDate: startDate,
+            toDate: endDate,
             workingDays: breakdown.workingDays,
             presentDays: breakdown.fullDayCount,
             halfDays: breakdown.halfDayCount,
@@ -137,6 +147,7 @@ export async function POST(req: Request) {
             unpaidLeaveDays: breakdown.unpaidLeaveDays,
             perDayRate: breakdown.perDayRate,
             calculatedSalary: breakdown.calculatedSalary,
+            dailyBreakdown: breakdown.dailyBreakdown,
             status: 'Draft'
         });
 

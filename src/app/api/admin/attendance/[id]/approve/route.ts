@@ -47,9 +47,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
             // Defaults
             const shiftStartStr = settings?.shiftStartTime || '09:00';
+            const shiftEndStr = settings?.shiftEndTime || '18:00';
             const graceMinutes = settings?.gracePeriodMinutes || 60;
+            const minHours = settings?.minWorkHours || 8;
+            const isStrict = settings?.isStrictMode || false;
 
             const [startHour, startMin] = shiftStartStr.split(':').map(Number);
+            const [endHour, endMin] = shiftEndStr.split(':').map(Number);
 
             const checkInTime = new Date(attendance.checkIn);
             const shiftStart = new Date(checkInTime);
@@ -57,14 +61,35 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
             const lateThreshold = new Date(shiftStart.getTime() + graceMinutes * 60000);
 
+            // 1. Check-In Lateness
             if (checkInTime > lateThreshold) {
+                updates.isLate = true;
+                updates.lateMinutes = Math.floor((checkInTime.getTime() - shiftStart.getTime()) / 60000);
+                
+                // In strict mode, beyond grace is half day. If not strict, it might just be late.
+                // But current logic is: beyond grace = half day. Let's keep that but make it more explicit.
                 updates.isHalfDay = true;
-                updates.isLate = true;
-                updates.lateMinutes = Math.floor((checkInTime.getTime() - shiftStart.getTime()) / 60000);
             } else if (checkInTime > shiftStart) {
-                // Just late but within grace (optional tracking)
                 updates.isLate = true;
                 updates.lateMinutes = Math.floor((checkInTime.getTime() - shiftStart.getTime()) / 60000);
+                // If strict, maybe even 1 minute late is a half day? 
+                // Let's stick to: within grace = Late, beyond grace = Half Day.
+            }
+
+            // 2. Check-Out & Work Hours (Strict Mode)
+            if (isStrict && attendance.checkOut) {
+                const checkOutTime = new Date(attendance.checkOut);
+                const workMs = checkOutTime.getTime() - checkInTime.getTime();
+                const workHours = workMs / (1000 * 60 * 60);
+
+                if (workHours < minHours) {
+                    updates.isHalfDay = true;
+                    updates.remarks = (updates.remarks || '') + ` [Short hours: ${workHours.toFixed(1)}h]`;
+                }
+            } else if (isStrict && !attendance.checkOut) {
+                // Missing checkout in strict mode is half day
+                updates.isHalfDay = true;
+                updates.remarks = (updates.remarks || '') + ' [Missing Check-out]';
             }
         }
 

@@ -32,39 +32,33 @@ export async function POST(req: Request) {
     }
 
     try {
-        const { month, year, bypassDateCheck } = await req.json(); // bypassDateCheck for testing
+        const { month, year, bypassDateCheck, customFromDate, customToDate } = await req.json(); // bypassDateCheck for testing
 
         if (month === undefined || !year) {
             return NextResponse.json({ message: 'Month and Year required' }, { status: 400 });
         }
 
-        // 1. Enforce 5th of Month Rule
+        // 1. Enforce 5th of Month Rule (Only for standard monthly generation)
         const now = new Date();
-        const currentDay = now.getDate();
-
-        // If we are trying to generate for previous months, we must be in the next month (at least)
-        // Simplification: We usually generate for "Last Month".
-        // If today is March 2nd (Year X), we can't generate Feb salary yet (Need 5th March).
-        // If we try generating Jan salary in March, that's fine.
-
-        // Logic: allow generation if (currentDate) >= (targetMonth + 1 month, 5th day).
-        // Example: Target Feb (1). 
-        // Earliest allowed: March (2) 5th.
-
         const generationThresholdDate = new Date(year, month + 1, 5); // 5th of Next Month
-        const startDate = new Date(year, month, 1);
-        const endDate = new Date(year, month + 1, 0);
+        
+        const startDate = customFromDate ? new Date(customFromDate) : new Date(year, month, 1);
+        const endDate = customToDate ? new Date(customToDate) : new Date(year, month + 1, 0);
+        
+        startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
 
-        // Reset times for clean comparison
-        now.setHours(0, 0, 0, 0);
-        generationThresholdDate.setHours(0, 0, 0, 0);
+        // Skip threshold check if custom range is used
+        if (!customFromDate && !customToDate) {
+            now.setHours(0, 0, 0, 0);
+            generationThresholdDate.setHours(0, 0, 0, 0);
 
-        if (now < generationThresholdDate && !bypassDateCheck) {
-            return NextResponse.json({
-                message: `Cannot generate salary before the 5th of the following month.`,
-                minDate: generationThresholdDate
-            }, { status: 400 });
+            if (now < generationThresholdDate && !bypassDateCheck) {
+                return NextResponse.json({
+                    message: `Cannot generate salary before the 5th of the following month.`,
+                    minDate: generationThresholdDate
+                }, { status: 400 });
+            }
         }
 
         // 2. Get Profiles
@@ -79,16 +73,19 @@ export async function POST(req: Request) {
         // 3. Loop Employees
         for (const profile of profiles) {
             try {
-                // Check if already exists
-                const existing = await MonthlySalary.findOne({
-                    employeeId: profile.employeeId,
-                    month,
-                    year
-                });
+                // Check if already exists (Only for standard monthly generation)
+                if (!customFromDate && !customToDate) {
+                    const existing = await MonthlySalary.findOne({
+                        employeeId: profile.employeeId,
+                        month,
+                        year,
+                        fromDate: { $exists: false } // Only check standard monthly ones
+                    });
 
-                if (existing) {
-                    errors.push(`Salary already generated for employee ${profile.employeeId}`);
-                    continue;
+                    if (existing) {
+                        errors.push(`Salary already generated for employee ${profile.employeeId}`);
+                        continue;
+                    }
                 }
 
                 // Check for PENDING Attendance
@@ -123,7 +120,9 @@ export async function POST(req: Request) {
                     profile.employeeId.toString(),
                     profile.monthlySalary,
                     month,
-                    year
+                    year,
+                    customFromDate,
+                    customToDate
                 );
 
                 // Create Record
@@ -131,6 +130,8 @@ export async function POST(req: Request) {
                     employeeId: profile.employeeId,
                     month,
                     year,
+                    fromDate: startDate,
+                    toDate: endDate,
                     workingDays: breakdown.workingDays,
                     presentDays: breakdown.fullDayCount,
                     halfDays: breakdown.halfDayCount,

@@ -11,11 +11,29 @@ const WorkSettingsSchema = new mongoose.Schema({
             message: 'Shift start time must be in HH:mm format'
         }
     },
+    shiftEndTime: {
+        type: String,
+        required: true,
+        default: '18:00', // 24-hour format HH:mm
+        validate: {
+            validator: (v: string) => /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v),
+            message: 'Shift end time must be in HH:mm format'
+        }
+    },
     gracePeriodMinutes: {
         type: Number,
         required: true,
-        default: 60, // 1 hour grace period
+        default: 15,
         min: 0
+    },
+    minWorkHours: {
+        type: Number,
+        default: 8,
+        min: 0
+    },
+    isStrictMode: {
+        type: Boolean,
+        default: false // If true, enforces rules more strictly (e.g. no half day, just late or absent)
     },
     // Weekly Offs (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
     weeklyOffs: {

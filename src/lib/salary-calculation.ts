@@ -26,19 +26,23 @@ export async function calculateEmployeeSalary(
     employeeId: string,
     monthlySalary: number,
     month: number,
-    year: number
+    year: number,
+    customFromDate?: string,
+    customToDate?: string
 ): Promise<SalaryBreakdown> {
-    console.log('✅✅✅ STRICT SALARY CALCULATION STARTED ✅✅✅', { employeeId, month, year });
+    console.log('✅✅✅ STRICT SALARY CALCULATION STARTED ✅✅✅', { employeeId, month, year, customFromDate, customToDate });
 
     const employeeObjectId = new mongoose.Types.ObjectId(employeeId);
 
     // 1. Get Settings & Calendar Basics
-    const workingDaysCount = await getWorkingDaysInMonth(month, year);
-    const perDayRate = Number((monthlySalary / workingDaysCount).toFixed(2));
-
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0);
+    const startDate = customFromDate ? new Date(customFromDate) : new Date(year, month, 1);
+    const endDate = customToDate ? new Date(customToDate) : new Date(year, month + 1, 0);
+    
+    startDate.setHours(0, 0, 0, 0);
     endDate.setHours(23, 59, 59, 999);
+
+    const workingDaysCount = await getWorkingDaysInMonth(month, year); // Still use the full month as the denominator for rate calculation
+    const perDayRate = Number((monthlySalary / workingDaysCount).toFixed(2));
 
     // 2. Fetch all raw data for the month
     const attendanceRecords = await Attendance.find({

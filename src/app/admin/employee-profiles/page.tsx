@@ -9,10 +9,12 @@ import Image from 'next/image';
 import { Eye, Mail, Phone, Briefcase, Calendar, ShieldCheck, MapPin, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
+import ModernConfirmModal from '@/components/ui/ModernConfirmModal';
 
 export default function AdminEmployeeProfiles() {
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({ isOpen: false, id: '', name: '' });
 
     useEffect(() => {
         fetchEmployees();
@@ -33,18 +35,15 @@ export default function AdminEmployeeProfiles() {
             });
     };
 
-    const handleDelete = async (id: string, name: string) => {
+    const handleDelete = async () => {
+        const { id, name } = deleteModal;
         console.log("[DEBUG] handleDelete called for:", id, name);
-        if (!window.confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
-            console.log("[DEBUG] Deletion cancelled by user");
-            return;
-        }
-
+        
         console.log("[DEBUG] Proceeding with deletion of:", id);
         try {
             const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                toast.success('Employee deleted successfully');
+                toast.success(`${name} deleted successfully`);
                 fetchEmployees();
             } else {
                 const data = await res.json();
@@ -113,7 +112,7 @@ export default function AdminEmployeeProfiles() {
                         <Eye size={14} /> View
                     </Link>
                     <button
-                        onClick={() => handleDelete(emp._id, emp.name)}
+                        onClick={() => setDeleteModal({ isOpen: true, id: emp._id, name: emp.name })}
                         className="inline-flex items-center px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all text-xs font-bold gap-1 border border-red-100"
                     >
                         <Trash2 size={14} className="pointer-events-none" /> Delete
@@ -208,7 +207,7 @@ export default function AdminEmployeeProfiles() {
                         View Full Profile
                     </Link>
                     <button
-                        onClick={() => handleDelete(emp._id, emp.name)}
+                        onClick={() => setDeleteModal({ isOpen: true, id: emp._id, name: emp.name })}
                         className="px-3 rounded-xl bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-all border border-red-100 shadow-sm"
                         title="Delete Employee"
                     >
@@ -240,6 +239,16 @@ export default function AdminEmployeeProfiles() {
                         initialViewMode="grid"
                     />
                 </div>
+
+                <ModernConfirmModal
+                    isOpen={deleteModal.isOpen}
+                    onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                    onConfirm={handleDelete}
+                    title="Delete Employee"
+                    message={`Are you sure you want to delete ${deleteModal.name}? This action cannot be undone.`}
+                    confirmText="Delete"
+                    variant="danger"
+                />
             </main>
         </div>
     );

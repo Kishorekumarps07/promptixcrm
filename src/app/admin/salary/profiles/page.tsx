@@ -7,6 +7,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import { useRouter } from 'next/navigation';
 import { IndianRupee, User, Calendar, Edit2, Save, X, Calculator, ShieldCheck, AlertCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import ModernConfirmModal from '@/components/ui/ModernConfirmModal';
 
 export default function SalaryProfiles() {
     const [employees, setEmployees] = useState<any[]>([]);
@@ -18,6 +19,7 @@ export default function SalaryProfiles() {
     const [monthlySalary, setMonthlySalary] = useState('');
     const [effectiveFrom, setEffectiveFrom] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({ isOpen: false, id: '', name: '' });
 
     useEffect(() => {
         fetchProfiles();
@@ -47,6 +49,13 @@ export default function SalaryProfiles() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
+        
+        if (Number(monthlySalary) <= 0) {
+            toast.error('Salary must be greater than zero');
+            setIsSaving(false);
+            return;
+        }
+
         try {
             const res = await fetch('/api/admin/salary/profile', {
                 method: 'POST',
@@ -61,28 +70,27 @@ export default function SalaryProfiles() {
             if (res.ok) {
                 setShowModal(false);
                 fetchProfiles();
-                alert('Salary Profile Saved!');
+                toast.success('Salary Profile Saved Successfully!');
             } else {
-                alert('Failed to save');
+                const data = await res.json();
+                toast.error(data.message || 'Failed to save');
             }
         } catch (e) {
             console.error(e);
+            toast.error('Network error');
         } finally {
             setIsSaving(false);
         }
     };
 
-    const handleDeleteProfile = async (id: string, name: string) => {
+    const handleDeleteProfile = async () => {
+        const { id, name } = deleteModal;
         console.log("[DEBUG] handleDeleteProfile called for:", id, name);
-        if (!window.confirm(`Are you sure you want to remove the salary profile for ${name}? This will stop automatic salary generation for them.`)) {
-            console.log("[DEBUG] Salary profile deletion cancelled");
-            return;
-        }
-
+        
         try {
             const res = await fetch(`/api/admin/salary/profile?employeeId=${id}`, { method: 'DELETE' });
             if (res.ok) {
-                toast.success('Salary profile removed');
+                toast.success(`Salary profile removed for ${name}`);
                 fetchProfiles();
             } else {
                 const data = await res.json();
@@ -169,7 +177,7 @@ export default function SalaryProfiles() {
                                     <div className="flex gap-2">
                                         {emp.salaryProfile && (
                                             <button
-                                                onClick={() => handleDeleteProfile(emp._id, emp.name)}
+                                                onClick={() => setDeleteModal({ isOpen: true, id: emp._id, name: emp.name })}
                                                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100"
                                                 title="Delete Profile"
                                             >
@@ -210,6 +218,7 @@ export default function SalaryProfiles() {
                                         <input
                                             type="number"
                                             required
+                                            min="0"
                                             value={monthlySalary}
                                             onChange={e => setMonthlySalary(e.target.value)}
                                             className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-lg font-bold text-navy-900 font-mono"
@@ -268,6 +277,16 @@ export default function SalaryProfiles() {
                         </div>
                     </div>
                 )}
+
+                <ModernConfirmModal
+                    isOpen={deleteModal.isOpen}
+                    onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                    onConfirm={handleDeleteProfile}
+                    title="Delete Salary Profile"
+                    message={`Are you sure you want to remove the salary profile for ${deleteModal.name}? This will stop automatic salary generation for them.`}
+                    confirmText="Delete Profile"
+                    variant="danger"
+                />
             </main>
         </div>
     );

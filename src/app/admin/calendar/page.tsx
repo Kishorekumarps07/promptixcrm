@@ -11,7 +11,10 @@ import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 
 interface WorkSettings {
     shiftStartTime: string;
+    shiftEndTime: string;
     gracePeriodMinutes: number;
+    minWorkHours: number;
+    isStrictMode: boolean;
     weeklyOffs: number[];
 }
 
@@ -28,7 +31,10 @@ export default function AdminCalendarPage() {
     // Settings State
     const [settings, setSettings] = useState<WorkSettings>({
         shiftStartTime: '09:00',
-        gracePeriodMinutes: 60,
+        shiftEndTime: '18:00',
+        gracePeriodMinutes: 15,
+        minWorkHours: 8,
+        isStrictMode: false,
         weeklyOffs: [0]
     });
 
@@ -50,7 +56,10 @@ export default function AdminCalendarPage() {
 
             if (settingsRes.ok) {
                 const data = await settingsRes.json();
-                setSettings(data);
+                setSettings(prev => ({
+                    ...prev,
+                    ...data
+                }));
             }
             if (holidaysRes.ok) {
                 setHolidays(await holidaysRes.json());
@@ -148,7 +157,10 @@ export default function AdminCalendarPage() {
                                 <div className="flex-1">
                                     <ShiftConfiguration
                                         startTime={settings.shiftStartTime}
+                                        endTime={settings.shiftEndTime}
                                         gracePeriod={settings.gracePeriodMinutes}
+                                        minWorkHours={settings.minWorkHours}
+                                        isStrictMode={settings.isStrictMode}
                                         weeklyOffs={settings.weeklyOffs}
                                         onUpdate={handleUpdateSettings}
                                     />

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
@@ -23,6 +24,11 @@ export default function SalaryGeneration() {
     const [paymentDate, setPaymentDate] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
     const [transactionRef, setTransactionRef] = useState('');
+    
+    // Custom Range States
+    const [isCustomRange, setIsCustomRange] = useState(false);
+    const [customFromDate, setCustomFromDate] = useState('');
+    const [customToDate, setCustomToDate] = useState('');
     
     // Modern Confirm States
     const [confirmModal, setConfirmModal] = useState<{
@@ -78,7 +84,13 @@ export default function SalaryGeneration() {
                 const promise = fetch('/api/admin/salary/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ month, year, bypassDateCheck: true })
+                    body: JSON.stringify({ 
+                        month, 
+                        year, 
+                        bypassDateCheck: true,
+                        customFromDate: isCustomRange ? customFromDate : undefined,
+                        customToDate: isCustomRange ? customToDate : undefined
+                    })
                 }).then(async res => {
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.message);
@@ -267,36 +279,81 @@ export default function SalaryGeneration() {
                         <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
                             {/* Left Side - Period Selector */}
                             <div className="flex-1 w-full">
-                                <h3 className="text-lg font-black text-navy-900 mb-4 flex items-center gap-2">
-                                    <Calendar className="w-5 h-5 text-orange-500" />
-                                    Select Payroll Period
-                                </h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Year</label>
-                                        <div className="relative">
-                                            <select
-                                                value={year} onChange={e => setYear(Number(e.target.value))}
-                                                className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 appearance-none cursor-pointer hover:border-orange-300"
-                                            >
-                                                {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-                                            </select>
-                                            <Calendar size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Month</label>
-                                        <div className="relative">
-                                            <select
-                                                value={month} onChange={e => setMonth(Number(e.target.value))}
-                                                className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 appearance-none cursor-pointer hover:border-orange-300"
-                                            >
-                                                {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                                            </select>
-                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</div>
-                                        </div>
+                                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                                    <h3 className="text-lg font-black text-navy-900 flex items-center gap-2">
+                                        <Calendar className="w-5 h-5 text-orange-500" />
+                                        Select Payroll Period
+                                    </h3>
+                                    
+                                    <div className="flex bg-gray-100 p-1 rounded-xl w-fit">
+                                        <button 
+                                            onClick={() => setIsCustomRange(false)}
+                                            className={`px-4 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all ${!isCustomRange ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            Monthly Cycle
+                                        </button>
+                                        <button 
+                                            onClick={() => setIsCustomRange(true)}
+                                            className={`px-4 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all ${isCustomRange ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            Custom Range
+                                        </button>
                                     </div>
                                 </div>
+
+                                {!isCustomRange ? (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Year</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={year} onChange={e => setYear(Number(e.target.value))}
+                                                    className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 appearance-none cursor-pointer hover:border-orange-300"
+                                                >
+                                                    {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+                                                </select>
+                                                <Calendar size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Month</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={month} onChange={e => setMonth(Number(e.target.value))}
+                                                    className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 appearance-none cursor-pointer hover:border-orange-300"
+                                                >
+                                                    {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">From Date</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="date"
+                                                    value={customFromDate}
+                                                    onChange={e => setCustomFromDate(e.target.value)}
+                                                    className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 cursor-pointer hover:border-orange-300"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">To Date</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="date"
+                                                    value={customToDate}
+                                                    onChange={e => setCustomToDate(e.target.value)}
+                                                    className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-lg font-bold text-navy-900 cursor-pointer hover:border-orange-300"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Right Side - Action Button */}

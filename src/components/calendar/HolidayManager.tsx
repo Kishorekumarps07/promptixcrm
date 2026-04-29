@@ -115,8 +115,11 @@ export default function HolidayManager({
                 {/* Calendar View */}
                 {view === 'calendar' && (
                     <div className="grid grid-cols-7 gap-1 md:gap-2">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                            <div key={day} className="text-center text-xs font-semibold text-gray-400 py-2 uppercase tracking-wider">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
+                            <div key={day} className={cn(
+                                "text-center text-xs font-semibold py-2 uppercase tracking-wider",
+                                idx === 0 ? "text-red-500" : "text-gray-400"
+                            )}>
                                 {day}
                             </div>
                         ))}
@@ -140,7 +143,8 @@ export default function HolidayManager({
                                     <div className="flex justify-between items-start">
                                         <span className={cn(
                                             "text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full",
-                                            isToday(day) ? "bg-blue-500 text-white" : "text-gray-700 dark:text-gray-300"
+                                            isToday(day) ? "bg-blue-500 text-white" : 
+                                            day.getDay() === 0 ? "text-red-500 font-bold" : "text-gray-700 dark:text-gray-300"
                                         )}>
                                             {format(day, 'd')}
                                         </span>

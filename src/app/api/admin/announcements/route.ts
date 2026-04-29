@@ -14,7 +14,8 @@ export async function POST(req: Request) {
 
     if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     const payload: any = verifyToken(token);
-    if (!payload || payload.role !== 'ADMIN') return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+    if (!payload || !adminRoles.includes(payload.role)) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
     try {
         const { title, content, type, priority } = await req.json();

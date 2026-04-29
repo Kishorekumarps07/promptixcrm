@@ -14,6 +14,12 @@ const MonthlySalarySchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    fromDate: {
+        type: Date
+    },
+    toDate: {
+        type: Date
+    },
     workingDays: {
         type: Number,
         required: true
@@ -71,6 +77,7 @@ const MonthlySalarySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Prevent duplicate generation for same employee/month/year
-MonthlySalarySchema.index({ employeeId: 1, month: 1, year: 1 }, { unique: true });
+// Index for performance
+MonthlySalarySchema.index({ employeeId: 1, month: 1, year: 1 });
 
 export default mongoose.models.MonthlySalary || mongoose.model('MonthlySalary', MonthlySalarySchema);
