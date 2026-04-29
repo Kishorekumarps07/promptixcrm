@@ -8,25 +8,35 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
+        console.log('[Login] Attempting login for:', email);
+
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
+            
             const data = await res.json();
+            console.log('[Login] Response status:', res.status);
 
             if (!res.ok) throw new Error(data.message || 'Login failed');
 
+            console.log('[Login] Success, user role:', data.user.role);
             login(data.user);
         } catch (err: any) {
+            console.error('[Login] Error:', err.message);
             setError(err.message || 'Invalid credentials');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -74,9 +84,18 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition duration-200 shadow-md hover:shadow-lg"
+                            disabled={loading}
+                            className={`w-full bg-orange-500 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-orange-600'}`}
                         >
-                            Sign In
+                            {loading ? (
+                                <span className="flex items-center justify-center">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Signing In...
+                                </span>
+                            ) : 'Sign In'}
                         </button>
                     </form>
                 </div>

@@ -49,8 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         if (userData.forcePasswordChange) {
             router.push('/auth/force-change-password');
-        } else if (userData.role === 'ADMIN') router.push('/admin/dashboard');
-        else if (userData.role === 'EMPLOYEE') router.push('/employee/dashboard');
+        } else {
+            const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+            if (adminRoles.includes(userData.role)) {
+                router.push('/admin/dashboard');
+            } else {
+                router.push('/employee/dashboard');
+            }
+        }
     };
 
     const logout = async () => {
