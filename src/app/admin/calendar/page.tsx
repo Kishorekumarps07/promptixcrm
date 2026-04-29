@@ -24,7 +24,6 @@ interface Holiday {
 
 export default function AdminCalendarPage() {
     const [loading, setLoading] = useState(true);
-    const [syncLoading, setSyncLoading] = useState(false);
 
     // Settings State
     const [settings, setSettings] = useState<WorkSettings>({
@@ -119,26 +118,6 @@ export default function AdminCalendarPage() {
         }
     };
 
-    const handleSyncIndianHolidays = async () => {
-        setSyncLoading(true);
-        try {
-            const res = await fetch('/api/admin/calendar/holidays/sync', {
-                method: 'POST',
-                body: JSON.stringify({ year: new Date().getFullYear(), region: 'IN' })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                toast.success(`Synced ${data.count} holidays!`);
-                fetchData(); // Refresh list to show new ones
-            } else {
-                throw new Error();
-            }
-        } catch (error) {
-            toast.error('Failed to sync holidays');
-        } finally {
-            setSyncLoading(false);
-        }
-    };
 
     return (
         <div className="flex h-screen bg-[#f3f4f6] dark:bg-[#0B1120] overflow-hidden">
@@ -196,8 +175,6 @@ export default function AdminCalendarPage() {
                                     holidays={holidays}
                                     onAddHoliday={handleAddHoliday}
                                     onDeleteHoliday={handleDeleteHoliday}
-                                    onSyncIndianHolidays={handleSyncIndianHolidays}
-                                    syncLoading={syncLoading}
                                 />
                             </motion.div>
                         </div>

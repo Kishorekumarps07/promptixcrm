@@ -31,16 +31,12 @@ interface HolidayManagerProps {
     holidays: Holiday[];
     onAddHoliday: (holiday: { date: string; name: string; type: string }) => Promise<void>;
     onDeleteHoliday: (id: string) => Promise<void>;
-    onSyncIndianHolidays: () => Promise<void>;
-    syncLoading: boolean;
 }
 
 export default function HolidayManager({
     holidays,
     onAddHoliday,
     onDeleteHoliday,
-    onSyncIndianHolidays,
-    syncLoading
 }: HolidayManagerProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -114,15 +110,6 @@ export default function HolidayManager({
                             <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                         </button>
                     </div>
-
-                    <button
-                        onClick={onSyncIndianHolidays}
-                        disabled={syncLoading}
-                        className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-lg transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50"
-                    >
-                        {syncLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <PartyPopper className="w-4 h-4" />}
-                        Sync Indian Holidays
-                    </button>
                 </div>
 
                 {/* Calendar View */}
