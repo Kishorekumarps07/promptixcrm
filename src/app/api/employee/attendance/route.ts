@@ -31,8 +31,11 @@ export async function GET() {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Normalize 'today' to IST midnight (UTC+5:30)
+    // This ensures consistency regardless of server location (e.g. Vercel UTC)
+    const now = new Date();
+    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    const today = new Date(Date.UTC(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate()));
 
     try {
         const record = await Attendance.findOne({ userId, date: today });
@@ -55,8 +58,9 @@ export async function POST(req: Request) {
     console.log("Attendance POST Body:", body); // Debug log
     const { type } = body;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    const today = new Date(Date.UTC(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate()));
 
     try {
         const existing = await Attendance.findOne({ userId, date: today });
@@ -130,8 +134,9 @@ export async function PATCH() {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    const today = new Date(Date.UTC(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate()));
 
     try {
         // 1. Find the existing record
