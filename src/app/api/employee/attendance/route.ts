@@ -31,11 +31,11 @@ export async function GET() {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-    // Normalize 'today' to IST midnight (UTC+5:30)
-    // This ensures consistency regardless of server location (e.g. Vercel UTC)
+    // Normalize 'today' to IST midnight (which is 18:30 UTC of the previous day)
+    // This matches existing database records and ensures consistency on Vercel.
     const now = new Date();
-    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-    const today = new Date(Date.UTC(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate()));
+    const istDateString = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)).toISOString().split('T')[0];
+    const today = new Date(istDateString + 'T00:00:00+05:30');
 
     try {
         const record = await Attendance.findOne({ userId, date: today });
@@ -59,8 +59,8 @@ export async function POST(req: Request) {
     const { type } = body;
 
     const now = new Date();
-    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-    const today = new Date(Date.UTC(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate()));
+    const istDateString = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)).toISOString().split('T')[0];
+    const today = new Date(istDateString + 'T00:00:00+05:30');
 
     try {
         const existing = await Attendance.findOne({ userId, date: today });
@@ -135,8 +135,8 @@ export async function PATCH() {
     if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
     const now = new Date();
-    const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
-    const today = new Date(Date.UTC(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate()));
+    const istDateString = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)).toISOString().split('T')[0];
+    const today = new Date(istDateString + 'T00:00:00+05:30');
 
     try {
         // 1. Find the existing record
