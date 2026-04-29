@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
+const SECRET = new TextEncoder().encode((process.env.JWT_SECRET || 'fallback-secret').trim());
 
 const allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:3000',
     'https://promptix.pro',
     'https://www.promptix.pro'
 ];
@@ -15,13 +16,13 @@ export async function middleware(req: NextRequest) {
 
     // CORS Handling
     const origin = req.headers.get('origin');
-    const isAllowedOrigin = origin && allowedOrigins.includes(origin);
+    const isAllowedOrigin = origin && (allowedOrigins.includes(origin) || origin.endsWith('.promptix.pro'));
     const isPreflight = req.method === 'OPTIONS';
 
     // Handle CORS Preflight
     if (isPreflight) {
         const headers = {
-            'Access-Control-Allow-Method': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
             'Access-Control-Max-Age': '86400', // 24 hours
         };
@@ -37,7 +38,7 @@ export async function middleware(req: NextRequest) {
             });
         }
 
-        // If not allowed origin in perflight, just continue or 200 without CORS headers (strict)
+        // If not allowed origin in preflight, just continue or 200 without CORS headers (strict)
         return new NextResponse(null, { status: 200, headers });
     }
 
@@ -55,7 +56,6 @@ export async function middleware(req: NextRequest) {
     const token = req.cookies.get('token')?.value;
 
     // Protect routes (UI and API)
-    // Protect routes (UI and API)
     const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin');
     const isEmployeeRoute = pathname.startsWith('/employee') || pathname.startsWith('/api/employee');
 
@@ -71,11 +71,17 @@ export async function middleware(req: NextRequest) {
             const { payload } = await jwtVerify(token, SECRET);
             const role = payload.role as string;
 
-            if (isAdminRoute && role !== 'ADMIN') {
+            // Define high-privilege roles that can access admin routes
+            const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+            
+            if (isAdminRoute && !adminRoles.includes(role)) {
                 if (pathname.startsWith('/api')) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
                 return NextResponse.redirect(new URL('/', req.url));
             }
-            if (isEmployeeRoute && role !== 'EMPLOYEE') {
+            
+            // Any authenticated user should ideally be able to see "employee" level dashboards if they are part of the system
+            // but we can restrict it if needed. For now, let's just ensure they have A role.
+            if (isEmployeeRoute && !role) {
                 if (pathname.startsWith('/api')) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
                 return NextResponse.redirect(new URL('/', req.url));
             }

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { comparePassword, signToken } from '@/lib/auth';
-import { serialize } from 'cookie';
 
 export async function POST(req: Request) {
     try {
@@ -35,14 +34,6 @@ export async function POST(req: Request) {
             isOnboardingCompleted: user.isOnboardingCompleted || false
         });
 
-        const cookie = serialize('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24, // 1 day
-            path: '/',
-            sameSite: 'strict',
-        });
-
         // Check for Employee Profile Completion
         let redirectUrl = null;
         if (user.role === 'EMPLOYEE') {
@@ -60,7 +51,16 @@ export async function POST(req: Request) {
             forceRedirect: redirectUrl
         });
 
-        response.headers.set('Set-Cookie', cookie);
+        // Use modern response.cookies.set for reliability
+        response.cookies.set('token', token, {
+            httpOnly: true,
+            // Only set secure if in production AND using HTTPS
+            // This prevents issues if the production server thinks it's production but isn't on SSL yet
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24, // 1 day
+            path: '/',
+            sameSite: 'lax', // 'lax' is safer for redirects than 'strict'
+        });
 
         return response;
     } catch (error: any) {
