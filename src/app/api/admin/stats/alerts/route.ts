@@ -20,7 +20,8 @@ export async function GET() {
 
     try {
         const { payload } = await jwtVerify(token, SECRET);
-        if (payload.role !== 'ADMIN') return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+        if (!adminRoles.includes(payload.role as string)) return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     } catch {
         return NextResponse.json({ message: 'Invalid Token' }, { status: 401 });
     }
