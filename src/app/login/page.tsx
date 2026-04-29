@@ -18,6 +18,13 @@ export default function LoginPage() {
         setLoading(true);
         console.log('[Login] Attempting login for:', email);
 
+        // Gmail validation
+        if (!email.toLowerCase().endsWith('@gmail.com')) {
+            setError('Please use a valid Gmail address (@gmail.com)');
+            setLoading(false);
+            return;
+        }
+
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
@@ -66,7 +73,7 @@ export default function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                                placeholder="name@company.com"
+                                placeholder="yourname@gmail.com"
                             />
                         </div>
 
