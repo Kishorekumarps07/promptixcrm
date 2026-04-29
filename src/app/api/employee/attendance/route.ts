@@ -18,7 +18,6 @@ async function getUserId() {
     if (!token) return null;
     try {
         const { payload } = await jwtVerify(token, SECRET);
-        if (payload.role !== 'EMPLOYEE') return null; // Strict Role Check
         return payload.userId;
     } catch {
         return null;

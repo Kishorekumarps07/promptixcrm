@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         }
 
         const payload: any = verifyToken(token);
-        if (!payload || payload.role !== 'EMPLOYEE') {
+        if (!payload) {
             return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
         }
 

@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { useRouter } from 'next/navigation';
-import { DollarSign, User, Calendar, Edit2, Save, X, Calculator, ShieldCheck, AlertCircle, Trash2 } from 'lucide-react';
+import { IndianRupee, User, Calendar, Edit2, Save, X, Calculator, ShieldCheck, AlertCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SalaryProfiles() {
@@ -125,7 +125,7 @@ export default function SalaryProfiles() {
                                     </div>
                                     {emp.salaryProfile && (
                                         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
-                                            <DollarSign size={120} />
+                                            <IndianRupee size={120} />
                                         </div>
                                     )}
                                 </div>
@@ -136,7 +136,7 @@ export default function SalaryProfiles() {
                                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Monthly</span>
                                             <div className="font-bold text-xl text-navy-900">
                                                 {emp.salaryProfile ? (
-                                                    `$${Number(emp.salaryProfile.monthlySalary).toLocaleString()}`
+                                                    `₹${Number(emp.salaryProfile.monthlySalary).toLocaleString()}`
                                                 ) : (
                                                     <span className="text-gray-400 text-sm italic font-medium">Not Set</span>
                                                 )}
@@ -146,7 +146,7 @@ export default function SalaryProfiles() {
                                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Daily Rate</span>
                                             <div className="font-bold text-lg text-orange-600">
                                                 {emp.salaryProfile ? (
-                                                    `$${emp.calculatedPerDayRate}`
+                                                    `₹${emp.calculatedPerDayRate}`
                                                 ) : (
                                                     <span className="text-gray-400 text-sm italic font-medium">-</span>
                                                 )}
@@ -205,7 +205,7 @@ export default function SalaryProfiles() {
 
                             <form onSubmit={handleSave} className="p-6 space-y-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Monthly Salary (USD)</label>
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Monthly Salary (INR)</label>
                                     <div className="relative">
                                         <input
                                             type="number"
@@ -215,7 +215,7 @@ export default function SalaryProfiles() {
                                             className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-lg font-bold text-navy-900 font-mono"
                                             placeholder="0.00"
                                         />
-                                        <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <IndianRupee size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                     </div>
                                 </div>
 
@@ -241,7 +241,7 @@ export default function SalaryProfiles() {
                                         <div>
                                             <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Estimated Daily Rate</p>
                                             <p className="text-sm font-bold text-navy-900">
-                                                ${(Number(monthlySalary) / 30).toFixed(2)} <span className="text-xs font-normal text-gray-500">per day (approx)</span>
+                                                ₹{(Number(monthlySalary) / 30).toFixed(2)} <span className="text-xs font-normal text-gray-500">per day (approx)</span>
                                             </p>
                                         </div>
                                     </div>

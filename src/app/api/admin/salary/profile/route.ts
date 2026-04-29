@@ -25,14 +25,15 @@ export async function GET(req: Request) {
     await dbConnect();
     const userInfo = await getUserInfo();
 
-    if (!userInfo || userInfo.role !== 'ADMIN') {
+    const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+    if (!userInfo || !adminRoles.includes(userInfo.role as string)) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
     try {
         // 1. Get all employees
         const employees = await User.find({ 
-            role: { $in: ['EMPLOYEE', 'ADMIN'] },
+            role: { $in: ['EMPLOYEE', 'ADMIN', 'MANAGER', 'HR', 'SALES', 'ACCOUNTS', 'MARKETING', 'SUPPORT', 'IT'] },
             status: 'Active' 
         })
             .select('name email role photo')
@@ -74,7 +75,8 @@ export async function POST(req: Request) {
     await dbConnect();
     const userInfo = await getUserInfo();
 
-    if (!userInfo || userInfo.role !== 'ADMIN') {
+    const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+    if (!userInfo || !adminRoles.includes(userInfo.role as string)) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
@@ -107,7 +109,8 @@ export async function DELETE(req: Request) {
     await dbConnect();
     const userInfo = await getUserInfo();
 
-    if (!userInfo || userInfo.role !== 'ADMIN') {
+    const adminRoles = ['ADMIN', 'MANAGER', 'HR', 'IT'];
+    if (!userInfo || !adminRoles.includes(userInfo.role as string)) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 

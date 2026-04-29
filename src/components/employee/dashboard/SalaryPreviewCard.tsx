@@ -75,7 +75,7 @@ export default function SalaryPreviewCard({ latestSalary }: SalaryPreviewCardPro
                         </p>
                         <div className="flex items-baseline gap-2 mb-2">
                             <span className="text-4xl font-black text-navy-900 tracking-tight">
-                                ${latestSalary.calculatedSalary.toLocaleString()}
+                                ₹{latestSalary.calculatedSalary.toLocaleString()}
                             </span>
                         </div>
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${getStatusBadge(latestSalary.status)}`}>

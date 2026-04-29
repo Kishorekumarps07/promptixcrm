@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
-import { Search, Eye, Play, FileText, Download, Calendar, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Eye, Play, FileText, Download, Calendar, IndianRupee, CheckCircle, AlertCircle } from 'lucide-react';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
 
 export default function IndividualSalaryPage() {
@@ -39,7 +39,7 @@ export default function IndividualSalaryPage() {
             const res = await fetch('/api/admin/users');
             if (res.ok) {
                 const data = await res.json();
-                setEmployees(data.users?.filter((u: any) => u.role === 'EMPLOYEE') || []);
+                setEmployees(data.users || []);
             }
         } catch (error) {
             console.error('Error fetching employees:', error);
@@ -306,11 +306,11 @@ export default function IndividualSalaryPage() {
                                             <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                                                 <div>
                                                     <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Per Day Rate</div>
-                                                    <div className="text-lg font-bold text-navy-900">${preview.breakdown.perDayRate}</div>
+                                                    <div className="text-lg font-bold text-navy-900">₹{preview.breakdown.perDayRate}</div>
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-xs text-gray-500 font-bold uppercase tracking-wider">Total Payout</div>
-                                                    <div className="text-2xl font-black text-green-600">${preview.breakdown.calculatedSalary.toLocaleString()}</div>
+                                                    <div className="text-2xl font-black text-green-600">₹{preview.breakdown.calculatedSalary.toLocaleString()}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -335,7 +335,7 @@ export default function IndividualSalaryPage() {
                                                         <div>
                                                             <div className="font-bold text-navy-900">{monthNames[salary.month]} {salary.year}</div>
                                                             <div className="text-sm text-gray-500">
-                                                                {salary.presentDays}/{salary.workingDays} days • ${salary.calculatedSalary.toLocaleString()}
+                                                                {salary.presentDays}/{salary.workingDays} days • ₹{salary.calculatedSalary.toLocaleString()}
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2">

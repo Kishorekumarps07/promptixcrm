@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
 import PageHeader from '@/components/ui/PageHeader';
 import { generateSalarySlipPDF } from '@/lib/salary-slip-pdf';
-import { Check, Download, DollarSign, Calendar, CreditCard, Play, FileText, AlertCircle, CheckCircle, Search, X, Info, MessageSquare, Trash2 } from 'lucide-react';
+import { Check, Download, IndianRupee, Calendar, CreditCard, Play, FileText, AlertCircle, CheckCircle, Search, X, Info, MessageSquare, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ModernConfirmModal from '@/components/ui/ModernConfirmModal';
 
@@ -416,12 +416,12 @@ export default function SalaryGeneration() {
                                         <div className="flex gap-6">
                                             <div>
                                                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Per Day Rate</div>
-                                                <div className="font-bold text-navy-900 text-lg">${salary.perDayRate}</div>
+                                                <div className="font-bold text-navy-900 text-lg">₹{salary.perDayRate}</div>
                                             </div>
                                             <div className="h-12 w-px bg-gray-200"></div>
                                             <div>
                                                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Payout</div>
-                                                <div className="font-black text-2xl text-green-600">${salary.calculatedSalary.toLocaleString()}</div>
+                                                <div className="font-black text-2xl text-green-600">₹{salary.calculatedSalary.toLocaleString()}</div>
                                             </div>
                                         </div>
 
@@ -444,7 +444,7 @@ export default function SalaryGeneration() {
                                                     className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors tooltip"
                                                     title="Mark as Paid"
                                                 >
-                                                    <DollarSign size={20} />
+                                                    <IndianRupee size={20} />
                                                 </button>
                                             )}
                                             <button
@@ -504,7 +504,7 @@ export default function SalaryGeneration() {
                             <div className="p-8 space-y-6">
                                 <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100 mb-6">
                                     <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Amount to Pay</p>
-                                    <p className="text-4xl font-black text-green-700">${selectedSalary.calculatedSalary.toLocaleString()}</p>
+                                    <p className="text-4xl font-black text-green-700">₹{selectedSalary.calculatedSalary.toLocaleString()}</p>
                                 </div>
 
                                 <div className="space-y-1.5">

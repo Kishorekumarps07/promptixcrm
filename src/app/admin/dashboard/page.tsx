@@ -9,7 +9,7 @@ import RecentActivityFeed from '@/components/dashboard/RecentActivityFeed';
 import WeeklyAttendanceChart from '@/components/dashboard/WeeklyAttendanceChart';
 import SalaryTrendChart from '@/components/dashboard/SalaryTrendChart';
 import ModernGlassCard from '@/components/ui/ModernGlassCard';
-import { Users, Target, Calendar, Clock, DollarSign, Lock, Activity } from 'lucide-react';
+import { Users, Target, Calendar, Clock, IndianRupee, Lock, Activity } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
                             <EnhancedKPICard
                                 title="Salary Drafts"
                                 value={stats?.salary?.draft || 0}
-                                icon={<DollarSign size={24} />}
+                                icon={<IndianRupee size={24} />}
                                 color="text-purple-600 bg-purple-500"
                                 link="/admin/salary/generate"
                                 badge={stats?.salary?.draft}

@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     await dbConnect();
     const userInfo = await getUserInfo();
 
-    if (!userInfo || userInfo.role !== 'EMPLOYEE') {
+    if (!userInfo) {
         return NextResponse.json({ message: 'Unauthorized - Employee access only' }, { status: 403 });
     }
 
