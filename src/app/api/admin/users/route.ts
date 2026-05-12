@@ -67,18 +67,16 @@ export async function POST(req: Request) {
         console.info(`[AUDIT] User Created: ${user.email} (${user.role}) by Admin`);
 
         // Send Welcome Email
-        if (role === 'EMPLOYEE' || role === 'Employee') {
-            try {
-                await sendEmail({
-                    to: email,
-                    subject: 'Welcome to the Team! 🎉',
-                    html: EmailTemplates.welcomeEmail(name, email, role)
-                });
-                console.info(`[EMAIL] Welcome email sent to ${email}`);
-            } catch (emailError) {
-                console.error(`[EMAIL ERROR] Failed to send welcome email:`, emailError);
-                // Don't fail the request if email fails, just log it
-            }
+        try {
+            await sendEmail({
+                to: email,
+                subject: 'Welcome to the Team! 🎉',
+                html: EmailTemplates.welcomeEmail(name, email, role)
+            });
+            console.info(`[EMAIL] Welcome email sent to ${email}`);
+        } catch (emailError) {
+            console.error(`[EMAIL ERROR] Failed to send welcome email:`, emailError);
+            // Don't fail the request if email fails, just log it
         }
 
         return NextResponse.json({ message: 'User created', user });

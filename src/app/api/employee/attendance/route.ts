@@ -10,7 +10,7 @@ import { sendEmail } from '@/lib/email';
 import { EmailTemplates } from '@/lib/email-templates';
 
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
-const ADMIN_EMAIL = process.env.VAL_ADMIN_EMAIL || process.env.ADMIN_EMAIL || process.env.VAL_SMTP_USER || process.env.SMTP_USER || 'admin@example.com';
+const getAdminEmail = () => process.env.VAL_ADMIN_EMAIL || process.env.ADMIN_EMAIL || process.env.VAL_SMTP_USER || process.env.SMTP_USER || 'infopromptix@gmail.com';
 
 async function getUserId() {
     const cookieStore = await cookies();
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
             }).format(new Date());
 
             await sendEmail({
-                to: ADMIN_EMAIL,
+                to: getAdminEmail(),
                 subject: `📢 Attendance Alert: ${user.name} Checked In`,
                 html: EmailTemplates.adminAttendanceAlert(
                     user.name,
@@ -168,7 +168,7 @@ export async function PATCH() {
             }).format(new Date());
 
             await sendEmail({
-                to: ADMIN_EMAIL,
+                to: getAdminEmail(),
                 subject: `📢 Attendance Alert: ${user.name} Checked Out`,
                 html: EmailTemplates.adminAttendanceAlert(
                     user.name,

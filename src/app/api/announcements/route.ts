@@ -68,7 +68,7 @@ export async function POST(req: Request) {
         console.log(`[DEBUG] Roles found:`, allUsers.map(u => u.role));
 
         const recipients = await User.find({
-            role: { $in: ['EMPLOYEE', 'MANAGER', 'Employee', 'Manager', 'employee', 'manager'] },
+            role: { $ne: 'ADMIN' },
             status: 'Active'
         }).select('email name');
 

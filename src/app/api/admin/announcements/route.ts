@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         // 2. Fetch All Relevant Users (Employees + Managers)
         // We include both roles as they both count as "staff"
         const employees = await User.find({
-            role: { $in: ['EMPLOYEE', 'MANAGER', 'Employee', 'Manager', 'employee', 'manager'] },
+            role: { $ne: 'ADMIN' },
             status: 'Active'
         }).select('email name');
 
